@@ -217,7 +217,7 @@ header .label{text-align:center}
           <input type="text" id="st-n" list="ingr" placeholder="Aliment (aubergine, riz…)" autocomplete="off" aria-label="Aliment">
           <input type="number" id="st-q" value="1" min="0" step="0.5" inputmode="decimal" aria-label="Quantité">
           <select id="st-u" aria-label="Unité"><option value="pc">pièce(s)</option><option value="g">g</option><option value="ml">ml</option><option value="botte">botte(s)</option><option value="gousse">gousse(s)</option></select>
-          <label class="exp"><span>À consommer avant</span><input type="date" id="st-e"></label>
+          <label class="exp"><span>Jours restants</span><input type="number" id="st-e" min="0" step="1" inputmode="numeric" placeholder="—"></label>
           <button type="button" id="st-add">Ajouter</button>
         </div></div>
       <div class="pins" id="stock"></div>
@@ -432,6 +432,8 @@ const norm = t => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase
 const stem = t => norm(t).split(/\s+/).map(w => w.replace(/(s|x)$/, "")).join(" ");
 const SYN = {"courge":"butternut","potiron":"butternut","potimarron":"butternut","pomme de terre":"pommes de terre","patate":"pommes de terre","champignon":"champignons de paris","epinard":"epinards frais","tomate cerise":"tomates cerises","oeuf":"oeufs","lait coco":"lait de coco"};
 const PIECE_G = {"patate douce":300,"courgette":200,"aubergine":300,"butternut":1000,"pomme de terre":150,"carotte":100,"oignon":100,"oignon rouge":100,"tomate":120,"tomate cerise":15,"brocoli":400,"chou-fleur":800,"poivron rouge":150,"poivron vert":150,"champignon de pari":20,"avocat":200,"echalote":30};
+// Légumes qu'on compte à la pièce (les champignons, eux, se pèsent)
+const COUNTED = ["patate douce","courgette","aubergine","butternut","carotte","oignon","oignon rouge","tomate","brocoli","chou-fleur","poivron rouge","poivron vert","avocat","echalote","citron vert","oeufs"];
 const syn = n => { const k = stem(n); return SYN[k] ? stem(SYN[k]) : k; };
 function same(listName, stockName){
   const a = stem(listName), b = syn(stockName);
@@ -482,13 +484,15 @@ function consumed(s, it){
 function fmtStock(it){
   const q = String(Math.round(it.q * 100) / 100).replace(".", ",").replace(/^0,5$/, "½");
   const u = {pc: "", g: " g", ml: " ml", botte: " botte" + (it.q > 1 ? "s" : ""), gousse: " gousse" + (it.q > 1 ? "s" : "")}[it.u] || "";
-  return q + u + " " + it.n + (it.exp ? " · avant le " + short(it.exp) : "");
+  const left = it.exp ? daysTo(it.exp) : null;
+  return q + u + " " + it.n + (left === null ? "" : left < 0 ? " · périmé" : left === 0 ? " · dernier jour" : " · encore " + left + " j");
 }
 function addStock(){
   const nIn = document.getElementById("st-n"), qIn = document.getElementById("st-q"), uIn = document.getElementById("st-u");
   const parsed = parseStock(nIn.value);
   if (!parsed) return;
-  const exp = document.getElementById("st-e").value || null;
+  const days = document.getElementById("st-e").value;   // nombre de jours restants → date limite
+  const exp = days === "" ? null : (d => (d.setDate(d.getDate() + Math.max(0, parseInt(days, 10) || 0)), iso(d)))(today());
   const it = parsed.q != null ? {n: parsed.n, q: parsed.q, u: parsed.u || "pc"}   // « 2 aubergines » tapé d'un bloc
     : {n: parsed.n, q: parseFloat(String(qIn.value).replace(",", ".")) || 1, u: parsed.u || uIn.value};
   const list = stock().filter(x => stem(x.n) !== stem(it.n) || x.u !== it.u);
@@ -535,7 +539,7 @@ function generate(){
   left.forEach(it => { const c = consumed(best, it);
     if (c.q > 0) hit.push(it.n + " " + String(Math.round(Math.min(c.q, it.q) * 10) / 10).replace(".", ",") + "/" + String(it.q).replace(".", ","));
     else if (c.partial) hit.push(it.n); else if (!(it.exp && it.exp < iso(dayDate(-1)))) miss.push(it.n + (c.late ? " (périmé avant le jour où le plat serait cuisiné)" : "")); });
-  const early = left.filter(it => it.exp && it.exp < iso(dayDate(-1))).map(it => it.n + " (" + short(it.exp) + ")");
+  const early = left.filter(it => it.exp && it.exp < iso(dayDate(-1))).map(it => it.n + " (" + (daysTo(it.exp) <= 0 ? "dernier jour" : "encore " + daysTo(it.exp) + " j") + ")");
   const msg = document.getElementById("gen-msg"); msg.innerHTML = "";
   msg.append("Semaine générée : " + meals() + " repas avec viande. ");
   if (hit.length) msg.append("Restes utilisés : ", el("b",{}, hit.join(", ")), ". ");
@@ -896,7 +900,7 @@ document.getElementById("pin-add").addEventListener("change", e => {
 });
 document.getElementById("st-add").addEventListener("click", addStock);
 ["st-n","st-q"].forEach(id => document.getElementById(id).addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); addStock(); } }));
-document.getElementById("st-n").addEventListener("change", e => { const p = parseStock(e.target.value); if (p && !p.u) document.getElementById("st-u").value = pieceG(p.n) ? "pc" : knownUnit(p.n); });
+document.getElementById("st-n").addEventListener("change", e => { const p = parseStock(e.target.value); if (p && !p.u) document.getElementById("st-u").value = COUNTED.some(x => same(x, p.n) || same(p.n, x)) ? "pc" : knownUnit(p.n); });
 document.getElementById("gen").addEventListener("click", generate);
 
 showTab(tab);
