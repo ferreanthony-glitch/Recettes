@@ -1,4 +1,4 @@
-<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#f7f3ec"><meta name="color-scheme" content="light"><title>Comment ça marche</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,600;9..40,700&display=swap"><link rel="stylesheet" href="style.css"><link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon-180.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Miam!"><meta name="apple-mobile-web-app-status-bar-style" content="default"><script>if ("serviceWorker" in navigator && /github\.io$|^localhost$/.test(location.hostname)) navigator.serviceWorker.register("sw.js", {updateViaCache: "none"}).catch(() => {});</script></head><body><header class="site"><div class="in"><a class="brand" href="index.html">Miam!</a><nav class="nav"><a href="index.html">Recueil</a><a href="semaine.html">Ma semaine</a><a href="guide.html" class="on">Guide</a><a href="compte.html" class="acc">Profil</a></nav></div></header><main class="wrap"><section class="hero"><h1>Comment ça marche</h1><p>La logique de Miam! : comment un repas est composé, comment la semaine est construite, et les équivalences pour adapter une recette. D'après le livret LaSèche 2024 et les règles que tu as fixées.</p></section>
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#f7f3ec"><meta name="color-scheme" content="light"><title>Comment ça marche</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,600;9..40,700&display=swap"><link rel="stylesheet" href="style.css"><link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon-180.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Miam!"><meta name="apple-mobile-web-app-status-bar-style" content="default"><script>if ("serviceWorker" in navigator && /github\.io$|^localhost$/.test(location.hostname)) navigator.serviceWorker.register("sw.js", {updateViaCache: "none"}).catch(() => {});</script></head><body><header class="site"><div class="in"><a class="brand" href="index.html">Miam!</a><nav class="nav"><a href="semaine.html">Ma semaine</a><a href="index.html">Recueil</a><a href="guide.html" class="on">Guide</a><a href="compte.html" class="acc">Profil</a></nav></div></header><main class="wrap"><section class="hero"><h1>Comment ça marche</h1><p>La logique de Miam! : comment un repas est composé, comment la semaine est construite, et les équivalences pour adapter une recette. D'après le livret LaSèche 2024 et les règles que tu as fixées.</p></section>
 <nav class="g-toc" aria-label="Sommaire"><a href="#assiette">L'assiette</a><a href="#semaine">La semaine</a><a href="#journee">La journée</a><a href="#regles">Les 10 règles</a><a href="#remplacer">Équivalences</a><a href="#cuisson">Cru et cuit</a><a href="#cheat">Le cheat meal</a><a href="#aliments">Les aliments</a></nav>
 
 <div class="g">
@@ -14,8 +14,9 @@
 
 <section class="g-box" id="semaine" aria-labelledby="se-t">
   <span class="g-k">2</span><h2 id="se-t">Comment Miam! construit la semaine</h2>
-  <p>Une semaine, c'est <b>12 repas</b> : midi et soir, du lundi au samedi. Le dimanche, on cuisine. Pour cuisiner le moins possible, chaque plat préparé le dimanche sert <b>deux repas</b>.</p>
+  <p>Une semaine, c'est <b>14 repas</b> : midi et soir, du dimanche au samedi. Le dimanche, on cuisine, et le plat du jour se mange midi et soir. Pour cuisiner le moins possible, chaque plat préparé le dimanche sert <b>deux repas</b>.</p>
   <div class="tw"><table class="gt"><thead><tr><th>Repas</th><th>Préparation</th></tr></thead><tbody>
+    <tr><td>Midi et soir dimanche</td><td>Cuisiné le dimanche avec le reste, mangé le jour même.</td></tr>
     <tr><td>Midis lundi et mardi</td><td>Cuit le dimanche, gardé au frigo.</td></tr>
     <tr><td>Midis mercredi et jeudi</td><td>Cuit le dimanche, la part de jeudi va au congélateur.</td></tr>
     <tr><td>Midis vendredi et samedi</td><td>Cuit le dimanche, congelé, sorti la veille.</td></tr>
@@ -24,9 +25,9 @@
     <tr><td>Soir vendredi</td><td>Le seul plat cuisiné en semaine : rapide, 10 à 25 minutes.</td></tr>
     <tr><td>Soir samedi</td><td>Cheat meal : un plat gourmand et un petit dessert.</td></tr>
   </tbody></table></div>
-  <p>Cinq plats en double le dimanche, soit environ trois heures de cuisine. Le générateur choisit les plats en respectant ces règles :</p>
+  <p>Six plats en double le dimanche, soit environ trois heures de cuisine. Le générateur choisit les plats en respectant ces règles :</p>
   <ul class="gl">
-    <li><b>Viande :</b> 5 à 6 repas sur 12 idéalement, jamais plus que la limite réglée (7 par défaut). Volaille, bœuf, veau, porc et jambon comptent comme viande ; poisson, crevettes et œufs non.</li>
+    <li><b>Viande :</b> 5 à 6 repas sur 14 idéalement, jamais plus que la limite réglée (7 par défaut). Volaille, bœuf, veau, porc et jambon comptent comme viande ; poisson, crevettes et œufs non.</li>
     <li><b>Conservation :</b> un plat n'est jamais placé au-delà du nombre de jours qu'il tient au frigo. S'il se congèle, la seconde part va au congélateur.</li>
     <li><b>Soupes :</b> uniquement le soir.</li>
     <li><b>Aliments chers</b> (crevettes, veau, saumon fumé…) : seulement sur un plat qui sert deux repas.</li>
@@ -36,7 +37,7 @@
     <li><b>Restes :</b> les aliments que tu as déjà sont placés en priorité, en commençant par ceux qui périment bientôt.</li>
     <li><b>Ton profil</b> (page Profil) : allergies, régime et aliments refusés écartent les plats pour toute la table ; les objectifs orientent le choix vers des plats plus légers ou plus riches en protéines.</li>
   </ul>
-  <p>Quand tu valides la semaine, la liste de courses est calculée pour ces 12 repas, petits-déjeuners et collations compris, pour le nombre de personnes choisi.</p>
+  <p>Quand tu valides la semaine, la liste de courses est calculée pour ces 14 repas, petits-déjeuners et collations compris, pour le nombre de personnes choisi.</p>
 </section>
 
 <section class="g-box" id="journee" aria-labelledby="jo-t">
@@ -156,4 +157,4 @@ SUB.forEach(([, title, gs, note]) => {
 });
 })();
 </script>
-</main><footer>2 personnes · batch cooking du dimanche · version du 17/10 22:58</footer></body></html>
+</main><footer>2 personnes · batch cooking du dimanche · version du 17/10 23:07</footer></body></html>
