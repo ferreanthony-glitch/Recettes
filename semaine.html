@@ -294,19 +294,13 @@ header .label{text-align:center}
       <p class="msg" id="gen-msg">Le générateur respecte tes règles : le nombre de repas avec viande choisi ci-dessus, aliments chers sur deux repas, plats en double le dimanche. Il favorise tes recettes les mieux notées et celles qui partagent des ingrédients. Clique à nouveau pour un autre tirage.</p>
     </section>
 
-    <section aria-label="Point de départ">
-      <div class="label" style="margin-bottom:6px">Partir d'une proposition</div>
-      <div class="variants" id="variants"></div>
-    </section>
-
    </div>
    <div class="main">
     <div class="board" id="board">
-      <div class="stats">
-        <div class="stat" id="st-meat"><div class="n" id="n-meat">0/7</div><div class="t">repas avec viande</div></div>
-        <div class="stat"><div class="n" id="n-cook">0</div><div class="t">plats à cuisiner</div></div>
-        <div class="stat"><div class="n" id="n-shared">0</div><div class="t">ingrédients partagés</div></div>
-      </div>
+      <section aria-label="Propositions">
+        <div class="label" style="margin-bottom:6px">Partir d'une proposition</div>
+        <div class="variants" id="variants"></div>
+      </section>
       <div class="alerts" id="alerts"></div>
     </div>
 
@@ -329,10 +323,6 @@ header .label{text-align:center}
       <p class="note">Ils sont inclus dans la liste de courses.</p>
     </section>
 
-    <section class="actions">
-      <button class="copy" id="go-courses" type="button">Voir ma liste de courses</button>
-      <button class="reset" id="reset" type="button">Revenir à la proposition A</button>
-    </section>
    </div>
   </div>
 
@@ -913,10 +903,6 @@ function renderStats(){
   const c = counts(), dishes = Object.keys(c);
   const uses = {};
   dishes.forEach(id => R[id].i.forEach(x => { uses[x] = (uses[x]||0)+1; }));
-  document.getElementById("n-meat").textContent = meat + "/" + maxV();
-  document.getElementById("st-meat").classList.toggle("bad", meat > maxV());
-  document.getElementById("n-cook").textContent = dishes.length;
-  document.getElementById("n-shared").textContent = Object.keys(uses).filter(k => uses[k] > 1).length;
   const al = document.getElementById("alerts"); al.innerHTML = "";
   if (meat > maxV()) al.append(el("div",{class:"alert meat"}, `${meat} repas avec viande : il en faut ${meat-maxV()} de moins pour rester à ${maxV()}.`));
   const cher = {};
@@ -1036,8 +1022,6 @@ function render(){ document.getElementById("ppl").value = ppl(); document.queryS
 document.getElementById("tab-semaine").addEventListener("click", () => showTab("semaine"));
 document.getElementById("tab-courses").addEventListener("click", () => { showTab("courses"); window.scrollTo(0,0); });
 document.getElementById("tab-recettes").addEventListener("click", () => { showTab("recettes"); window.scrollTo(0,0); });
-document.getElementById("go-courses").addEventListener("click", () => { showTab("courses"); window.scrollTo(0,0); });
-document.getElementById("reset").addEventListener("click", () => { state.sel = toSlots(V.A.p); persist(); render(); });
 document.getElementById("uncheck").addEventListener("click", () => { state.checked = {}; persist(); renderList(); });
 document.getElementById("copy-list").addEventListener("click", () => {
   const txt = listText(), toast = document.getElementById("toast"), fb = document.getElementById("fallback");
