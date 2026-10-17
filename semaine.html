@@ -231,7 +231,9 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--accent); o
   .side { position: sticky; top: 16px; max-height: calc(100vh - 32px); overflow-y: auto; padding-right: 4px; }
   .main .board { top: 0; }
   .grid table { font-size: 1rem !important; }
-  #list { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); align-items: start; }
+  /* catégories empilées en colonnes : chacune se glisse sous la précédente, sans trou */
+  #list { display: block !important; columns: 3 300px; column-gap: 12px; }
+  #list > * { break-inside: avoid; margin-bottom: 12px; }
   #recettes { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
   .dish-body { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 28px; }
   .dish-body > * { grid-column: 1 / -1; }
@@ -1363,4 +1365,4 @@ render();
 ghInit();
 </script>
 
-<p class="ver" style="text-align:center;font-size:.72rem;color:var(--muted);margin:8px 0 24px">Version du 17/10 23:07</p></body></html>
+<p class="ver" style="text-align:center;font-size:.72rem;color:var(--muted);margin:8px 0 24px">Version du 17/10 23:27</p></body></html>
