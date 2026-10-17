@@ -53,7 +53,8 @@ h2 { font-family: var(--font-display); font-weight: 600; font-size: 1.15rem; mar
 .favs .add { border-style: dashed; }
 .prof-line a, #gh-line a, #gh-line button { color: var(--accent); background: none; border: 0; padding: 0; font: inherit; cursor: pointer; text-decoration: underline; }
 
-.board { background: var(--bg); padding-block: 8px; display: grid; gap: 8px; }
+.board { display: grid; gap: 8px; }
+.board:has(.alerts:empty) { display: none; }
 .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 .stat { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; min-width: 0; }
 .stat .n { font-family: var(--font-display); font-weight: 800; font-size: 1.4rem; font-variant-numeric: tabular-nums; line-height: 1.1; }
@@ -271,7 +272,7 @@ header .label{text-align:center}
 </style>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,600;9..40,700&display=swap">
 <header class="site"><div class="in"><a class="brand" href="index.html">Miam!</a>
-<nav class="snav"><a href="index.html">Recueil</a><a href="semaine.html" class="on">Ma semaine</a><a href="guide.html">Guide</a><a href="compte.html" class="acc">Compte</a></nav></div></header>
+<nav class="snav"><a href="index.html">Recueil</a><a href="semaine.html" class="on">Ma semaine</a><a href="guide.html">Guide</a><a href="compte.html" class="acc">Profil</a></nav></div></header>
 <div class="wrap">
   <header>
     <h1>Ma semaine</h1>
@@ -322,10 +323,6 @@ header .label{text-align:center}
 
    </div>
    <div class="main">
-    <div class="board" id="board">
-      <div class="alerts" id="alerts"></div>
-    </div>
-
     <section class="panel" aria-label="Vue de la semaine">
       <h2>La semaine</h2>
       <p class="note">Touche un repas pour choisir un autre plat. Fais-le glisser sur une autre case pour les échanger (sur téléphone, appuie un instant puis glisse).</p>
@@ -339,8 +336,7 @@ header .label{text-align:center}
         <button type="button" class="ghost" id="revalidate">Mettre à jour</button>
       </div>
       <p class="note valid-msg" id="valid-msg"></p>
-      <p class="note" id="gh-line"></p>
-      <a class="ghost hop" href="#" target="_blank" rel="noopener"></a>
+      <div class="board" id="board"><div class="alerts" id="alerts"></div></div>
     </section>
 
     <section class="panel" aria-label="Les plats de la semaine"><h2>Les plats de la semaine</h2><p class="note">Touche un plat pour voir ses ingrédients et sa recette.</p><div id="postes" class="dishes"></div></section>
@@ -385,7 +381,6 @@ header .label{text-align:center}
       </div>
       <div class="row-actions">
         <button class="ghost" id="uncheck" type="button">Tout décocher</button>
-        <a class="ghost hop" href="#" target="_blank" rel="noopener"></a>
       </div>
       <div class="toast" id="toast" role="status"></div>
       <textarea id="fallback" hidden readonly aria-label="La liste en texte"></textarea>
@@ -614,7 +609,7 @@ function addStock(){
   nIn.value = ""; qIn.value = 1; uIn.value = "pc"; document.getElementById("st-e").value = ""; nIn.focus();
   persist(); renderGen(); renderList();
 }
-// ---- Profil (page Compte) : allergies, régime et aliments refusés de chaque personne valent pour toute la table ; objectifs = préférences ----
+// ---- Profil (page Profil) : allergies, régime et aliments refusés de chaque personne valent pour toute la table ; objectifs = préférences ----
 let PROF = [];
 const profLoad = () => { try { const p = JSON.parse(localStorage.getItem("recettes-profil")); PROF = p && Array.isArray(p.p) ? p.p.filter(x => x && Object.keys(x).length) : []; } catch (e) { PROF = []; } };
 profLoad();
@@ -645,7 +640,7 @@ function profBan(id){
 }
 const profMaxV = () => profHas("reg", "vege") || profHas("reg", "pesce") ? 0 : profHas("reg", "flexi") ? 4 : 99;
 const profKey = () => JSON.stringify(PROF.map(x => [x.alg, x.reg, x.sans, x.evite]));
-// Besoin estimé (Mifflin-St Jeor × activité), même calcul que la page Compte
+// Besoin estimé (Mifflin-St Jeor × activité), même calcul que la page Profil
 function besoin(x){
   const a = +x.age, t = +x.taille, w = +x.poids;
   if (!a || !t || !w || !x.sexe) return 0;
@@ -731,7 +726,7 @@ function generate(){
   }
   if (!best) {
     const empty = free.filter(p => !POOL(p).length).map(p => p.t.toLowerCase());
-    document.getElementById("gen-msg").textContent = "Aucune semaine possible avec ces aliments à éviter" + (empty.length ? " : plus aucun plat pour " + empty.join(", ") : "") + ". " + (PROF.length ? "Retire un aliment de la liste ou assouplis ton profil dans Compte." : "Retire un aliment de la liste.");
+    document.getElementById("gen-msg").textContent = "Aucune semaine possible avec ces aliments à éviter" + (empty.length ? " : plus aucun plat pour " + empty.join(", ") : "") + ". " + (PROF.length ? "Retire un aliment de la liste ou assouplis ton profil dans Profil." : "Retire un aliment de la liste.");
     return;
   }
   state.sel = toSlots(best); state.checked = {};
@@ -793,7 +788,7 @@ function score(s, left, n){
 }
 function renderGen(){
   const pl = document.getElementById("prof-line"), sum = profSummary(); pl.innerHTML = "";
-  pl.append(sum ? "Ton profil est pris en compte : " + sum + ". " : "Aucun profil renseigné. ", el("a",{href:"compte.html"}, sum ? "Modifier dans Compte" : "Le remplir dans Compte"));
+  pl.append(sum ? "Ton profil est pris en compte : " + sum + ". " : "Aucun profil renseigné. ", el("a",{href:"compte.html"}, sum ? "Modifier dans Profil" : "Le remplir dans Profil"));
   const add = document.getElementById("pin-add");
   if (add.options.length === 1) Object.keys(R).sort((a,b) => R[a].n.localeCompare(R[b].n,"fr"))
     .forEach(id => add.append(el("option",{value:id}, R[id].n + (note(id) ? "  " + starTxt(note(id)) : ""))));
@@ -1343,4 +1338,4 @@ render();
 ghInit();
 </script>
 
-<p class="ver" style="text-align:center;font-size:.72rem;color:var(--muted);margin:8px 0 24px">Version du 17/10 22:56</p></body></html>
+<p class="ver" style="text-align:center;font-size:.72rem;color:var(--muted);margin:8px 0 24px">Version du 17/10 22:58</p></body></html>
