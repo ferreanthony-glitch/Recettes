@@ -797,8 +797,15 @@ function renderGen(){
   const pl = document.getElementById("prof-line"), sum = profSummary(); pl.innerHTML = "";
   pl.append(sum ? "Ton profil est pris en compte : " + sum + ". " : "Aucun profil renseigné. ", el("a",{href:"compte.html"}, sum ? "Modifier dans Profil" : "Le remplir dans Profil"));
   const add = document.getElementById("pin-add");
-  if (add.options.length === 1) Object.keys(R).sort((a,b) => R[a].n.localeCompare(R[b].n,"fr"))
-    .forEach(id => add.append(el("option",{value:id}, R[id].n + (note(id) ? "  " + starTxt(note(id)) : ""))));
+  // Plats aimés (cœur dans le recueil) proposés en premier
+  let likes = []; try { likes = JSON.parse(localStorage.getItem("recettes-likes")) || []; } catch (e) {}
+  const opt = id => el("option",{value:id}, R[id].n + (note(id) ? "  " + starTxt(note(id)) : ""));
+  const ids = Object.keys(R).sort((a,b) => R[a].n.localeCompare(R[b].n,"fr")), liked = ids.filter(id => likes.includes(SLUG[id]));
+  add.innerHTML = ""; add.append(el("option",{value:""}, "Ajouter un plat…"));
+  if (liked.length) {
+    const g1 = el("optgroup",{label:"♥ Mes plats favoris"}), g2 = el("optgroup",{label:"Tous les plats"});
+    liked.forEach(id => g1.append(opt(id))); ids.filter(id => !liked.includes(id)).forEach(id => g2.append(opt(id))); add.append(g1, g2);
+  } else ids.forEach(id => add.append(opt(id)));
   const box = document.getElementById("pins"); box.innerHTML = "";
   document.getElementById("maxv").value = maxV();
   document.getElementById("sais").value = state.sais || 0; document.getElementById("sais-v").textContent = (state.sais || 0) + " %";
@@ -1342,6 +1349,7 @@ if (document.getElementById("copy-list")) document.getElementById("copy-list").a
   } else fallback();
 });
 
+addEventListener("pageshow", e => { if (e.persisted) renderGen(); });   // retour depuis le recueil : favoris à jour
 document.getElementById("pin-add").addEventListener("change", e => {
   const id = e.target.value; e.target.value = "";
   if (!id) return;
@@ -1371,4 +1379,4 @@ render();
 ghInit();
 </script>
 
-<p class="ver" style="text-align:center;font-size:.72rem;color:var(--muted);margin:8px 0 24px">Version du 17/10 23:40</p></body></html>
+<p class="ver" style="text-align:center;font-size:.72rem;color:var(--muted);margin:8px 0 24px">Version du 17/10 23:43</p></body></html>

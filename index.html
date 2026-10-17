@@ -25,6 +25,9 @@ const now = d => d.sm === null || (Array.isArray(d.sm) && d.sm.includes(MOIS)); 
 const KEYS = { time: d => d.m, diff: d => d.d, kcal: d => d.c, saison: d => Array.isArray(d.sm) ? (d.sm.includes(MOIS) ? 0 : 2) : d.sm === null ? 1 : 3 };
 const NOTES = (() => { try { return JSON.parse(localStorage.getItem("recettes-notes")) || {}; } catch (e) { return {}; } })();
 const nt = d => NOTES[d.u.slice(2, -5)] || 0;
+const HEART_SVG = "<svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M12 20.5s-7.5-4.6-9.2-9.4C1.6 7.6 3.9 4.5 7.2 4.5c2 0 3.6 1.1 4.8 2.8 1.2-1.7 2.8-2.8 4.8-2.8 3.3 0 5.6 3.1 4.4 6.6-1.7 4.8-9.2 9.4-9.2 9.4z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/></svg>";
+const LIKES = new Set((() => { try { return JSON.parse(localStorage.getItem("recettes-likes")) || []; } catch (e) { return []; } })());
+const saveLikes = () => { try { localStorage.setItem("recettes-likes", JSON.stringify([...LIKES])); } catch (e) {} };
 const norm = s => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 function render() {
   const q = norm(document.getElementById("q").value.trim());
@@ -64,7 +67,18 @@ function render() {
       if (d.st) { const s = document.createElement("span"); s.className = "t sai" + (Array.isArray(d.sm) && d.sm.includes(MOIS) ? " now" : "");
         s.textContent = "Saison : " + d.st + (Array.isArray(d.sm) && d.sm.includes(MOIS) ? " · de saison en ce moment" : ""); a.append(s); }
       if (d.a.length) { const s = document.createElement("span"); s.className = "t"; s.textContent = "Contient : " + d.a.join(", "); a.append(s); }
-      it.prepend(a); list.append(it);
+      it.prepend(a);
+      const slug = d.u.slice(2, -5);
+      if (d.s === "plats" || d.s === "mijotes") {
+        const lk = document.createElement("button"); lk.type = "button"; lk.className = "like" + (LIKES.has(slug) ? " on" : "");
+        lk.innerHTML = HEART_SVG; lk.setAttribute("aria-pressed", LIKES.has(slug));
+        lk.setAttribute("aria-label", (LIKES.has(slug) ? "Retirer des" : "Ajouter aux") + " favoris : " + d.t);
+        lk.onclick = () => { if (LIKES.has(slug)) LIKES.delete(slug); else LIKES.add(slug); saveLikes();
+          const on = LIKES.has(slug); lk.classList.toggle("on", on); lk.setAttribute("aria-pressed", on);
+          lk.setAttribute("aria-label", (on ? "Retirer des" : "Ajouter aux") + " favoris : " + d.t); };
+        it.append(lk);
+      }
+      list.append(it);
     }
     box.append(list); out.append(box);
   }
@@ -86,4 +100,4 @@ $o.addEventListener("change", () => { F.order = $o.value; save(); render(); });
 $p.addEventListener("change", () => { F.prot = $p.value; save(); render(); });
 $s.addEventListener("change", () => { F.sans = [...$s.querySelectorAll("input:checked")].map(x => x.value); save(); sansLabel(); render(); });
 render();
-</script></main><footer>2 personnes · batch cooking du dimanche · version du 17/10 23:40</footer></body></html>
+</script></main><footer>2 personnes · batch cooking du dimanche · version du 17/10 23:43</footer></body></html>

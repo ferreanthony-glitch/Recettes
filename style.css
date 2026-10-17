@@ -47,6 +47,11 @@ input[type=search]:focus{outline:none;border-bottom-width:2px}
 #sans label{display:flex;gap:6px;align-items:center;cursor:pointer}
 #sans input{accent-color:var(--accent);width:16px;height:16px}
 .item{position:relative;min-width:0}
+.like{position:absolute;top:16px;right:-6px;border:0;background:none;padding:6px;cursor:pointer;color:var(--muted);line-height:0}
+.like svg{width:24px;height:24px}.like.on{color:#c0533f}.like.on path{fill:currentColor}
+.item .card b{padding-right:30px}
+.rate .like-big{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:none;border-radius:999px;padding:8px 16px;font:inherit;font-size:.85rem;color:var(--ink);cursor:pointer;margin-bottom:10px}
+.rate .like-big svg{width:18px;height:18px;color:var(--muted)}.rate .like-big.on svg{color:#c0533f}.rate .like-big.on path{fill:currentColor}
 .card .ph{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:12px;background:var(--accent-soft);display:block;margin-bottom:6px}
 .item .cr{position:absolute;top:30px;right:8px;font-size:.62rem;color:#fff;background:rgba(0,0,0,.45);padding:2px 8px;border-radius:999px;text-decoration:none}
 @media (max-width:1023px){.card.has-ph{grid-template-columns:96px 1fr;column-gap:14px;align-content:start}
