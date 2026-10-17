@@ -784,6 +784,8 @@ function valid(s){
   return s && s.sel && SLOTS.every(sl => R[s.sel[sl.k]]) && s.checked && typeof s.checked === "object";
 }
 try { const s = JSON.parse(localStorage.getItem(KEY)); if (valid(s)) state = s; } catch (e) {}
+// Une ancienne version enregistrait la validation sous forme de date seule : on l'oublie plutôt que de bloquer la page
+if (state.valid && !(state.valid.sel && SLOTS.every(sl => R[state.valid.sel[sl.k]]))) delete state.valid;
 // ---- Passage entre l'app (artefact) et le site : la semaine validée et les articles cochés voyagent dans le lien ----
 const IS_SITE = /github\.io$/.test(location.hostname);
 const HOP_URL = IS_SITE ? "https://claude.ai/artifact/8cYgY2ENPkyWHonwjssP93" : "https://ferreanthony-glitch.github.io/Recettes/semaine.html";
@@ -1262,4 +1264,4 @@ render();
 ghInit();
 </script>
 
-<p class="ver" style="text-align:center;font-size:.72rem;color:var(--muted);margin:8px 0 24px">Version du 17/10 16:57</p></body></html>
+<p class="ver" style="text-align:center;font-size:.72rem;color:var(--muted);margin:8px 0 24px">Version du 17/10 17:00</p></body></html>
