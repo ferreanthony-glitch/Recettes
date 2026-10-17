@@ -42,10 +42,15 @@ h2 { font-family: var(--font-display); font-weight: 600; font-size: 1.15rem; mar
 .label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 700; }
 
 .variants { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 2px 0 4px; }
-.variants > span { font-size: 0.8rem; color: var(--muted); margin-right: 2px; }
+.variants > span:not(.fav) { font-size: 0.8rem; color: var(--muted); margin-right: 2px; }
 .variants button { font: inherit; font-size: 0.8rem; font-weight: 600; padding: 4px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--muted); cursor: pointer; }
 .variants button:hover { color: var(--ink); border-color: var(--accent); }
 .variants button[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--ink); }
+.favs .fav { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); overflow: hidden; }
+.favs .fav:has([aria-pressed="true"]) { border-color: var(--accent); background: var(--accent-soft); }
+.favs .fav button { border: 0; border-radius: 0; background: none; }
+.favs .fav .x { padding: 4px 9px 4px 2px; font-weight: 400; }
+.favs .add { border-style: dashed; }
 .prof-line a, #gh-line a, #gh-line button { color: var(--accent); background: none; border: 0; padding: 0; font: inherit; cursor: pointer; text-decoration: underline; }
 
 .board { background: var(--bg); padding-block: 8px; display: grid; gap: 8px; }
@@ -326,6 +331,7 @@ header .label{text-align:center}
       <p class="note">Touche un repas pour choisir un autre plat. Fais-le glisser sur une autre case pour les échanger (sur téléphone, appuie un instant puis glisse).</p>
       <div class="grid"><table><thead><tr><th>Jour</th><th>Midi</th><th>Soir</th></tr></thead><tbody id="grid"></tbody></table></div>
       <div class="variants" id="variants" role="group" aria-label="Propositions"><span>Partir d'une proposition</span></div>
+      <div class="variants favs" id="favs" role="group" aria-label="Mes semaines favorites"><span>Mes favorites</span></div>
       <button class="copy" id="validate" type="button">Valider la semaine</button>
       <div class="done-badge" id="done" hidden>
         <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="currentColor"/><path d="M7 12.5l3.2 3.2L17 9" fill="none" stroke="#fbfaf6" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -891,7 +897,7 @@ async function flush(){
   writing = true;
   while (dirty) {
     dirty = false;
-    try { await ref.set({sel: {...state.sel}, checked: {...state.checked}, valid: state.valid || null, ppl: ppl()}); syncEl().textContent = "Enregistré, visible sur tous tes appareils."; }
+    try { await ref.set({sel: {...state.sel}, checked: {...state.checked}, valid: state.valid || null, ppl: ppl(), favs: state.favs || []}); syncEl().textContent = "Enregistré, visible sur tous tes appareils."; }
     catch (e) { syncEl().textContent = "Pas enregistré en ligne (" + (e && e.code || "erreur") + "), gardé sur ce téléphone."; }
   }
   writing = false;
@@ -908,6 +914,7 @@ async function flush(){
     state = {...state, sel: {...d.sel}, checked: {...d.checked}};   // garde les réglages (personnes, générateur)
     if (d.valid && d.valid.sel) state.valid = d.valid; else delete state.valid;
     if (d.ppl) state.ppl = d.ppl;
+    if (Array.isArray(d.favs)) state.favs = d.favs;
     try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
     syncEl().textContent = "Synchronisé.";
     render();
@@ -1010,6 +1017,19 @@ function renderVariants(){
     const vs = toSlots(V[k].p), same = SLOTS.every(sl => vs[sl.k] === state.sel[sl.k]);
     box.append(el("button",{type:"button",title:V[k].s,"aria-label":"Proposition "+k+" : "+V[k].s,"aria-pressed":String(same),onclick:()=>{ state.sel = toSlots(V[k].p); persist(); render(); }}, k));
   }
+}
+// Semaines favorites : la composition des 12 repas, rappelée d'un geste
+const favs = () => (state.favs || []).filter(f => f && f.sel && SLOTS.every(sl => R[f.sel[sl.k]]));
+function renderFavs(){
+  const box = document.getElementById("favs"); box.querySelectorAll("button, .fav").forEach(b => b.remove());
+  const cur = favs().find(f => SLOTS.every(sl => f.sel[sl.k] === state.sel[sl.k]));
+  favs().forEach(f => box.append(el("span",{class:"fav"},
+    el("button",{type:"button","aria-pressed":String(f === cur),title:"Rappeler cette semaine",onclick:()=>{ state.sel = {...f.sel}; persist(); render(); }}, f.n),
+    el("button",{type:"button",class:"x","aria-label":"Supprimer « " + f.n + " »",title:"Supprimer",onclick:()=>{ if (!confirm("Supprimer « " + f.n + " » des favorites ?")) return; state.favs = (state.favs || []).filter(x => x !== f); persist(); renderFavs(); }}, "×"))));
+  if (!cur) box.append(el("button",{type:"button",class:"add",onclick:()=>{
+    const d = new Date().toLocaleDateString("fr-FR", {day: "numeric", month: "short"});
+    const n = (prompt("Nom de cette semaine favorite :", "Semaine du " + d) || "").trim(); if (!n) return;
+    state.favs = [...(state.favs || []), {n, sel: {...state.sel}, at: Date.now()}]; persist(); renderFavs(); }}, "+ Enregistrer cette semaine"));
 }
 function renderGrid(){
   const cells = DAYS.map(() => ["",""]);
@@ -1182,7 +1202,7 @@ document.addEventListener("touchcancel", () => { if (drag) { clearTimeout(drag.t
 function openMenu(td){ const sel = td.querySelector(".cell-sel"); if (!sel) return; sel.focus(); try { sel.showPicker(); } catch (err) {} }
 grid.addEventListener("contextmenu", e => { if (e.target.closest(".cell")) e.preventDefault(); });
 
-function render(){ document.getElementById("ppl").value = ppl(); document.querySelectorAll(".ppl-n").forEach(x => x.textContent = ppl() + " personne" + (ppl() > 1 ? "s" : "")); renderGen(); renderVariants(); renderGrid(); renderPostes(); renderStats(); renderList(); renderRecipes(); renderValid(); }
+function render(){ document.getElementById("ppl").value = ppl(); document.querySelectorAll(".ppl-n").forEach(x => x.textContent = ppl() + " personne" + (ppl() > 1 ? "s" : "")); renderGen(); renderVariants(); renderFavs(); renderGrid(); renderPostes(); renderStats(); renderList(); renderRecipes(); renderValid(); }
 
 document.getElementById("tab-semaine").addEventListener("click", () => showTab("semaine"));
 document.getElementById("tab-courses").addEventListener("click", () => { showTab("courses"); window.scrollTo(0,0); });
@@ -1225,7 +1245,7 @@ const ghState = t => { const e = document.getElementById("gh-state"); if (e) e.t
   v.textContent = "Synchro des appareils : " + t + ". ";
   v.append(el("button",{type:"button",onclick:()=>{ ghState("synchronisation…"); ghPull(); }},"Synchroniser maintenant")); };
 const ghHead = () => ({Authorization: "Bearer " + ghTok(), Accept: "application/vnd.github+json"});
-const ghData = () => ({sel: state.sel, checked: state.checked, valid: state.valid || null, ppl: state.ppl || 2, u: state.u || 0});
+const ghData = () => ({sel: state.sel, checked: state.checked, valid: state.valid || null, ppl: state.ppl || 2, favs: state.favs || [], u: state.u || 0});
 const hhmm = () => new Date().toLocaleTimeString("fr-FR", {hour: "2-digit", minute: "2-digit"});
 async function ghPull(){
   if (!ghOk || !ghTok()) return;
@@ -1238,6 +1258,7 @@ async function ghPull(){
     const d = JSON.parse(decodeURIComponent(escape(atob(j.content.replace(/\s/g, "")))));
     if (d && d.u > (state.u || 0) && valid({sel: d.sel, checked: d.checked || {}})) {
       state = {...state, sel: d.sel, checked: d.checked || {}, ppl: d.ppl || 2, u: d.u};
+      if (Array.isArray(d.favs)) state.favs = d.favs;
       if (d.valid && d.valid.sel) state.valid = d.valid; else delete state.valid;
       try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
       render();
@@ -1322,4 +1343,4 @@ render();
 ghInit();
 </script>
 
-<p class="ver" style="text-align:center;font-size:.72rem;color:var(--muted);margin:8px 0 24px">Version du 17/10 20:16</p></body></html>
+<p class="ver" style="text-align:center;font-size:.72rem;color:var(--muted);margin:8px 0 24px">Version du 17/10 20:25</p></body></html>
