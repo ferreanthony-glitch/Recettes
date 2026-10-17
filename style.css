@@ -1,6 +1,6 @@
 
 /* Épuré : fond blanc, encre presque noire, un seul vert profond, filets fins, titres en serif. */
-:root{--bg:#f7f3ec;--ink:#1c1d1d;--muted:#6b675f;--line:#e2dccf;--soft:#efe9dd;--accent:#003301;
+:root{--bg:#f7f3ec;--ink:#1c1d1d;--muted:#6b675f;--line:#e2dccf;--soft:#efe9dd;--accent:#5f7d63;--accent-soft:#e9efe6;
 --font-display:"DM Sans",system-ui,-apple-system,"Segoe UI",sans-serif;--font-body:"DM Sans",system-ui,-apple-system,"Segoe UI",sans-serif;color-scheme:light}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
@@ -21,9 +21,9 @@ h1,h2,h3{font-family:var(--font-display);font-weight:700;line-height:1.15;margin
 input[type=search]{font:inherit;width:100%;padding:12px 2px;border:0;border-bottom:1px solid var(--ink);background:transparent;color:var(--ink);border-radius:0;-webkit-appearance:none;appearance:none}
 input[type=search]::placeholder{color:var(--muted)}
 input[type=search]:focus{outline:none;border-bottom-width:2px}
-.filters{display:flex;justify-content:center;flex-wrap:wrap;gap:6px 22px;margin-bottom:48px}
-.filters button{font:inherit;font-size:.72rem;text-transform:uppercase;letter-spacing:.14em;padding:4px 0;border:0;border-bottom:1px solid transparent;background:none;color:var(--muted);cursor:pointer}
-.filters button[aria-pressed="true"]{color:var(--ink);border-bottom-color:var(--ink)}
+.filters{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin-bottom:48px}
+.filters button{font:inherit;font-size:.72rem;text-transform:uppercase;letter-spacing:.12em;padding:7px 14px;border:1px solid var(--line);border-radius:999px;background:transparent;color:var(--muted);cursor:pointer}
+.filters button[aria-pressed="true"]{color:var(--ink);background:var(--accent-soft);border-color:var(--accent-soft)}
 .sec{margin-bottom:56px}
 .sec-head{display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--ink);padding-bottom:10px;margin-bottom:0}
 .sec-head h2{font-size:1.6rem}
@@ -38,17 +38,17 @@ input[type=search]:focus{outline:none;border-bottom-width:2px}
 .card .stars{font-size:.85rem;color:var(--accent);letter-spacing:.08em}
 .tools{display:flex;flex-wrap:wrap;justify-content:center;gap:14px 26px;margin:-28px 0 44px;align-items:flex-start}
 .tools>label,.sans summary{display:flex;align-items:baseline;gap:10px}
-.tools select{font:inherit;font-size:.92rem;color:var(--ink);background:transparent;border:0;border-bottom:1px solid var(--ink);padding:4px 2px;border-radius:0;max-width:62vw}
+.tools select{font:inherit;font-size:.92rem;color:var(--ink);background:#fbf8f3;border:1px solid var(--line);padding:7px 10px;border-radius:10px;max-width:62vw}
 .sans{flex-basis:100%;text-align:center}
 .sans summary{justify-content:center;cursor:pointer;list-style:none;font-size:.92rem}
 .sans summary::-webkit-details-marker{display:none}
-.sans summary b{font-weight:400;border-bottom:1px solid var(--ink);padding:4px 2px}
+.sans summary b{font-weight:400;border:1px solid var(--line);border-radius:10px;background:#fbf8f3;padding:7px 10px}
 #sans{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 18px;padding:14px 0 0;font-size:.9rem}
 #sans label{display:flex;gap:6px;align-items:center;cursor:pointer}
 #sans input{accent-color:var(--accent);width:16px;height:16px}
 .card .e{font-size:1rem;letter-spacing:.2em}
 .pics{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
-.pic{display:inline-flex;gap:6px;align-items:center;font-size:.72rem;text-transform:uppercase;letter-spacing:.12em;border:1px solid var(--line);padding:5px 10px}
+.pic{display:inline-flex;gap:6px;align-items:center;font-size:.72rem;text-transform:uppercase;letter-spacing:.12em;border:1px solid var(--line);border-radius:999px;padding:5px 12px}
 .pic i{font-style:normal;font-size:1rem}
 .alg{margin:0;font-size:.85rem;color:var(--muted)}
 .rate{display:grid;justify-items:center;gap:4px;margin:-12px 0 32px}
@@ -82,7 +82,7 @@ article a{color:var(--accent)}
 article code{font-size:.85em;overflow-wrap:anywhere}
 article pre{overflow-x:auto;background:var(--soft);padding:12px}
 article blockquote{margin:0;padding:4px 0 4px 18px;border-left:1px solid var(--ink);font-family:var(--font-display);font-style:italic}
-.intro{font-size:.88rem;color:var(--muted);background:var(--soft);padding:14px 20px}
+.intro{font-size:.88rem;color:var(--muted);background:var(--soft);padding:14px 20px;border-radius:12px}
 .intro summary{cursor:pointer;font-size:.72rem;text-transform:uppercase;letter-spacing:.14em}
 .intro[open] summary{margin-bottom:12px}
 .intro ul{gap:6px}

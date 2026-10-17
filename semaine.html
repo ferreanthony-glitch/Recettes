@@ -1,5 +1,5 @@
 <!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow"><meta name="color-scheme" content="light"><meta name="theme-color" content="#f7f3ec"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>Ma semaine LaSèche</title>
+<title>Ma semaine</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
@@ -167,20 +167,27 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--accent); o
 </style>
 
 <style>
-:root{--bg:#f7f3ec;--surface:#fbf8f3;--ink:#1c1d1d;--muted:#6b675f;--line:#e2dccf;--accent:#003301;--accent-soft:#e6ebdf;--meat:#a4553f;--meat-soft:#f8ebe5;--cher:#a87a2c;--cher-soft:#f8f0dc;--ok:#3d6b45;color-scheme:light;
+:root{--bg:#f7f3ec;--surface:#fbf8f3;--ink:#1c1d1d;--muted:#6b675f;--line:#e2dccf;--accent:#5f7d63;--accent-soft:#e9efe6;--meat:#a4553f;--meat-soft:#f8ebe5;--cher:#a87a2c;--cher-soft:#f8f0dc;--ok:#3d6b45;color-scheme:light;
 --font-display:"DM Sans",system-ui,sans-serif;--font-body:"DM Sans",system-ui,-apple-system,sans-serif}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#f7f3ec;--surface:#fbf8f3;--ink:#1c1d1d;--muted:#6b675f;--line:#e2dccf;--accent:#003301;--accent-soft:#e6ebdf;--meat:#a4553f;--meat-soft:#f8ebe5;--cher:#a87a2c;--cher-soft:#f8f0dc;--ok:#3d6b45;color-scheme:light}}
-:root[data-theme="dark"]{--bg:#f7f3ec;--surface:#fbf8f3;--ink:#1c1d1d;--muted:#6b675f;--line:#e2dccf;--accent:#003301;--accent-soft:#e6ebdf;--meat:#a4553f;--meat-soft:#f8ebe5;--cher:#a87a2c;--cher-soft:#f8f0dc;--ok:#3d6b45;color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#f7f3ec;--surface:#fbf8f3;--ink:#1c1d1d;--muted:#6b675f;--line:#e2dccf;--accent:#5f7d63;--accent-soft:#e9efe6;--meat:#a4553f;--meat-soft:#f8ebe5;--cher:#a87a2c;--cher-soft:#f8f0dc;--ok:#3d6b45;color-scheme:light}}
+:root[data-theme="dark"]{--bg:#f7f3ec;--surface:#fbf8f3;--ink:#1c1d1d;--muted:#6b675f;--line:#e2dccf;--accent:#5f7d63;--accent-soft:#e9efe6;--meat:#a4553f;--meat-soft:#f8ebe5;--cher:#a87a2c;--cher-soft:#f8f0dc;--ok:#3d6b45;color-scheme:light}
 h1,h2,.stat .n,.progress .n,.variants button b{font-weight:700!important;letter-spacing:-.02em}
 h1{font-size:clamp(1.8rem,8vw,2.4rem)!important;text-align:center;text-wrap:balance}
 header .label{text-align:center}
-.day,.panel,.rayon,.recipe,.stat,.opt,.variants button,.tabs,.tabs button,.copy,.ghost,.alert,.other select{border-radius:0!important}
+.alert{border-radius:10px!important}
+.pins button{border-radius:999px!important;border-color:var(--line)!important;padding:6px 12px!important}
+.stock-add button,.stock-add input,.stock-add select,#pin-add,.gen select,.gen input{border-radius:10px!important}
+.stock-add button{border-color:var(--line)!important}
+.gen{border-radius:14px!important}
+.gen .go{border-radius:12px!important}
+#stock button{border-radius:999px!important;border-color:var(--line)!important}
+.tabs button[aria-selected="true"]{border-radius:0!important}
 .tabs{border:0!important;border-bottom:1px solid var(--line)!important;padding:0!important;background:none!important}
 .tabs button{font-size:.72rem!important;text-transform:uppercase;letter-spacing:.14em;font-weight:400!important;border-bottom:1px solid transparent!important}
 .tabs button[aria-selected="true"]{background:none!important;color:var(--ink)!important;border-bottom-color:var(--ink)!important}
 .label{letter-spacing:.16em!important;font-weight:400!important}
 .wrap,#view-semaine,#view-courses,#view-recettes,#postes{grid-template-columns:minmax(0,1fr)}
-.alert{border-radius:0!important;color:var(--ink)!important}
+.alert{color:var(--ink)!important}
 .keep.bad{font-weight:600!important}
 .variants button b{font-size:.95rem!important}
 .site{border-bottom:1px solid var(--line)}
@@ -196,7 +203,7 @@ header .label{text-align:center}
 <div class="wrap">
   <header>
     <div class="label" id="week-label">2 personnes</div>
-    <h1>Ma semaine LaSèche</h1>
+    <h1>Ma semaine</h1>
   </header>
 
   <div class="tabs" role="tablist">
