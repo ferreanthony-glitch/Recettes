@@ -51,6 +51,19 @@ input[type=search]:focus{outline:none;border-bottom-width:2px}
 .pic{display:inline-flex;gap:6px;align-items:center;font-size:.72rem;text-transform:uppercase;letter-spacing:.12em;border:1px solid var(--line);border-radius:999px;padding:5px 12px}
 .pic i{font-style:normal;font-size:1rem}
 .alg{margin:0;font-size:.85rem;color:var(--muted)}
+.nut{background:#fbf8f3;border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin:0 0 32px;display:grid;gap:12px;text-align:center}
+.nut-v{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.nut-v div{display:grid;gap:2px}
+.nut-v b{font-family:var(--font-display);font-weight:700;font-size:1.1rem}
+.nut-v span{font-size:.72rem;color:var(--muted)}
+.nut details{text-align:left;font-size:.85rem;color:var(--muted)}
+.nut summary{cursor:pointer;text-align:center;font-size:.72rem;text-transform:uppercase;letter-spacing:.14em}
+.nut table{width:100%;border-collapse:collapse;margin:12px 0;font-size:.85rem}
+.nut td,.nut th{padding:6px 6px 6px 0;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.nut th{font-weight:400;font-size:.68rem;text-transform:uppercase;letter-spacing:.12em}
+.nut p{margin:6px 0}
+.nut a{color:var(--accent)}
+@media (max-width:420px){.nut-v b{font-size:.95rem}.nav{gap:12px}.nav a{letter-spacing:.08em}}
 .rate{display:grid;justify-items:center;gap:4px;margin:-12px 0 32px}
 .rate div{display:flex;gap:2px}
 .rate button{font-size:1.9rem;line-height:1;border:0;background:none;color:var(--line);cursor:pointer;padding:4px}
