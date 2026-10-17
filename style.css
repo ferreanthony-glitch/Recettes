@@ -70,6 +70,10 @@ input[type=search]:focus{outline:none;border-bottom-width:2px}
 .rate button.on{color:var(--accent)}
 .rate small{text-align:center;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
 .recipe,.ali{max-width:720px;margin:0 auto}
+#t .sort{all:unset;cursor:pointer;font:inherit;letter-spacing:inherit;text-transform:inherit;color:inherit;padding:6px 0;white-space:nowrap}
+#t .sort.on{color:var(--accent);font-weight:600}
+#t .sort::after{content:attr(data-dir);margin-left:3px;font-size:.8em}
+#t .sort:focus-visible{outline:2px solid var(--accent);border-radius:4px}
 /* Ordinateur : fiche en deux colonnes, l'essentiel (titre, temps, notes, valeurs) reste visible à gauche */
 @media (min-width:1024px){
 .recipe{max-width:none;display:grid;grid-template-columns:minmax(0,380px) minmax(0,1fr);gap:64px;align-items:start}
