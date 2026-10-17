@@ -92,6 +92,9 @@ h2 { font-family: var(--font-display); font-weight: 600; font-size: 1.15rem; mar
 .send-box { display: grid; gap: 8px; }
 a.ghost.hop { text-decoration: none; justify-self: start; }
 .valid-msg { margin: 0; }
+.gh summary { cursor: pointer; font-size: 0.85rem; color: var(--muted); }
+.gh summary span { color: var(--accent); }
+.gh-body { display: grid; gap: 8px; padding-top: 8px; }
 .valid-msg.todo { color: var(--meat); }
 .send-box a.ghost { text-decoration: none; display: inline-block; }
 #send-txt { width: 100%; min-height: 140px; font: inherit; font-size: 0.82rem; padding: 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
@@ -321,6 +324,17 @@ header .label{text-align:center}
       <button class="copy" id="validate" type="button">Valider la semaine</button>
       <p class="note valid-msg" id="valid-msg"></p>
       <a class="ghost hop" href="#" target="_blank" rel="noopener"></a>
+      <details class="gh" id="gh" hidden>
+        <summary>Synchroniser mes appareils <span id="gh-state"></span></summary>
+        <div class="gh-body">
+          <p class="note">La semaine, sa validation et les articles cochés sont partagés entre l'app de l'écran d'accueil, Safari et l'ordinateur. Chaque appareil a besoin, une seule fois, de ta clé GitHub.</p>
+          <div class="stock-add ban-add">
+            <input type="password" id="gh-tok" placeholder="Clé GitHub (github_pat_…)" autocomplete="off" aria-label="Clé GitHub">
+            <button type="button" id="gh-save">Enregistrer</button>
+          </div>
+          <button type="button" class="ghost" id="gh-off" hidden>Oublier la clé sur cet appareil</button>
+        </div>
+      </details>
     </section>
 
     <section class="panel" aria-label="Les plats de la semaine"><h2>Les plats de la semaine</h2><p class="note">Touche un plat pour voir ses ingrédients et sa recette.</p><div id="postes" class="dishes"></div></section>
@@ -777,7 +791,7 @@ try {
     if (o.s && SLOTS.every((x, i) => R[o.s[i]])) {
       state.sel = sl(o.s); state.checked = Object.fromEntries((o.c || []).map(k => [k, true])); state.ppl = o.p || 2;
       if (o.v && SLOTS.every((x, i) => R[o.v.s[i]])) state.valid = {sel: sl(o.v.s), at: o.v.t}; else delete state.valid;
-      imported = true;
+      imported = true; state.u = Date.now();
       try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
     }
     try { history.replaceState(null, "", location.pathname + location.search); } catch (e) {}
@@ -789,7 +803,9 @@ try { tab = localStorage.getItem(KEY+"-tab") || "semaine"; } catch (e) {}
 let ref = null, dirty = false, writing = false, timer = null;
 const syncEl = () => document.getElementById("sync");
 function persist(){
+  state.u = Date.now();
   try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+  ghPush();
   if (!ref) return;
   dirty = true; clearTimeout(timer); timer = setTimeout(flush, 500);
 }
@@ -1112,6 +1128,68 @@ document.getElementById("validate").addEventListener("click", () => {
   state.valid = {sel: {...state.sel}, at: Date.now()}; persist(); render();
 });
 document.querySelectorAll(".hop").forEach(a => a.addEventListener("click", () => { a.href = HOP_URL + "#" + pack(); }));
+// ---- Synchronisation entre appareils (site et app de l'écran d'accueil) ----
+// Un fichier semaine.json sur la branche « donnees » du dépôt, lu et écrit avec la clé GitHub d'Antho (gardée sur l'appareil).
+const GH_URL = "https://api.github.com/repos/ferreanthony-glitch/Recettes/contents/semaine.json", GH_BRANCH = "donnees", GH_KEY = "recettes-gh-token";
+const ghOk = IS_SITE || /^localhost$|^127\./.test(location.hostname);
+let ghSha = null, ghTimer = null, ghBusy = false, ghAgain = false;
+const ghTok = () => { try { return localStorage.getItem(GH_KEY) || ""; } catch (e) { return ""; } };
+const ghState = t => { const e = document.getElementById("gh-state"); if (e) e.textContent = t ? "· " + t : ""; };
+const ghHead = () => ({Authorization: "Bearer " + ghTok(), Accept: "application/vnd.github+json"});
+const ghData = () => ({sel: state.sel, checked: state.checked, valid: state.valid || null, ppl: state.ppl || 2, u: state.u || 0});
+const hhmm = () => new Date().toLocaleTimeString("fr-FR", {hour: "2-digit", minute: "2-digit"});
+async function ghPull(){
+  if (!ghOk || !ghTok()) return;
+  try {
+    const r = await fetch(GH_URL + "?ref=" + GH_BRANCH + "&t=" + Date.now(), {headers: ghHead(), cache: "no-store"});
+    if (r.status === 401 || r.status === 403) { ghState("clé refusée"); return; }
+    if (r.status === 404) { ghSha = null; ghPush(); return; }
+    if (!r.ok) { ghState("hors ligne"); return; }
+    const j = await r.json(); ghSha = j.sha;
+    const d = JSON.parse(decodeURIComponent(escape(atob(j.content.replace(/\s/g, "")))));
+    if (d && d.u > (state.u || 0) && valid({sel: d.sel, checked: d.checked || {}})) {
+      state = {...state, sel: d.sel, checked: d.checked || {}, ppl: d.ppl || 2, u: d.u};
+      if (d.valid && d.valid.sel) state.valid = d.valid; else delete state.valid;
+      try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+      render();
+    } else if ((state.u || 0) > ((d && d.u) || 0)) { ghPush(); return; }
+    ghState("à jour " + hhmm());
+  } catch (e) { ghState("hors ligne"); }
+}
+function ghPush(){ if (!ghOk || !ghTok()) return; clearTimeout(ghTimer); ghTimer = setTimeout(ghSend, 1500); }
+async function ghSend(retry){
+  if (ghBusy) { ghAgain = true; return; }
+  ghBusy = true;
+  try {
+    const body = {message: "Semaine", branch: GH_BRANCH, content: btoa(unescape(encodeURIComponent(JSON.stringify(ghData()))))};
+    if (ghSha) body.sha = ghSha;
+    const r = await fetch(GH_URL, {method: "PUT", headers: {...ghHead(), "Content-Type": "application/json"}, body: JSON.stringify(body)});
+    if (r.ok) { ghSha = (await r.json()).content.sha; ghState("enregistré " + hhmm()); }
+    else if ((r.status === 409 || r.status === 422) && !retry) {   // modifié ailleurs entre-temps : on relit la version en ligne puis on réessaie
+      const g = await fetch(GH_URL + "?ref=" + GH_BRANCH + "&t=" + Date.now(), {headers: ghHead(), cache: "no-store"});
+      if (g.ok) ghSha = (await g.json()).sha;
+      ghBusy = false; return ghSend(true);
+    }
+    else ghState(r.status === 401 || r.status === 403 ? "clé refusée" : "pas enregistré");
+  } catch (e) { ghState("hors ligne, réessai plus tard"); }
+  ghBusy = false;
+  if (ghAgain) { ghAgain = false; ghSend(); }
+}
+function ghInit(){
+  if (!ghOk) return;
+  document.getElementById("gh").hidden = false;
+  const off = document.getElementById("gh-off"); off.hidden = !ghTok();
+  ghState(ghTok() ? "" : "pas encore activée");
+  document.getElementById("gh-save").addEventListener("click", () => {
+    const inp = document.getElementById("gh-tok"), v = inp.value.trim(); if (!v) return;
+    try { localStorage.setItem(GH_KEY, v); } catch (e) {}
+    inp.value = ""; off.hidden = false; ghState("connexion…"); ghPull();
+  });
+  off.addEventListener("click", () => { try { localStorage.removeItem(GH_KEY); } catch (e) {} off.hidden = true; ghState("pas encore activée"); });
+  ghPull();
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) ghPull(); });
+  setInterval(() => { if (!document.hidden) ghPull(); }, 60000);
+}
 // Envoyer la liste : menu de partage du téléphone (SMS, WhatsApp, Notes…), sinon lien SMS / e-mail ou copie
 function sendText(){
   const lines = SLOTS.map(sl => DAYS[sl.d].slice(0, 3) + ". " + MEALN[sl.m] + " : " + R[listSel()[sl.k]].n);
@@ -1160,6 +1238,7 @@ document.getElementById("gen").addEventListener("click", generate);
 
 showTab(tab);
 render();
+ghInit();
 </script>
 
 </body></html>
