@@ -1,0 +1,118 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#f7f3ec"><meta name="color-scheme" content="light"><title>Lentilles vertes mijotées aux carottes et œuf mollet *</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,600;9..40,700&display=swap"><link rel="stylesheet" href="../style.css?v=aa8c42c1"><link rel="manifest" href="../manifest.webmanifest"><link rel="apple-touch-icon" href="../icon-180.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Miam!"><meta name="apple-mobile-web-app-status-bar-style" content="default"><script>if ("serviceWorker" in navigator && /github\.io$|^localhost$/.test(location.hostname)) navigator.serviceWorker.register("../sw.js", {updateViaCache: "none"}).catch(() => {});</script></head><body><header class="site"><div class="in"><a class="brand" href="../index.html">Miam!</a><nav class="nav"><a href="../semaine.html">Ma semaine</a><a href="../index.html">Recueil</a><a href="../guide.html">Guide</a><a href="../compte.html" class="acc">Profil</a></nav></div></header><main class="wrap"><div class="recipe"><aside class="r-side"><a class="back" href="../index.html">← Toutes les recettes</a><div class="r-head"><span class="label">Mijoté</span><h1>Lentilles vertes mijotées aux carottes et œuf mollet *</h1><p class="alg">Contient : œuf, moutarde</p><p class="alg">Saison : toute l'année</p></div><div class="facts"><div><span class="label">Temps</span><b>45 min</b></div><div><span class="label">Portions</span><b>2 personnes</b></div><div><span class="label">Difficulté</span><b>Facile</b></div></div><div class="rate"><button type="button" class="like-big" id="like"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-9.2-9.4C1.6 7.6 3.9 4.5 7.2 4.5c2 0 3.6 1.1 4.8 2.8 1.2-1.7 2.8-2.8 4.8-2.8 3.3 0 5.6 3.1 4.4 6.6-1.7 4.8-9.2 9.4-9.2 9.4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg><span>Ajouter à mes favoris</span></button><div id="stars"></div><small id="rate-t">Noter cette recette</small></div>
+<script>
+(() => {
+  const slug = "lentilles-vertes-mijotees-carottes-oeuf", box = document.getElementById("stars"), t = document.getElementById("rate-t");
+  const get = () => { try { return JSON.parse(localStorage.getItem("recettes-notes")) || {}; } catch (e) { return {}; } };
+  function draw() {
+    const n = get()[slug] || 0; box.innerHTML = "";
+    for (let i = 1; i <= 5; i++) {
+      const b = document.createElement("button"); b.type = "button"; b.textContent = "★";
+      b.className = i <= n ? "on" : ""; b.setAttribute("aria-label", i + " étoile" + (i > 1 ? "s" : ""));
+      b.onclick = () => { const all = get(); if (all[slug] === i) delete all[slug]; else all[slug] = i;
+        try { localStorage.setItem("recettes-notes", JSON.stringify(all)); } catch (e) {} draw(); };
+      box.append(b);
+    }
+    t.textContent = n ? "Ta note : " + n + "/5 · touche à nouveau pour l'effacer" : "Noter cette recette";
+  }
+  draw();
+  const lb = document.getElementById("like");
+  const likes = () => { try { return JSON.parse(localStorage.getItem("recettes-likes")) || []; } catch (e) { return []; } };
+  const drawLike = () => { const on = likes().includes(slug); lb.classList.toggle("on", on); lb.setAttribute("aria-pressed", on);
+    lb.querySelector("span").textContent = on ? "Dans mes favoris" : "Ajouter à mes favoris"; };
+  lb.onclick = () => { const l = likes().filter(x => x !== slug); if (!likes().includes(slug)) l.push(slug);
+    try { localStorage.setItem("recettes-likes", JSON.stringify(l)); localStorage.setItem("recettes-likes-u", Date.now()); } catch (e) {} drawLike(); };
+  drawLike();
+})();
+</script><section class="nut"><span class="label">Par portion</span><div class="nut-v"><div><b>460</b><span>kcal</span></div><div><b>29 g</b><span>protéines</span></div><div><b>45 g</b><span>glucides</span></div><div><b>16 g</b><span>lipides</span></div><div><b>12 g</b><span>fibres</span></div></div><details><summary>Détail du calcul</summary><div class="tw"><table><thead><tr><th>Ingrédient</th><th>Aliment de la base</th><th>Recette</th><th>kcal</th></tr></thead><tbody><tr><td>Lentilles vertes (crues)</td><td>Lentilles vertes crues</td><td>120 g</td><td>396</td></tr><tr><td>Carottes</td><td>Carotte</td><td>300 g</td><td>108</td></tr><tr><td>Oignon</td><td>Oignon</td><td>100 g</td><td>37</td></tr><tr><td>Ail</td><td>Ail</td><td>5 g</td><td>6</td></tr><tr><td>Moutarde</td><td>Moutarde</td><td>5 g</td><td>8</td></tr><tr><td>Vinaigre</td><td>Vinaigre</td><td>15 g</td><td>3</td></tr><tr><td>Huile d&#x27;olive</td><td>Huile (olive, coco)</td><td>9 g</td><td>81</td></tr><tr><td>Œufs, mollets, pour servir</td><td>Œuf entier</td><td>200 g</td><td>280</td></tr><tr><td>Persil frais</td><td>Herbes fraîches</td><td>3 g</td><td>1</td></tr></tbody></table></div><p>Calcul fait sur la recette entière puis divisé par 2 portions.</p><p><a href="../guide.html#aliments">Voir la base des aliments</a></p></details></section></aside><article><details class="intro"><summary>Source, allergènes et préparation</summary><ul>
+<li><strong>Source</strong> : Recette créée par Claude (17/10/2026), pas tirée d'un livre ni d'un site. Quantités calées sur le livret (moitié de l'assiette en légumes, 40 g de féculent cru par personne, gras limité). Non testée en cuisine : temps et assaisonnement à ajuster.</li>
+<li><strong>Portions</strong> : 2 personnes, 1 repas (à doubler pour deux repas)</li>
+<li><strong>Temps</strong> : 45 min, dont 10 min actives (35 min de mijotage)</li>
+<li><strong>Catégorie</strong> : mijoté végétarien (légumineuse + légume + œuf)</li>
+<li><strong>Allergènes courants</strong> : œuf</li>
+</ul></details>
+<h2>Ingrédients (2 personnes, 1 repas)</h2>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Ingrédient</th>
+<th>Quantité</th>
+<th>Rayon</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Lentilles vertes (crues)</td>
+<td>120 g (60 g par personne)</td>
+<td>Épicerie</td>
+</tr>
+<tr>
+<td>Carottes</td>
+<td>3 (300 g)</td>
+<td>Fruits et légumes</td>
+</tr>
+<tr>
+<td>Oignon</td>
+<td>1</td>
+<td>Fruits et légumes</td>
+</tr>
+<tr>
+<td>Ail</td>
+<td>1 gousse</td>
+<td>Fruits et légumes</td>
+</tr>
+<tr>
+<td>Thym et laurier</td>
+<td>1 brin et 1 feuille</td>
+<td>Placard</td>
+</tr>
+<tr>
+<td>Moutarde</td>
+<td>1 c. à café</td>
+<td>Placard</td>
+</tr>
+<tr>
+<td>Vinaigre</td>
+<td>1 c. à soupe</td>
+<td>Placard</td>
+</tr>
+<tr>
+<td>Huile d'olive</td>
+<td>2 c. à café</td>
+<td>Placard</td>
+</tr>
+<tr>
+<td>Œufs, mollets, pour servir</td>
+<td>4 (2 par personne)</td>
+<td>Crèmerie</td>
+</tr>
+<tr>
+<td>Persil frais</td>
+<td>1 c. à soupe</td>
+<td>Fruits et légumes</td>
+</tr>
+<tr>
+<td>Sel, poivre</td>
+<td>—</td>
+<td>Placard</td>
+</tr>
+</tbody>
+</table></div>
+<h2>Étapes</h2>
+<ol>
+<li>Rincer les lentilles. Couper les carottes en rondelles, émincer l'oignon.</li>
+<li>Faire revenir l'oignon et l'ail 3 minutes dans 1 c. à café d'huile, ajouter les carottes, les lentilles, le thym et le laurier.</li>
+<li>Couvrir d'eau froide (2 fois leur volume), porter à ébullition et laisser mijoter 30 à 35 minutes, sans saler.</li>
+<li>Égoutter si besoin, puis assaisonner avec la moutarde, le vinaigre, le reste d'huile, sel et poivre.</li>
+<li>Au moment de servir, cuire les œufs 6 minutes, les écaler et les poser sur les lentilles avec le persil.</li>
+</ol>
+<h2>Préparation du dimanche</h2>
+<ul>
+<li><strong>Ce qui se fait le dimanche</strong> : Les lentilles se font le dimanche et se mangent chaudes ou tièdes. Les œufs se cuisent le jour même (6 min) ou durs le dimanche.</li>
+<li><strong>Conservation</strong> : 4 jours au réfrigérateur ; les lentilles se congèlent bien (3 mois), sans les œufs.</li>
+<li><strong>Réchauffage</strong> : Micro-ondes 2 min, ou à manger tiède en salade.</li>
+</ul>
+<h2>Équilibre (remarques Claude)</h2>
+<ul>
+<li>Lentilles et œufs se partagent la portion de protéines ; les lentilles comptent aussi comme féculent (200 g cuites par personne ≈ la portion du livret).</li>
+<li>150 g de carottes par personne : ajouter une salade verte pour la moitié de l'assiette.</li>
+</ul></article></div></main><footer>2 personnes · batch cooking du dimanche · version du 18/10 00:17</footer></body></html>
