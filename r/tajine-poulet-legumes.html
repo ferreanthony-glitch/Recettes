@@ -1,0 +1,148 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#f7f3ec"><meta name="color-scheme" content="light"><title>Tajine de poulet aux légumes et semoule</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,600;9..40,700&display=swap"><link rel="stylesheet" href="../style.css"></head><body><header class="site"><div class="in"><a class="brand" href="../index.html">Recettes</a><nav class="nav"><a href="../index.html">Recueil</a><a href="../semaine.html">Ma semaine</a></nav></div></header><main class="wrap"><div class="recipe"><a class="back" href="../index.html">← Toutes les recettes</a><div class="r-head"><span class="label">Mijoté</span><h1>Tajine de poulet aux légumes et semoule</h1></div><div class="facts"><div><span class="label">Temps</span><b>1 h 05</b></div><div><span class="label">Portions</span><b>2 personnes</b></div></div><div class="rate"><div id="stars"></div><small id="rate-t">Noter cette recette</small></div>
+<script>
+(() => {
+  const slug = "tajine-poulet-legumes", box = document.getElementById("stars"), t = document.getElementById("rate-t");
+  const get = () => { try { return JSON.parse(localStorage.getItem("recettes-notes")) || {}; } catch (e) { return {}; } };
+  function draw() {
+    const n = get()[slug] || 0; box.innerHTML = "";
+    for (let i = 1; i <= 5; i++) {
+      const b = document.createElement("button"); b.type = "button"; b.textContent = "★";
+      b.className = i <= n ? "on" : ""; b.setAttribute("aria-label", i + " étoile" + (i > 1 ? "s" : ""));
+      b.onclick = () => { const all = get(); if (all[slug] === i) delete all[slug]; else all[slug] = i;
+        try { localStorage.setItem("recettes-notes", JSON.stringify(all)); } catch (e) {} draw(); };
+      box.append(b);
+    }
+    t.textContent = n ? "Ta note : " + n + "/5 · touche à nouveau pour l'effacer" : "Noter cette recette";
+  }
+  draw();
+})();
+</script><article><details class="intro"><summary>Source, allergènes et préparation</summary><ul>
+<li><strong>Source</strong> : <a href="https://cuisinedaubery.com/recipe/tajine-de-poulet">Cuisine d'Aubery, « Le tajine de poulet de Yannick Alléno »</a>, quantités données pour 2 personnes. Adaptée par Claude : safran remplacé par du curcuma (bien moins cher), une courgette ajoutée pour les légumes, raisins secs réduits, olives facultatives. La page source s'arrête au milieu des étapes : la suite est écrite par Claude.</li>
+<li><strong>Portions</strong> : 2 personnes, 1 repas (à doubler ou tripler : un mijoté se fait en grande quantité)</li>
+<li><strong>Temps</strong> : 1 h 05, dont 20 min actives (45 min de mijotage)</li>
+<li><strong>Catégorie</strong> : plat complet mijoté (volaille + légumes + féculent)</li>
+<li><strong>Allergènes courants</strong> : fruits à coque (noix de cajou, facultatives)</li>
+</ul></details>
+<h2>Ingrédients (2 personnes, 1 repas)</h2>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Ingrédient</th>
+<th>Quantité</th>
+<th>Rayon</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Hauts de cuisse de poulet sans peau</td>
+<td>2 (environ 300 g)</td>
+<td>Boucherie</td>
+</tr>
+<tr>
+<td>Carottes</td>
+<td>2</td>
+<td>Fruits et légumes</td>
+</tr>
+<tr>
+<td>Courgette (ajout Claude)</td>
+<td>1</td>
+<td>Fruits et légumes</td>
+</tr>
+<tr>
+<td>Aubergine</td>
+<td>½ (la source en met 50 g)</td>
+<td>Fruits et légumes</td>
+</tr>
+<tr>
+<td>Oignon</td>
+<td>½</td>
+<td>Fruits et légumes</td>
+</tr>
+<tr>
+<td>Ail</td>
+<td>1 gousse</td>
+<td>Fruits et légumes</td>
+</tr>
+<tr>
+<td>Gingembre frais</td>
+<td>15 g, râpé</td>
+<td>Fruits et légumes</td>
+</tr>
+<tr>
+<td>Ras el hanout</td>
+<td>¼ c. à café</td>
+<td>Placard</td>
+</tr>
+<tr>
+<td>Cumin</td>
+<td>¼ c. à café</td>
+<td>Placard</td>
+</tr>
+<tr>
+<td>Coriandre moulue</td>
+<td>½ c. à café</td>
+<td>Placard</td>
+</tr>
+<tr>
+<td>Cannelle</td>
+<td>2 pincées</td>
+<td>Placard</td>
+</tr>
+<tr>
+<td>Curcuma (à la place du safran)</td>
+<td>½ c. à café</td>
+<td>Placard</td>
+</tr>
+<tr>
+<td>Raisins secs</td>
+<td>15 g (25 g dans la source)</td>
+<td>Épicerie</td>
+</tr>
+<tr>
+<td>Noix de cajou</td>
+<td>25 g</td>
+<td>Épicerie</td>
+</tr>
+<tr>
+<td>Coriandre fraîche</td>
+<td>½ botte</td>
+<td>Fruits et légumes</td>
+</tr>
+<tr>
+<td>Eau</td>
+<td>15 cl</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Huile d'olive</td>
+<td>2 c. à café</td>
+<td>Placard</td>
+</tr>
+<tr>
+<td>Semoule complète (crue), pour servir</td>
+<td>80 g (40 g par personne)</td>
+<td>Épicerie</td>
+</tr>
+</tbody>
+</table></div>
+<h2>Étapes (adaptées de la source)</h2>
+<ol>
+<li>Éplucher les carottes et les couper en gros tronçons. Couper la courgette et l'aubergine en gros morceaux (elles réduisent à la cuisson). Émincer l'oignon, écraser l'ail, râper le gingembre.</li>
+<li>Dans une cocotte ou un tajine, faire dorer les hauts de cuisse dans l'huile, puis les réserver.</li>
+<li>Faire revenir l'oignon, l'ail, le gingembre et toutes les épices 2 minutes.</li>
+<li>Remettre le poulet, ajouter les carottes et l'eau. Couvrir et laisser mijoter 20 minutes à feu doux.</li>
+<li>Ajouter la courgette, l'aubergine et les raisins secs, puis poursuivre 25 minutes à couvert.</li>
+<li>Servir avec la semoule gonflée à l'eau bouillante, les noix de cajou concassées et la coriandre fraîche.</li>
+</ol>
+<h2>Préparation du dimanche (ajout Claude)</h2>
+<ul>
+<li><strong>Ce qui se fait le dimanche</strong> : Tout se fait le dimanche, la source précise que le plat se prépare à l'avance et se réchauffe très bien. Garder la coriandre et les noix de cajou à part, à ajouter au moment de servir.</li>
+<li><strong>Conservation</strong> : 4 jours au réfrigérateur ; se congèle bien (3 mois), sans la semoule.</li>
+<li><strong>Réchauffage</strong> : Casserole à couvert 8 min avec un peu d'eau, ou micro-ondes 3 min. Semoule : micro-ondes 1 min avec une cuillère d'eau.</li>
+</ul>
+<h2>Équilibre (remarques Claude)</h2>
+<ul>
+<li>150 g de poulet par personne. Carottes, courgette et aubergine remplissent la moitié de l'assiette.</li>
+<li>12 g de noix de cajou par personne, un peu moins que la portion d'oléagineux du livret (20 g).</li>
+<li>Les raisins secs apportent du sucre : 15 g pour deux reste raisonnable, on peut les supprimer.</li>
+</ul></article></div></main><footer>2 personnes · batch cooking du dimanche</footer></body></html>

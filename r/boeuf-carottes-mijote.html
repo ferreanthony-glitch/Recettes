@@ -1,0 +1,107 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#f7f3ec"><meta name="color-scheme" content="light"><title>Bœuf-carottes mijoté</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,600;9..40,700&display=swap"><link rel="stylesheet" href="../style.css"></head><body><header class="site"><div class="in"><a class="brand" href="../index.html">Recettes</a><nav class="nav"><a href="../index.html">Recueil</a><a href="../semaine.html">Ma semaine</a></nav></div></header><main class="wrap"><div class="recipe"><a class="back" href="../index.html">← Toutes les recettes</a><div class="r-head"><span class="label">Mijoté</span><h1>Bœuf-carottes mijoté</h1></div><div class="facts"><div><span class="label">Temps</span><b>2 h 45</b></div><div><span class="label">Portions</span><b>2 personnes</b></div></div><div class="rate"><div id="stars"></div><small id="rate-t">Noter cette recette</small></div>
+<script>
+(() => {
+  const slug = "boeuf-carottes-mijote", box = document.getElementById("stars"), t = document.getElementById("rate-t");
+  const get = () => { try { return JSON.parse(localStorage.getItem("recettes-notes")) || {}; } catch (e) { return {}; } };
+  function draw() {
+    const n = get()[slug] || 0; box.innerHTML = "";
+    for (let i = 1; i <= 5; i++) {
+      const b = document.createElement("button"); b.type = "button"; b.textContent = "★";
+      b.className = i <= n ? "on" : ""; b.setAttribute("aria-label", i + " étoile" + (i > 1 ? "s" : ""));
+      b.onclick = () => { const all = get(); if (all[slug] === i) delete all[slug]; else all[slug] = i;
+        try { localStorage.setItem("recettes-notes", JSON.stringify(all)); } catch (e) {} draw(); };
+      box.append(b);
+    }
+    t.textContent = n ? "Ta note : " + n + "/5 · touche à nouveau pour l'effacer" : "Noter cette recette";
+  }
+  draw();
+})();
+</script><article><details class="intro"><summary>Source, allergènes et préparation</summary><ul>
+<li><strong>Source</strong> : <a href="https://www.jardiner-malin.fr/recettes/boeuf-carotte.html">Jardiner Malin, « Bœuf carottes »</a>, recette pour 5 à 6 personnes (1,5 à 2 kg de bœuf, 1 kg de carottes, 10 cl d'huile). Quantités ramenées à 2 personnes et allégées en huile par Claude.</li>
+<li><strong>Portions</strong> : 2 personnes, 1 repas (à doubler ou tripler : un mijoté se fait en grande quantité)</li>
+<li><strong>Temps</strong> : 2 h 45, dont 20 min actives (2 h 30 de mijotage à couvert)</li>
+<li><strong>Catégorie</strong> : plat complet mijoté (viande + légumes + féculent)</li>
+<li><strong>Allergènes courants</strong> : aucun des allergènes majeurs ; céleri possible dans le cube de bouillon (vérifier l'étiquette)</li>
+</ul></details>
+<h2>Ingrédients (2 personnes, 1 repas)</h2>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Ingrédient</th>
+<th>Quantité</th>
+<th>Rayon</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Bœuf à braiser (paleron, macreuse ou jarret), en cubes de 4 cm</td>
+<td>300 g (150 g par personne)</td>
+<td>Boucherie</td>
+</tr>
+<tr>
+<td>Carottes</td>
+<td>4 (environ 400 g)</td>
+<td>Fruits et légumes</td>
+</tr>
+<tr>
+<td>Oignon</td>
+<td>1</td>
+<td>Fruits et légumes</td>
+</tr>
+<tr>
+<td>Ail</td>
+<td>1 gousse</td>
+<td>Fruits et légumes</td>
+</tr>
+<tr>
+<td>Vin blanc sec (facultatif, l'alcool s'évapore)</td>
+<td>5 cl</td>
+<td>Épicerie</td>
+</tr>
+<tr>
+<td>Bouillon de bœuf (cube dilué)</td>
+<td>20 cl</td>
+<td>Placard</td>
+</tr>
+<tr>
+<td>Bouquet garni (thym, laurier)</td>
+<td>1</td>
+<td>Placard</td>
+</tr>
+<tr>
+<td>Huile d'olive</td>
+<td>2 c. à café (au lieu de 10 cl pour 6 dans la source)</td>
+<td>Placard</td>
+</tr>
+<tr>
+<td>Pommes de terre, pour servir</td>
+<td>300 g (150 g par personne)</td>
+<td>Fruits et légumes</td>
+</tr>
+<tr>
+<td>Sel, poivre</td>
+<td>—</td>
+<td>Placard</td>
+</tr>
+</tbody>
+</table></div>
+<h2>Étapes (adaptées de la source)</h2>
+<ol>
+<li>Couper la viande en cubes de 3 à 4 cm. Émincer l'oignon, éplucher l'ail, éplucher les carottes et les couper en tronçons de 2 cm.</li>
+<li>Dans une cocotte, faire dorer la viande quelques minutes dans l'huile, puis ajouter l'oignon 2 à 3 minutes.</li>
+<li>Verser le vin blanc, puis le bouillon jusqu'à couvrir la viande. Ajouter l'ail et le bouquet garni. Couvrir et laisser mijoter 1 h à feu doux.</li>
+<li>Ajouter les carottes, saler, poivrer, et poursuivre 1 h à 1 h 30 à couvert, jusqu'à ce que la viande se défasse à la fourchette.</li>
+<li>Pendant les 25 dernières minutes, cuire les pommes de terre à la vapeur ou à l'eau.</li>
+</ol>
+<h2>Préparation du dimanche (ajout Claude)</h2>
+<ul>
+<li><strong>Ce qui se fait le dimanche</strong> : Tout se fait le dimanche, et le plat est encore meilleur réchauffé : la source conseille de le préparer la veille. La cocotte tourne seule pendant que le four sert à autre chose. Se fait sans effort en double ou en triple dans la même cocotte.</li>
+<li><strong>Conservation</strong> : 4 jours au réfrigérateur ; se congèle très bien (3 mois), sans les pommes de terre.</li>
+<li><strong>Réchauffage</strong> : Casserole à feu doux 8 à 10 min à couvert avec un peu d'eau, ou micro-ondes 3 à 4 min.</li>
+</ul>
+<h2>Équilibre (remarques Claude)</h2>
+<ul>
+<li>150 g de viande à braiser par personne, entre le steak (130 g) et le bœuf haché 5 % (250 g) du livret : ces morceaux sont un peu plus gras, d'où la portion modérée. Dégraisser la sauce refroidie (le gras fige en surface) avant de réchauffer.</li>
+<li>200 g de carottes par personne : compléter d'une salade verte pour atteindre la moitié de l'assiette en légumes.</li>
+<li>150 g de pommes de terre par personne, l'équivalent d'une portion de féculent du livret.</li>
+</ul></article></div></main><footer>2 personnes · batch cooking du dimanche</footer></body></html>

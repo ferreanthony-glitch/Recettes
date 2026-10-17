@@ -1,0 +1,113 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#f7f3ec"><meta name="color-scheme" content="light"><title>Poulet basquaise et riz complet</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,600;9..40,700&display=swap"><link rel="stylesheet" href="../style.css"></head><body><header class="site"><div class="in"><a class="brand" href="../index.html">Recettes</a><nav class="nav"><a href="../index.html">Recueil</a><a href="../semaine.html">Ma semaine</a></nav></div></header><main class="wrap"><div class="recipe"><a class="back" href="../index.html">← Toutes les recettes</a><div class="r-head"><span class="label">Mijoté</span><h1>Poulet basquaise et riz complet</h1></div><div class="facts"><div><span class="label">Temps</span><b>1 h</b></div><div><span class="label">Portions</span><b>2 personnes</b></div></div><div class="rate"><div id="stars"></div><small id="rate-t">Noter cette recette</small></div>
+<script>
+(() => {
+  const slug = "poulet-basquaise", box = document.getElementById("stars"), t = document.getElementById("rate-t");
+  const get = () => { try { return JSON.parse(localStorage.getItem("recettes-notes")) || {}; } catch (e) { return {}; } };
+  function draw() {
+    const n = get()[slug] || 0; box.innerHTML = "";
+    for (let i = 1; i <= 5; i++) {
+      const b = document.createElement("button"); b.type = "button"; b.textContent = "★";
+      b.className = i <= n ? "on" : ""; b.setAttribute("aria-label", i + " étoile" + (i > 1 ? "s" : ""));
+      b.onclick = () => { const all = get(); if (all[slug] === i) delete all[slug]; else all[slug] = i;
+        try { localStorage.setItem("recettes-notes", JSON.stringify(all)); } catch (e) {} draw(); };
+      box.append(b);
+    }
+    t.textContent = n ? "Ta note : " + n + "/5 · touche à nouveau pour l'effacer" : "Noter cette recette";
+  }
+  draw();
+})();
+</script><article><details class="intro"><summary>Source, allergènes et préparation</summary><ul>
+<li><strong>Source</strong> : <a href="https://www.les-calories.com/blog/poulet-basquaise">Les-calories.com, « Poulet basquaise »</a>, recette pour 6 personnes avec un poulet entier fariné. Adaptée par Claude : hauts de cuisse sans peau, sans farine, tomates en conserve (hors saison), piment d'Espelette en poudre.</li>
+<li><strong>Portions</strong> : 2 personnes, 1 repas (à doubler ou tripler : un mijoté se fait en grande quantité)</li>
+<li><strong>Temps</strong> : 1 h, dont 20 min actives (40 min de mijotage)</li>
+<li><strong>Catégorie</strong> : plat complet mijoté (volaille + légumes + féculent)</li>
+<li><strong>Allergènes courants</strong> : aucun des allergènes majeurs</li>
+</ul></details>
+<h2>Ingrédients (2 personnes, 1 repas)</h2>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Ingrédient</th>
+<th>Quantité</th>
+<th>Rayon</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Hauts de cuisse de poulet désossés, sans peau (ou filets)</td>
+<td>300 g (150 g par personne)</td>
+<td>Boucherie</td>
+</tr>
+<tr>
+<td>Poivron rouge</td>
+<td>1</td>
+<td>Fruits et légumes</td>
+</tr>
+<tr>
+<td>Poivron vert</td>
+<td>1</td>
+<td>Fruits et légumes</td>
+</tr>
+<tr>
+<td>Oignon</td>
+<td>1</td>
+<td>Fruits et légumes</td>
+</tr>
+<tr>
+<td>Ail</td>
+<td>1 gousse</td>
+<td>Fruits et légumes</td>
+</tr>
+<tr>
+<td>Tomates pelées en conserve</td>
+<td>250 g (ou 3 tomates bien mûres en saison)</td>
+<td>Conserves</td>
+</tr>
+<tr>
+<td>Piment d'Espelette en poudre</td>
+<td>1 pincée (la source met 5 piments verts frais pour 6)</td>
+<td>Placard</td>
+</tr>
+<tr>
+<td>Thym, laurier</td>
+<td>1 brin, 1 feuille</td>
+<td>Placard</td>
+</tr>
+<tr>
+<td>Huile d'olive</td>
+<td>2 c. à café</td>
+<td>Placard</td>
+</tr>
+<tr>
+<td>Riz complet (cru), pour servir</td>
+<td>80 g (40 g par personne)</td>
+<td>Épicerie</td>
+</tr>
+<tr>
+<td>Sel, poivre</td>
+<td>—</td>
+<td>Placard</td>
+</tr>
+</tbody>
+</table></div>
+<h2>Étapes (adaptées de la source)</h2>
+<ol>
+<li>Émincer l'oignon et les poivrons en lanières, hacher l'ail.</li>
+<li>Dans une cocotte, faire fondre l'oignon, l'ail et les poivrons dans la moitié de l'huile jusqu'à ce que l'oignon devienne translucide.</li>
+<li>Ajouter les tomates concassées, le thym, le laurier et le piment. Saler, poivrer, laisser mijoter 25 minutes à couvert.</li>
+<li>Pendant ce temps, couper le poulet en morceaux et le faire dorer dans une poêle avec le reste de l'huile.</li>
+<li>Ajouter le poulet à la sauce et laisser mijoter encore 15 minutes, jusqu'à cuisson à cœur.</li>
+<li>Cuire le riz complet selon le paquet (30 à 40 min) et servir.</li>
+</ol>
+<h2>Préparation du dimanche (ajout Claude)</h2>
+<ul>
+<li><strong>Ce qui se fait le dimanche</strong> : Tout se fait le dimanche. La sauce aux poivrons gagne à attendre un jour. Le riz complet peut être cuit le dimanche, refroidi vite et gardé 2 jours au frigo, ou cuit le jour même.</li>
+<li><strong>Conservation</strong> : 4 jours au réfrigérateur ; se congèle très bien (3 mois), sans le riz.</li>
+<li><strong>Réchauffage</strong> : Casserole à feu doux 6 à 8 min, ou micro-ondes 3 min en remuant à mi-parcours.</li>
+</ul>
+<h2>Équilibre (remarques Claude)</h2>
+<ul>
+<li>150 g de poulet par personne, comme les autres plats de volaille du recueil (le livret autorise jusqu'à 250 g).</li>
+<li>Un poivron par personne plus les tomates : la moitié de l'assiette en légumes est atteinte.</li>
+<li>40 g de riz complet cru par personne, la portion du livret. Les hauts de cuisse sans peau restent maigres et ne sèchent pas au mijotage.</li>
+</ul></article></div></main><footer>2 personnes · batch cooking du dimanche</footer></body></html>
