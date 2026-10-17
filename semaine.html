@@ -144,6 +144,13 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--accent); o
 .stars { color: var(--accent); font-size: 0.8rem; letter-spacing: 0.05em; }
 .stock-add { display: grid; grid-template-columns: 1fr 1fr auto; gap: 6px; }
 .stock-add #st-n { grid-column: 1 / -1; }
+.stock-add { grid-template-columns: 1fr 1fr; }
+.stock-add .exp { display: grid; gap: 2px; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.stock-add .exp input { text-transform: none; letter-spacing: 0; }
+.stock-add button { align-self: end; }
+.pins button.soon { border-color: var(--meat); background: var(--meat-soft); }
+.keep { font-size: 0.8rem; color: var(--accent); }
+.keep.bad { color: var(--meat); font-weight: 700; }
 .stock-add input, .stock-add select { font: inherit; font-size: 0.95rem; min-width: 0; padding: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
 .stock-add button { font: inherit; font-weight: 700; padding: 10px 14px; border: 1px solid var(--accent); background: var(--surface); color: var(--accent); cursor: pointer; }
 .meal { display: grid; gap: 4px; padding-top: 10px; border-top: 1px solid var(--line); }
@@ -210,6 +217,7 @@ header .label{text-align:center}
           <input type="text" id="st-n" list="ingr" placeholder="Aliment (aubergine, riz…)" autocomplete="off" aria-label="Aliment">
           <input type="number" id="st-q" value="1" min="0" step="0.5" inputmode="decimal" aria-label="Quantité">
           <select id="st-u" aria-label="Unité"><option value="pc">pièce(s)</option><option value="g">g</option><option value="ml">ml</option><option value="botte">botte(s)</option><option value="gousse">gousse(s)</option></select>
+          <label class="exp"><span>À consommer avant</span><input type="date" id="st-e"></label>
           <button type="button" id="st-add">Ajouter</button>
         </div></div>
       <div class="pins" id="stock"></div>
@@ -400,6 +408,24 @@ function weekText(){
 }
 document.getElementById("week-label").textContent = weekText()[0].toUpperCase() + weekText().slice(1) + " · 2 personnes";
 
+// Dates : dimanche de cuisine = veille du lundi ; jour d (0 = lundi)
+const dayDate = d => { const x = nextMonday(); x.setDate(x.getDate() + d); return x; };
+const iso = d => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+const short = isoStr => { const [y, m, dd] = isoStr.split("-"); return dd + "/" + m; };
+const today = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; };
+const daysTo = isoStr => Math.round((new Date(isoStr + "T00:00:00") - today()) / 864e5);
+// Conservation des plats préparés le dimanche, d'après les fiches : [jours au frigo, se congèle bien]
+const KEEP = {mp:[3,1],thai:[3,1],butter:[3,1],roul:[3,0],pbc:[3,1],chili:[3,1],hachis:[3,1],boul:[3,1],bolo:[3,1],croq:[2,1],tabo:[3,0],
+  gratin:[3,1],courg:[3,0],souppd:[4,1],soupcf:[4,1],soupct:[4,1],crev:[2,0],salbro:[2,0],thon:[2,0],pasta:[2,0],carbo:[3,1],risotto:[3,0],veau:[3,1]};
+// Pour un repas : null si rien à signaler, sinon {freeze} ou {bad}
+function keepInfo(sl){
+  const id = state.sel[sl.k], r = R[id];
+  if (!r.r) return null;                       // plat rapide : préparé le jour même
+  const age = sl.d + 1, [fridge, freeze] = KEEP[id] || [3, 0];
+  if (age <= fridge) return null;
+  return freeze ? {freeze: true, txt: "❄ À congeler dès dimanche, puis à passer au frigo la veille."}
+                : {bad: true, txt: "⚠ Trop loin du dimanche : ce plat tient " + fridge + " jours au frigo et se congèle mal. Avance ce repas."};
+}
 const norm = t => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/œ/g, "oe").trim();
 // ---- Restes : aliment + quantité + unité ----
 // Mots ramenés au singulier, synonymes, et poids moyen d'une pièce pour convertir pièces ↔ grammes
@@ -442,31 +468,35 @@ function stock(){
 }
 const multOf = (p, id) => p.slots.length > 1 && !R[id].once ? 2 : 1;
 // Quantité d'un reste consommée par une semaine (dans l'unité du reste) ; « partiel » si on ne peut pas convertir
+function cookDate(p){ return p.f === "r" ? dayDate(-1) : dayDate(p.slots[0][0]); }   // postes doublés : dimanche
 function consumed(s, it){
-  let q = 0, partial = false;
+  let q = 0, partial = false, late = false;
   P.forEach(p => { const id = s[p.k]; Q[id].forEach(([n, qq, u]) => {
     if (u === "pl" || !same(n, it.n)) return;
+    if (it.exp && iso(cookDate(p)) > it.exp) { late = true; return; }   // cuisiné après la date : ne compte pas
     const c = conv(qq * multOf(p, id), u, it.u, it.n);
     if (c === null) partial = true; else q += c;
   }); });
-  return {q, partial};
+  return {q, partial, late};
 }
 function fmtStock(it){
   const q = String(Math.round(it.q * 100) / 100).replace(".", ",").replace(/^0,5$/, "½");
   const u = {pc: "", g: " g", ml: " ml", botte: " botte" + (it.q > 1 ? "s" : ""), gousse: " gousse" + (it.q > 1 ? "s" : "")}[it.u] || "";
-  return q + u + " " + it.n;
+  return q + u + " " + it.n + (it.exp ? " · avant le " + short(it.exp) : "");
 }
 function addStock(){
   const nIn = document.getElementById("st-n"), qIn = document.getElementById("st-q"), uIn = document.getElementById("st-u");
   const parsed = parseStock(nIn.value);
   if (!parsed) return;
+  const exp = document.getElementById("st-e").value || null;
   const it = parsed.q != null ? {n: parsed.n, q: parsed.q, u: parsed.u || "pc"}   // « 2 aubergines » tapé d'un bloc
     : {n: parsed.n, q: parseFloat(String(qIn.value).replace(",", ".")) || 1, u: parsed.u || uIn.value};
   const list = stock().filter(x => stem(x.n) !== stem(it.n) || x.u !== it.u);
   const old = stock().find(x => stem(x.n) === stem(it.n) && x.u === it.u);
-  if (old) it.q += old.q;
+  if (old) { it.q += old.q; if (!exp) it.exp = old.exp; }
+  if (exp) it.exp = exp;
   state.stock = list.concat(it);
-  nIn.value = ""; qIn.value = 1; uIn.value = "pc"; nIn.focus();
+  nIn.value = ""; qIn.value = 1; uIn.value = "pc"; document.getElementById("st-e").value = ""; nIn.focus();
   persist(); renderGen(); renderList();
 }
 const POOL = p => Object.keys(R).filter(id => R[id][p.f]);
@@ -504,12 +534,14 @@ function generate(){
   const hit = [], miss = [];
   left.forEach(it => { const c = consumed(best, it);
     if (c.q > 0) hit.push(it.n + " " + String(Math.round(Math.min(c.q, it.q) * 10) / 10).replace(".", ",") + "/" + String(it.q).replace(".", ","));
-    else if (c.partial) hit.push(it.n); else miss.push(it.n); });
+    else if (c.partial) hit.push(it.n); else if (!(it.exp && it.exp < iso(dayDate(-1)))) miss.push(it.n + (c.late ? " (périmé avant le jour où le plat serait cuisiné)" : "")); });
+  const early = left.filter(it => it.exp && it.exp < iso(dayDate(-1))).map(it => it.n + " (" + short(it.exp) + ")");
   const msg = document.getElementById("gen-msg"); msg.innerHTML = "";
   msg.append("Semaine générée : " + meals() + " repas avec viande. ");
   if (hit.length) msg.append("Restes utilisés : ", el("b",{}, hit.join(", ")), ". ");
   if (miss.length) msg.append("Aucun plat n'utilise : " + miss.join(", ") + ". ");
   if (warn.length) msg.append("Pas de place pour : " + warn.join(", ") + ". ");
+  if (early.length) msg.append(el("b",{}, "À utiliser avant ta cuisine du dimanche : " + early.join(", ") + ". "));
   msg.append("Clique à nouveau pour un autre tirage.");
 }
 function score(s, left, n){
@@ -522,9 +554,12 @@ function score(s, left, n){
     sc += (r - 3) * 2 * p.slots.length;          // notes : 5 étoiles fortement favorisé, 1 étoile presque exclu
     if (r === 1) sc -= 20;
     if ((R[id].c || []).length && p.slots.length < 2) sc -= 30;   // aliment cher sur un seul repas
+    if (p.f === "r") { const [fr, fz] = KEEP[id] || [3, 0];      // plat du dimanche mangé trop tard et qui se congèle mal
+      p.slots.forEach(([d]) => { if (d + 1 > fr && !fz) sc -= 15; }); }
   });
   left.forEach(it => { const c = consumed(s, it);   // un reste bien utilisé rapporte plus qu'un reste effleuré
-    if (c.q > 0) sc += 4 + 8 * Math.min(c.q, it.q) / it.q; else if (c.partial) sc += 6; });
+    const w = it.exp ? (daysTo(it.exp) <= 4 ? 2.5 : 1.5) : 1;   // ce qui périme bientôt passe en priorité
+    if (c.q > 0) sc += w * (4 + 8 * Math.min(c.q, it.q) / it.q); else if (c.partial) sc += 6 * w; });
   const cnt = {};
   new Set(P.map(p => s[p.k])).forEach(id => R[id].i.forEach(x => cnt[x] = (cnt[x]||0) + 1));
   sc += 0.8 * Object.values(cnt).filter(v => v > 1).length;   // ingrédients partagés = économies
@@ -539,7 +574,7 @@ function renderGen(){
   const dl = document.getElementById("ingr");
   if (!dl.children.length) [...new Set(Object.values(Q).flat().map(x => x[0]))].sort((a,b)=>a.localeCompare(b,"fr")).forEach(x => dl.append(el("option",{value:x})));
   const sb = document.getElementById("stock"); sb.innerHTML = "";
-  stock().forEach(it => sb.append(el("button",{type:"button",title:"Retirer",onclick:()=>{ state.stock = stock().filter(x => x !== it); persist(); renderGen(); renderList(); }}, fmtStock(it))));
+  stock().slice().sort((a, b) => (a.exp || "9") < (b.exp || "9") ? -1 : 1).forEach(it => sb.append(el("button",{type:"button",title:"Retirer",class:it.exp && daysTo(it.exp) <= 3 ? "soon" : "",onclick:()=>{ state.stock = stock().filter(x => x !== it); persist(); renderGen(); renderList(); }}, fmtStock(it))));
 }
 
 const MAXV = 7, KEY = "semaine-lasseche-1012-v3", DOC = "semaines/2026-10-12";
@@ -711,6 +746,7 @@ function renderPostes(){
         sel,
         el("span",{class:"ing"}, r.i.join(" · ")),
         r.d ? el("span",{class:"ing"}, "→ " + r.d) : null,
+        (k => k ? el("span",{class:"keep" + (k.bad ? " bad" : "")}, k.txt) : null)(keepInfo(sl)),
         el("span",{class:"tags"}, r.v ? el("span",{class:"tag v"},"viande") : null, r.c ? el("span",{class:"tag c"},"cher") : null, r.g ? el("span",{class:"tag"},"gourmand") : null)));
     });
     box.append(card);
@@ -731,6 +767,10 @@ function renderStats(){
   dishes.forEach(id => (R[id].c||[]).forEach(x => { cher[x] = (cher[x]||0) + c[id]; }));
   for (const x in cher) if (cher[x] < 2) al.append(el("div",{class:"alert"}, `${x[0].toUpperCase()+x.slice(1)} : aliment cher qui ne sert qu'un repas. Choisis ce plat pour un deuxième repas, ou change-le.`));
   const count = c;
+  const bad = SLOTS.filter(sl => (keepInfo(sl) || {}).bad).map(slotName);
+  if (bad.length) al.append(el("div",{class:"alert meat"}, "Conservation trop longue : " + bad.join(", ") + ". Ces plats se congèlent mal, avance-les dans la semaine."));
+  const frz = SLOTS.filter(sl => (keepInfo(sl) || {}).freeze).map(slotName);
+  if (frz.length) al.append(el("div",{class:"alert"}, "À congeler dimanche : " + frz.join(", ") + "."));
   for (const id in count) if (count[id] > 2) al.append(el("div",{class:"alert"}, `${R[id].n} revient ${count[id]} fois dans la semaine.`));
 }
 
