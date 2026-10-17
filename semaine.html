@@ -90,6 +90,9 @@ h2 { font-family: var(--font-display); font-weight: 600; font-size: 1.15rem; mar
 .reset { font: inherit; font-size: 0.85rem; padding: 8px; border: 0; background: transparent; color: var(--muted); text-decoration: underline; cursor: pointer; }
 #fallback { width: 100%; min-height: 160px; font: inherit; font-size: 0.85rem; padding: 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
 .send-box { display: grid; gap: 8px; }
+a.ghost.hop { text-decoration: none; justify-self: start; }
+.valid-msg { margin: 0; }
+.valid-msg.todo { color: var(--meat); }
 .send-box a.ghost { text-decoration: none; display: inline-block; }
 #send-txt { width: 100%; min-height: 140px; font: inherit; font-size: 0.82rem; padding: 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
 .toast { font-size: 0.85rem; color: var(--ok); text-align: center; min-height: 1.2em; }
@@ -315,16 +318,9 @@ header .label{text-align:center}
       <h2>La semaine</h2>
       <p class="note">Touche un repas pour choisir un autre plat. Fais-le glisser sur une autre case pour les échanger (sur téléphone, appuie un instant puis glisse).</p>
       <div class="grid"><table><thead><tr><th>Jour</th><th>Midi</th><th>Soir</th></tr></thead><tbody id="grid"></tbody></table></div>
-      <button class="copy" id="send" type="button">Valider et envoyer la liste de courses</button>
-      <div class="send-box" id="send-box" hidden>
-        <p class="note" id="send-msg"></p>
-        <div class="row-actions">
-          <a class="ghost" id="send-sms" href="#">Ouvrir un SMS</a>
-          <a class="ghost" id="send-mail" href="#">Ouvrir un e-mail</a>
-          <button class="ghost" id="send-copy" type="button">Copier le texte</button>
-        </div>
-        <textarea id="send-txt" readonly aria-label="Texte à envoyer"></textarea>
-      </div>
+      <button class="copy" id="validate" type="button">Valider la semaine</button>
+      <p class="note valid-msg" id="valid-msg"></p>
+      <a class="ghost hop" href="#" target="_blank" rel="noopener"></a>
     </section>
 
     <section class="panel" aria-label="Les plats de la semaine"><h2>Les plats de la semaine</h2><p class="note">Touche un plat pour voir ses ingrédients et sa recette.</p><div id="postes" class="dishes"></div></section>
@@ -355,10 +351,21 @@ header .label{text-align:center}
     <section class="panel">
       <div class="progress"><h2>Liste de courses</h2><span class="n" id="prog">0/0</span></div>
       <div class="bar"><i id="bar"></i></div>
-      <p class="note">Quantités pour <span class="ppl-n">2 personnes</span> et toute la semaine, plats doublés compris. Coche au fur et à mesure : la liste se met à jour d'après la semaine choisie.</p>
+      <p class="note">Quantités pour <span class="ppl-n">2 personnes</span> et toute la semaine, plats doublés compris. Coche au fur et à mesure. La liste suit la dernière semaine validée.</p>
+      <p class="note valid-msg" id="list-msg"></p>
+      <button class="copy" id="send" type="button">Envoyer la liste par message</button>
+      <div class="send-box" id="send-box" hidden>
+        <p class="note" id="send-msg"></p>
+        <div class="row-actions">
+          <a class="ghost" id="send-sms" href="#">Ouvrir un SMS</a>
+          <a class="ghost" id="send-mail" href="#">Ouvrir un e-mail</a>
+          <button class="ghost" id="send-copy" type="button">Copier le texte</button>
+        </div>
+        <textarea id="send-txt" readonly aria-label="Texte à envoyer"></textarea>
+      </div>
       <div class="row-actions">
         <button class="ghost" id="uncheck" type="button">Tout décocher</button>
-        <button class="ghost" id="copy-list" type="button">Copier la liste</button>
+        <a class="ghost hop" href="#" target="_blank" rel="noopener"></a>
       </div>
       <div class="toast" id="toast" role="status"></div>
       <textarea id="fallback" hidden readonly aria-label="La liste en texte"></textarea>
@@ -752,6 +759,30 @@ function valid(s){
   return s && s.sel && SLOTS.every(sl => R[s.sel[sl.k]]) && s.checked && typeof s.checked === "object";
 }
 try { const s = JSON.parse(localStorage.getItem(KEY)); if (valid(s)) state = s; } catch (e) {}
+// ---- Passage entre l'app (artefact) et le site : la semaine validée et les articles cochés voyagent dans le lien ----
+const IS_SITE = /github\.io$/.test(location.hostname);
+const HOP_URL = IS_SITE ? "https://claude.ai/artifact/8cYgY2ENPkyWHonwjssP93" : "https://ferreanthony-glitch.github.io/Recettes/semaine.html";
+const b64u = t => btoa(unescape(encodeURIComponent(t))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+const unb64u = t => decodeURIComponent(escape(atob(t.replace(/-/g, "+").replace(/_/g, "/"))));
+function pack(){
+  const o = {s: SLOTS.map(sl => state.sel[sl.k]), c: Object.keys(state.checked), p: state.ppl || 2};
+  if (state.valid) o.v = {s: SLOTS.map(sl => state.valid.sel[sl.k]), t: state.valid.at};
+  return "w" + b64u(JSON.stringify(o));
+}
+let imported = false;
+try {
+  const h = location.hash.slice(1);
+  if (/^w[\w-]{10,}$/.test(h)) {
+    const o = JSON.parse(unb64u(h.slice(1))), sl = a => Object.fromEntries(SLOTS.map((x, i) => [x.k, a[i]]));
+    if (o.s && SLOTS.every((x, i) => R[o.s[i]])) {
+      state.sel = sl(o.s); state.checked = Object.fromEntries((o.c || []).map(k => [k, true])); state.ppl = o.p || 2;
+      if (o.v && SLOTS.every((x, i) => R[o.v.s[i]])) state.valid = {sel: sl(o.v.s), at: o.v.t}; else delete state.valid;
+      imported = true;
+      try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+    }
+    try { history.replaceState(null, "", location.pathname + location.search); } catch (e) {}
+  }
+} catch (e) {}
 let tab = "semaine";
 try { tab = localStorage.getItem(KEY+"-tab") || "semaine"; } catch (e) {}
 
@@ -767,7 +798,7 @@ async function flush(){
   writing = true;
   while (dirty) {
     dirty = false;
-    try { await ref.set({sel: {...state.sel}, checked: {...state.checked}}); syncEl().textContent = "Enregistré, visible sur tous tes appareils."; }
+    try { await ref.set({sel: {...state.sel}, checked: {...state.checked}, valid: state.valid || null, ppl: ppl()}); syncEl().textContent = "Enregistré, visible sur tous tes appareils."; }
     catch (e) { syncEl().textContent = "Pas enregistré en ligne (" + (e && e.code || "erreur") + "), gardé sur ce téléphone."; }
   }
   writing = false;
@@ -776,11 +807,14 @@ async function flush(){
   const db = window.claude && await window.claude.use("db");
   if (!db) { syncEl().textContent = "Enregistré sur ce téléphone seulement."; return; }
   ref = db.doc(DOC);
+  if (imported) { dirty = true; flush(); }   // une semaine arrivée par lien depuis le site passe avant la copie en ligne
   ref.onSnapshot(snap => {
     if (dirty || writing || snap.metadata.hasPendingWrites || !snap.exists) return;
     const d = snap.data();
     if (!valid(d)) return;
     state = {...state, sel: {...d.sel}, checked: {...d.checked}};   // garde les réglages (personnes, générateur)
+    if (d.valid && d.valid.sel) state.valid = d.valid; else delete state.valid;
+    if (d.ppl) state.ppl = d.ppl;
     try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
     syncEl().textContent = "Synchronisé.";
     render();
@@ -792,7 +826,9 @@ function el(tag, attrs, ...kids){ const e = document.createElement(tag); for (co
 function pick(k, id){ state.sel[k] = id; persist(); render(); }
 function meals(){ return SLOTS.filter(sl => R[state.sel[sl.k]].v).length; }
 // Nombre de repas par plat, et multiplicateur de recette (« once » : la recette fait déjà 2 repas)
-function counts(){ const c = {}; SLOTS.forEach(sl => { const id = state.sel[sl.k]; c[id] = (c[id] || 0) + 1; }); return c; }
+function counts(sel = state.sel){ const c = {}; SLOTS.forEach(sl => { const id = sel[sl.k]; c[id] = (c[id] || 0) + 1; }); return c; }
+// La liste de courses suit la dernière semaine validée (sinon la semaine affichée)
+const listSel = () => (state.valid && state.valid.sel) || state.sel;
 // Nombre de personnes (les fiches sont écrites pour 2) : toutes les quantités suivent
 const ppl = () => state.ppl || 2, pf = () => ppl() / 2;
 const factor = (id, n) => (R[id].once ? n / 2 : n) * pf();
@@ -806,7 +842,7 @@ function buildList(){
     if (!items[key]) items[key] = {key, name, u, ray, q: 0, src: new Set()};
     items[key].q += q * m; items[key].src.add(src);
   };
-  Object.entries(counts()).forEach(([id, n]) => {
+  Object.entries(counts(listSel())).forEach(([id, n]) => {
     Q[id].forEach(x => add(x, factor(id, n), R[id].n));
     (PLACARD[id]||[]).concat(["huile d'olive","sel, poivre"]).forEach(x => pl[x] = 1);
   });
@@ -1054,21 +1090,35 @@ document.addEventListener("touchcancel", () => { if (drag) { clearTimeout(drag.t
 function openMenu(td){ const sel = td.querySelector(".cell-sel"); if (!sel) return; sel.focus(); try { sel.showPicker(); } catch (err) {} }
 grid.addEventListener("contextmenu", e => { if (e.target.closest(".cell")) e.preventDefault(); });
 
-function render(){ document.getElementById("ppl").value = ppl(); document.querySelectorAll(".ppl-n").forEach(x => x.textContent = ppl() + " personne" + (ppl() > 1 ? "s" : "")); renderGen(); renderVariants(); renderGrid(); renderPostes(); renderStats(); renderList(); renderRecipes(); }
+function render(){ document.getElementById("ppl").value = ppl(); document.querySelectorAll(".ppl-n").forEach(x => x.textContent = ppl() + " personne" + (ppl() > 1 ? "s" : "")); renderGen(); renderVariants(); renderGrid(); renderPostes(); renderStats(); renderList(); renderRecipes(); renderValid(); }
 
 document.getElementById("tab-semaine").addEventListener("click", () => showTab("semaine"));
 document.getElementById("tab-courses").addEventListener("click", () => { showTab("courses"); window.scrollTo(0,0); });
 document.getElementById("tab-recettes").addEventListener("click", () => { showTab("recettes"); window.scrollTo(0,0); });
 document.getElementById("uncheck").addEventListener("click", () => { state.checked = {}; persist(); renderList(); });
-// Valider la semaine : le texte (plats + courses) part par le menu de partage du téléphone (SMS, WhatsApp, Notes…),
-// sinon par un lien SMS / e-mail ou une copie.
+// Valider : la liste de courses suit cette semaine-là, ici et (par le lien) de l'autre côté
+const sameSel = () => state.valid && SLOTS.every(sl => state.valid.sel[sl.k] === state.sel[sl.k]);
+const when = t => new Date(t).toLocaleString("fr-FR", {weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit"});
+function renderValid(){
+  const v = state.valid, todo = v && !sameSel();
+  const txt = !v ? "Semaine pas encore validée : la liste de courses suit les plats affichés."
+    : todo ? "Validée " + when(v.at) + ". Tu as changé des plats depuis : valide à nouveau pour mettre la liste de courses à jour."
+    : "Semaine validée " + when(v.at) + ". La liste de courses est à jour.";
+  ["valid-msg", "list-msg"].forEach(id => { const e = document.getElementById(id); e.textContent = txt; e.classList.toggle("todo", !!todo); });
+  document.getElementById("validate").textContent = todo ? "Valider les changements" : v ? "Semaine validée" : "Valider la semaine";
+  document.querySelectorAll(".hop").forEach(a => { a.textContent = IS_SITE ? "Ouvrir dans l'app" : "Ouvrir dans le site"; a.href = HOP_URL + "#" + pack(); });
+}
+document.getElementById("validate").addEventListener("click", () => {
+  state.valid = {sel: {...state.sel}, at: Date.now()}; persist(); render();
+});
+document.querySelectorAll(".hop").forEach(a => a.addEventListener("click", () => { a.href = HOP_URL + "#" + pack(); }));
+// Envoyer la liste : menu de partage du téléphone (SMS, WhatsApp, Notes…), sinon lien SMS / e-mail ou copie
 function sendText(){
-  const lines = SLOTS.map(sl => DAYS[sl.d].slice(0, 3) + ". " + MEALN[sl.m].toLowerCase() + " : " + R[state.sel[sl.k]].n);
-  return "Menus " + weekText() + " (" + ppl() + " pers.)\n" + lines.join("\n") + "\n\n" + listText();
+  const lines = SLOTS.map(sl => DAYS[sl.d].slice(0, 3) + ". " + MEALN[sl.m] + " : " + R[listSel()[sl.k]].n);
+  return listText() + "\nMenus (" + ppl() + " pers.)\n" + lines.join("\n");
 }
 document.getElementById("send").addEventListener("click", async () => {
   const txt = sendText(), box = document.getElementById("send-box"), msg = document.getElementById("send-msg");
-  state.valid = new Date().toISOString(); persist();
   document.getElementById("send-txt").value = txt;
   document.getElementById("send-sms").href = "sms:?&body=" + encodeURIComponent(txt);
   document.getElementById("send-mail").href = "mailto:?subject=" + encodeURIComponent("Courses " + weekText()) + "&body=" + encodeURIComponent(txt);
@@ -1077,7 +1127,7 @@ document.getElementById("send").addEventListener("click", async () => {
     catch (e) { if (e && e.name === "AbortError") return; }
   }
   box.hidden = false;
-  msg.textContent = "Semaine validée. Choisis comment envoyer la liste. Si le lien SMS ou e-mail ne s'ouvre pas, copie le texte et colle-le dans ton message.";
+  msg.textContent = "Choisis comment envoyer la liste. Si le lien SMS ou e-mail ne s'ouvre pas, copie le texte et colle-le dans ton message.";
 });
 document.getElementById("send-copy").addEventListener("click", () => {
   const ta = document.getElementById("send-txt"), msg = document.getElementById("send-msg");
@@ -1085,7 +1135,7 @@ document.getElementById("send-copy").addEventListener("click", () => {
   if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(ta.value).then(() => { msg.textContent = "Texte copié : colle-le dans un SMS, WhatsApp ou une note."; }, sel);
   else sel();
 });
-document.getElementById("copy-list").addEventListener("click", () => {
+if (document.getElementById("copy-list")) document.getElementById("copy-list").addEventListener("click", () => {
   const txt = listText(), toast = document.getElementById("toast"), fb = document.getElementById("fallback");
   const fallback = () => { fb.value = txt; fb.hidden = false; fb.focus(); fb.select(); toast.textContent = "Copie automatique impossible : sélectionne le texte et copie-le."; };
   if (navigator.clipboard && navigator.clipboard.writeText) {
