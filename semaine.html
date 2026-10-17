@@ -152,6 +152,7 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--accent); o
 .ghost { font: inherit; font-size: 0.85rem; padding: 8px 12px; border-radius: 9px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; }
 .gen { background: var(--surface); border: 1px solid var(--line); padding: 14px; display: grid; gap: 12px; }
 .gen h2 { font-size: 1.15rem; }
+.gen .reset { justify-self: center; font-size: .8rem; padding: 6px 14px; text-decoration: none !important; }
 .ht { position: relative; display: flex; align-items: center; gap: 8px; }
 .qm { width: 20px; height: 20px; flex: none; border-radius: 50%; border: 1px solid var(--line); background: transparent; color: var(--muted); font: 600 .72rem/1 var(--font-body); padding: 0; cursor: help; display: grid; place-items: center; }
 .qm:hover, .ht.open .qm { border-color: var(--accent); color: var(--accent); }
@@ -322,6 +323,7 @@ header .label{text-align:center}
         <input type="range" id="sais" min="0" max="100" step="10" value="0" aria-describedby="sais-n">
         <small class="note" id="sais-n">Part des repas dont les fruits et légumes sont de saison ce mois-ci. Les plats sans produit saisonnier (viande, carottes, champignons…) comptent comme de saison.</small></label>
       <button class="go" id="gen" type="button">Générer ma semaine</button>
+      <button class="ghost reset" id="gen-reset" type="button">Réinitialiser les réglages</button>
       <p class="note prof-line" id="prof-line"></p>
       <p class="msg" id="gen-msg">Le générateur respecte tes règles : le nombre de repas avec viande choisi ci-dessus, aliments chers sur deux repas, plats en double le dimanche. Il favorise tes recettes les mieux notées et celles qui partagent des ingrédients. Clique à nouveau pour un autre tirage.</p>
     </section>
@@ -1353,6 +1355,10 @@ document.querySelectorAll(".ht .qm").forEach(q => q.addEventListener("click", e 
   document.querySelectorAll(".ht.open").forEach(x => { x.classList.remove("open"); x.querySelector(".qm").setAttribute("aria-expanded", "false"); });
   if (o) { h.classList.add("open"); q.setAttribute("aria-expanded", "true"); } }));
 document.addEventListener("click", () => document.querySelectorAll(".ht.open").forEach(x => { x.classList.remove("open"); x.querySelector(".qm").setAttribute("aria-expanded", "false"); }));
+document.getElementById("gen-reset").addEventListener("click", () => {
+  if (!confirm("Vider les plats imposés, les restes et les aliments à éviter, et remettre la viande et la saison par défaut ?")) return;
+  state.pins = []; state.stock = []; state.ban = []; delete state.maxv; state.sais = 0; persist(); renderGen(); renderStats();
+});
 document.getElementById("maxv").addEventListener("change", e => { state.maxv = +e.target.value; persist(); renderStats(); });
 document.getElementById("sais").addEventListener("input", e => { state.sais = +e.target.value; document.getElementById("sais-v").textContent = state.sais + " %"; persist(); });
 document.getElementById("ban-n").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); addBan(); } });
@@ -1365,4 +1371,4 @@ render();
 ghInit();
 </script>
 
-<p class="ver" style="text-align:center;font-size:.72rem;color:var(--muted);margin:8px 0 24px">Version du 17/10 23:27</p></body></html>
+<p class="ver" style="text-align:center;font-size:.72rem;color:var(--muted);margin:8px 0 24px">Version du 17/10 23:40</p></body></html>
