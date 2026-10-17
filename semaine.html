@@ -220,6 +220,16 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--accent); o
 .dish p { margin: 0; }
 .cell.over { background: var(--accent-soft); outline: 2px dashed var(--accent); outline-offset: -2px; }
 .cell.from { opacity: 0.35; }
+.swap-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+.swap-bar .ghost[aria-pressed="true"] { background: var(--accent); color: var(--surface); border-color: var(--accent); }
+.swapping .cell-sel { display: none; }
+.swapping .cell .cname::after { content: "⇅"; }
+.swapping .cell.picked { outline: 2px solid var(--accent); outline-offset: -2px; background: var(--accent-soft); }
+.swapping .cell.risk { background: repeating-linear-gradient(45deg, transparent 0 6px, rgba(180, 80, 60, .10) 6px 12px); }
+.swapping .cell.risk .cname { color: var(--meat); }
+.swap-msg { margin-top: 10px; padding: 10px 12px; border-radius: 12px; background: var(--accent-soft); font-size: .9rem; display: grid; gap: 6px; }
+.swap-msg.bad { background: #fbe9e4; color: var(--meat); }
+.swap-msg button { justify-self: start; }
 .day-nav { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .day-nav h2 { margin: 0; text-align: center; flex: 1; font-size: 1.1rem; }
 .day-nav button { min-width: 44px; }
@@ -359,7 +369,9 @@ header .label{text-align:center}
    <div class="main">
     <section class="panel" aria-label="Vue de la semaine">
       <div class="ht"><h2>La semaine</h2><button type="button" class="qm" aria-label="Aide" aria-expanded="false" aria-controls="tip-sem">?</button><p class="tipbox" id="tip-sem" role="tooltip">Touche un repas pour choisir un autre plat. Fais-le glisser sur une autre case pour les échanger (sur téléphone, appuie un instant puis glisse).</p></div>
+      <div class="swap-bar"><button type="button" class="ghost" id="swap-btn" aria-pressed="false">Échanger deux repas</button><span class="note" id="swap-help"></span></div>
       <div class="grid"><table><thead><tr><th>Jour</th><th>Midi</th><th>Soir</th></tr></thead><tbody id="grid"></tbody></table></div>
+      <div class="swap-msg" id="swap-msg" role="status" hidden></div>
       <div class="variants" id="variants" role="group" aria-label="Propositions"><span>Partir d'une proposition</span></div>
       <div class="variants favs" id="favs" role="group" aria-label="Mes semaines favorites"><span>Mes favorites</span></div>
       <button class="copy" id="validate" type="button">Valider la semaine</button>
@@ -1313,7 +1325,7 @@ function renderRecipes(){
 }
 // ---- Déplacer un repas : glisser-déposer (souris, ou appui long au doigt) ou toucher deux cases ----
 let picked = null, drag = null, noClick = false;
-function swap(a, b){ if (a === b) return; [state.sel[a], state.sel[b]] = [state.sel[b], state.sel[a]]; picked = null; persist(); render(); }
+function swap(a, b){ if (a === b) return; [state.sel[a], state.sel[b]] = [state.sel[b], state.sel[a]]; picked = null; lastSwap = [a, b]; persist(); render(); swapReport(a, b); }
 const cellAt = (x, y) => { const e = document.elementFromPoint(x, y); return e && e.closest("#grid .cell"); };
 function dragStart(td, x, y){
   drag.on = true; td.classList.add("from");
@@ -1335,12 +1347,12 @@ function dragEnd(x, y){
 }
 const grid = document.getElementById("grid");
 let lastTouch = 0;   // les navigateurs tactiles simulent aussi la souris après un toucher : on l'ignore
-grid.addEventListener("mousedown", e => { const td = e.target.closest(".cell"); if (!td || e.button || Date.now() - lastTouch < 800) return; e.preventDefault(); drag = {k: td.dataset.k, td, x: e.clientX, y: e.clientY}; });
+grid.addEventListener("mousedown", e => { const td = e.target.closest(".cell"); if (swapMode || !td || e.button || Date.now() - lastTouch < 800) return; e.preventDefault(); drag = {k: td.dataset.k, td, x: e.clientX, y: e.clientY}; });
 document.addEventListener("mousemove", e => { if (!drag) return;
   if (!drag.on && Math.hypot(e.clientX - drag.x, e.clientY - drag.y) > 6) dragStart(drag.td, e.clientX, e.clientY);
   if (drag.on) dragMove(e.clientX, e.clientY); });
 document.addEventListener("mouseup", e => { if (drag) dragEnd(e.clientX, e.clientY); });
-grid.addEventListener("touchstart", e => { lastTouch = Date.now(); const td = e.target.closest(".cell"); if (!td) return; const t = e.touches[0];
+grid.addEventListener("touchstart", e => { lastTouch = Date.now(); const td = e.target.closest(".cell"); if (swapMode || !td) return; const t = e.touches[0];
   drag = {k: td.dataset.k, td, x: t.clientX, y: t.clientY, touch: true};
   drag.timer = setTimeout(() => { if (drag) dragStart(td, drag.x, drag.y); }, 250); }, {passive: true});
 document.addEventListener("touchmove", e => { if (!drag) return; const t = e.touches[0];
@@ -1537,8 +1549,38 @@ function renderSeance(){
 document.getElementById("se-start").addEventListener("change", e => { const s = seLoad(); s.start = e.target.value; seSave(s); renderSeance(); });
 document.getElementById("se-uncheck").addEventListener("click", () => { const s = seLoad(); s.done = {}; seSave(s); renderSeance(); });
 
+// ---- Échanger deux repas en deux touchers ----
+let swapMode = false, swapFrom = null, lastSwap = null;
+function setSwap(on){ swapMode = on; swapFrom = null;
+  const b = document.getElementById("swap-btn"); b.setAttribute("aria-pressed", String(on)); b.textContent = on ? "Annuler" : "Échanger deux repas";
+  document.getElementById("swap-help").textContent = on ? "Touche le premier repas, puis celui avec lequel l'échanger." : "";
+  document.querySelector(".grid").classList.toggle("swapping", on); markSwap(); }
+function markSwap(){
+  document.querySelectorAll("#grid .cell").forEach(td => { td.classList.toggle("picked", swapMode && td.dataset.k === swapFrom);
+    let risk = false;
+    if (swapMode && swapFrom && td.dataset.k !== swapFrom) { const s = {...state.sel}; [s[swapFrom], s[td.dataset.k]] = [s[td.dataset.k], s[swapFrom]]; risk = !!(slotProblem(s, swapFrom) || slotProblem(s, td.dataset.k)); }
+    td.classList.toggle("risk", risk); });
+}
+// Après un échange : avertir si une règle est enfreinte, et proposer d'annuler
+function swapReport(a, b){
+  const box = document.getElementById("swap-msg"); box.innerHTML = ""; box.classList.remove("bad");
+  const probs = [a, b].map(k => slotProblem(state.sel, k)).filter(Boolean);
+  const frz = [a, b].map(k => { const sl = SLOTS.find(x => x.k === k), ki = keepInfo(sl); return ki && ki.freeze ? R[state.sel[k]].n + " (" + slotName(sl) + ")" : ""; }).filter(Boolean);
+  const name = k => slotName(SLOTS.find(x => x.k === k));
+  box.append(el("div",{}, (probs.length ? "⚠ Échange fait, mais il enfreint une règle : " + probs.join(" ; ") + "." : "Échange fait : " + name(a) + " ⇄ " + name(b) + ".") + (frz.length ? " Cette part va au congélateur : " + frz.join(", ") + "." : "")));
+  box.append(el("button",{type:"button",class:"ghost",onclick:()=>{ if (lastSwap) { const [x, y] = lastSwap; lastSwap = null; [state.sel[x], state.sel[y]] = [state.sel[y], state.sel[x]]; persist(); render(); } box.hidden = true; }}, "Annuler l'échange"));
+  box.classList.toggle("bad", !!probs.length); box.hidden = false;
+}
+document.getElementById("swap-btn").addEventListener("click", () => setSwap(!swapMode));
+grid.addEventListener("click", e => {
+  if (!swapMode) return;
+  const td = e.target.closest(".cell"); if (!td) return; e.preventDefault();
+  if (!swapFrom) { swapFrom = td.dataset.k; markSwap(); return; }
+  if (swapFrom === td.dataset.k) { swapFrom = null; markSwap(); return; }
+  const a = swapFrom; setSwap(false); swap(a, td.dataset.k);
+});
 
-function render(){ document.getElementById("ppl").value = ppl(); document.querySelectorAll(".ppl-n").forEach(x => x.textContent = ppl() + " personne" + (ppl() > 1 ? "s" : "")); renderGen(); renderVariants(); renderFavs(); renderGrid(); renderPostes(); renderStats(); renderList(); renderRecipes(); renderValid(); renderToday(); renderSeance(); }
+function render(){ document.getElementById("ppl").value = ppl(); document.querySelectorAll(".ppl-n").forEach(x => x.textContent = ppl() + " personne" + (ppl() > 1 ? "s" : "")); renderGen(); renderVariants(); renderFavs(); renderGrid(); renderPostes(); renderStats(); renderList(); renderRecipes(); renderValid(); renderToday(); renderSeance(); if (swapMode) markSwap(); }
 
 document.getElementById("tab-semaine").addEventListener("click", () => showTab("semaine"));
 document.getElementById("tab-courses").addEventListener("click", () => { showTab("courses"); window.scrollTo(0,0); });
