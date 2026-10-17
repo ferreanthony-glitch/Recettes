@@ -29,6 +29,12 @@
 .chips{display:flex;flex-wrap:wrap;gap:6px}.chips label{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;padding:5px 11px;border:1px solid var(--line);border-radius:999px;cursor:pointer;background:#fff}
 .chips input{accent-color:var(--accent);margin:0}.chips label:has(input:checked){background:var(--accent-soft);border-color:var(--accent)}
 .need{font-size:.85rem;margin:0;padding:10px 12px;border-radius:10px;background:var(--accent-soft)}.need:empty{display:none}
+#people{display:grid;gap:12px}
+.pc-card{border:1px solid var(--line);border-radius:12px;background:#fff;padding:14px;display:grid;gap:10px}
+.pc-top{display:flex;align-items:center;gap:12px}.pc-id{flex:1;display:grid;min-width:0}.pc-id b{font-size:1.05rem}.pc-id small{color:var(--muted);font-size:.82rem}
+.pc-av{width:42px;height:42px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-weight:700;display:grid;place-items:center;flex:none}
+.pc-need{margin:0;font-size:.88rem;color:var(--muted)}.pc-need b{color:var(--ink)}
+.pc-dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:.88rem}.pc-dl dt{color:var(--muted)}.pc-dl dd{margin:0}
 @media (max-width:560px){.pp-g.c4{grid-template-columns:repeat(2,minmax(0,1fr))}}</style>
 <script>
 // ---- Profil : lu par le générateur de Ma semaine (même clé localStorage) ----
@@ -57,7 +63,7 @@ function save(){
   try { localStorage.setItem(PK, JSON.stringify(prof)); } catch (e) {}
   const s = document.getElementById("saved"); s.textContent = "Enregistré sur cet appareil.";
   clearTimeout(tmr); tmr = setTimeout(() => s.textContent = "", 2500);
-  document.querySelectorAll(".need").forEach((n, i) => needTxt(n, prof.p[i]));
+  document.querySelectorAll(".need").forEach(n => needTxt(n, prof.p[+n.dataset.i]));
 }
 function needTxt(n, x){
   const b = besoin(x); n.textContent = b ? "Besoin estimé : environ " + b.toLocaleString("fr-FR") + " kcal par jour, soit " + Math.round(b * 0.35 / 10) * 10 + " kcal pour un déjeuner ou un dîner. C'est une moyenne indicative, pas un avis médical." : "";
@@ -70,12 +76,30 @@ function chips(x, k, list, multi){
     checked: multi ? (x[k] || []).includes(v) : (x[k] || "") === v,
     onchange: e => { if (multi) x[k] = e.target.checked ? [...new Set([...(x[k] || []), v])] : (x[k] || []).filter(y => y !== v); else x[k] = v; save(); }}), t)));
 }
+const lab = (list, v) => (list.find(o => o[0] === v) || [, ""])[1];
+function card(x, i){
+  const id = [x.age && x.age + " ans", x.sexe === "f" ? "femme" : x.sexe === "h" ? "homme" : "", x.taille && x.taille + " cm", x.poids && x.poids + " kg"].filter(Boolean).join(" · ");
+  const rows = [
+    ["Objectif", [lab(OBJ, x.obj), ...(x.plus || []).map(v => lab(PLUS, v))].filter(Boolean).join(", ")],
+    ["Habitudes", [x.reg ? lab(REG, x.reg) : "Je mange de tout", ...(x.sans || []).map(v => lab(SANS, v))].join(", ")],
+    ["Allergies", (x.alg || []).join(", ")],
+    ["Ne mange pas", (x.evite || "").trim()],
+    ["Notes", (x.hab || "").trim()]].filter(r => r[1]);
+  const b = besoin(x);
+  return h("div", {class: "pc-card"},
+    h("div", {class: "pc-top"}, h("span", {class: "pc-av", "aria-hidden": "true"}, ((x.prenom || "?")[0] + ((x.nom || "")[0] || "")).toUpperCase()),
+      h("div", {class: "pc-id"}, h("b", {}, [x.prenom, x.nom].filter(Boolean).join(" ") || "Personne " + (i + 1)), id ? h("small", {}, id) : null),
+      h("button", {type: "button", class: "acct-g", onclick: () => { x.done = false; save(); render(); }}, "Modifier")),
+    b ? h("p", {class: "pc-need"}, h("b", {}, b.toLocaleString("fr-FR") + " kcal"), " par jour, environ " + Math.round(b * 0.35 / 10) * 10 + " par repas") : null,
+    rows.length ? h("dl", {class: "pc-dl"}, ...rows.flatMap(([k, v]) => [h("dt", {}, k), h("dd", {}, v)])) : null);
+}
 function render(){
   const box = document.getElementById("people"); box.innerHTML = "";
   prof.p.forEach((x, i) => {
+    if (x.done) { box.append(card(x, i)); return; }
     const sel = h("select", {onchange: e => { x.act = e.target.value; save(); }}, ...ACT.map(([v, t]) => h("option", {value: v, selected: (x.act || "1.375") === v}, t)));
     const sx = h("select", {onchange: e => { x.sexe = e.target.value; save(); }}, h("option", {value: ""}, "—"), h("option", {value: "f", selected: x.sexe === "f"}, "Femme"), h("option", {value: "h", selected: x.sexe === "h"}, "Homme"));
-    const need = h("p", {class: "need"}); needTxt(need, x);
+    const need = h("p", {class: "need", "data-i": i}); needTxt(need, x);
     box.append(h("div", {class: "pp"},
       h("div", {class: "pp-h"}, h("b", {}, [x.prenom, x.nom].filter(Boolean).join(" ") || "Personne " + (i + 1)),
         prof.p.length > 1 ? h("button", {type: "button", onclick: () => { if (confirm("Supprimer cette fiche ?")) { prof.p.splice(i, 1); save(); render(); } }}, "Supprimer") : null),
@@ -89,10 +113,11 @@ function render(){
       h("fieldset", {}, h("legend", {}, "Habitudes alimentaires"), chips(x, "reg", REG, false), chips(x, "sans", SANS, true)),
       h("fieldset", {}, h("legend", {}, "Allergies et intolérances (les plats qui en contiennent sont écartés)"), chips(x, "alg", ALG.map(a => [a, a]), true)),
       h("label", {class: "f"}, "Aliments que je ne mange pas, séparés par des virgules", h("input", {type: "text", value: x.evite || "", placeholder: "ex. champignons, chou-fleur", oninput: e => { x.evite = e.target.value; save(); }})),
-      h("label", {class: "f"}, "Autres habitudes (notes libres, le générateur ne les lit pas)", h("textarea", {placeholder: "ex. je déjeune au bureau, pas faim le matin…", oninput: e => { x.hab = e.target.value; save(); }}, x.hab || ""))));
+      h("label", {class: "f"}, "Autres habitudes (notes libres, le générateur ne les lit pas)", h("textarea", {placeholder: "ex. je déjeune au bureau, pas faim le matin…", oninput: e => { x.hab = e.target.value; save(); }}, x.hab || "")),
+      h("div", {class: "acct-row"}, h("button", {type: "button", class: "acct-b", onclick: () => { x.done = true; save(); render(); document.querySelectorAll("#people > *")[i].scrollIntoView({behavior: "smooth", block: "nearest"}); }}, "Valider le profil"))));
   });
 }
-document.getElementById("add").addEventListener("click", () => { prof.p.push({}); save(); render(); document.querySelectorAll(".pp")[prof.p.length - 1].scrollIntoView({behavior: "smooth"}); });
+document.getElementById("add").addEventListener("click", () => { prof.p.push({}); save(); render(); document.querySelectorAll("#people > *")[prof.p.length - 1].scrollIntoView({behavior: "smooth"}); });
 render();
 
 // ---- Synchro des appareils : la clé GitHub de cet appareil (même clé localStorage que semaine.html) ----
@@ -121,4 +146,4 @@ else {
   test();
 }
 </script>
-</main><footer>2 personnes · batch cooking du dimanche · version du 17/10 20:09</footer></body></html>
+</main><footer>2 personnes · batch cooking du dimanche · version du 17/10 20:15</footer></body></html>
