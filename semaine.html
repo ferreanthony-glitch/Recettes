@@ -428,7 +428,7 @@ const R = {
   pasta:{n:"Pasta à l'italienne",q:1,g:1,i:["pâtes complètes","sauce tomate","mozzarella","parmesan"]},
   carbo:{n:"Pâtes carbonara healthy",v:1,q:1,g:1,i:["jambon","bacon","champignons","lait de coco","pâtes complètes"]},
   risotto:{n:"Risotto de coquillettes au jambon",v:1,g:1,i:["jambon de dinde","pâtes complètes","champignons","carotte","emmental","parmesan","crème"]},
-  veau:{n:"Veau aux champignons et morilles",v:1,g:1,c:["veau","morilles"],i:["veau","morilles","champignons","crème"]},
+  veau:{n:"Veau aux champignons et morilles",v:1,r:1,g:1,c:["veau","morilles"],i:["veau","morilles","champignons","crème"]},
 };
 
 // Achats pour UN repas à 2 (meal prep : pour ses 2 repas). [article, quantité, unité, rayon]
@@ -488,6 +488,7 @@ const P = [
   {k:"di3",t:"Soir vendredi",slots:[[5,1]],f:"q",o:["salbro","tmz","bowl","obc","omdinde"],h:"Le seul plat cuisiné en semaine, 10 à 25 min."},
   {k:"ch",t:"Soir samedi · cheat meal",slots:[[6,1]],f:"g",o:["carbo","risotto","boul","veau"],h:"Plat gourmand, plus un petit dessert (pas dans la liste)."},
 ];
+const POSTE_OF = {}; P.forEach(p => p.slots.forEach(([d, m]) => POSTE_OF[d + "-" + m] = p));   // « jour-repas » → poste
 const DAYS = ["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
 const V = {
   A:{s:"Poulet, patate douce",p:{dim:"dahl",dl1:"mp",dl2:"butter",dl3:"thai",di1:"souppd",di2:"gratin",di3:"salbro",ch:"carbo"}},
@@ -529,7 +530,7 @@ const KEEP = {mp:[3,1],thai:[3,1],butter:[3,1],roul:[3,0],pbc:[3,1],chili:[3,1],
 // Pour un repas : null si rien à signaler, sinon {freeze} ou {bad}
 function keepInfo(sl){
   const id = state.sel[sl.k], r = R[id];
-  if (!r.r) return null;                       // plat rapide : préparé le jour même
+  if (!r.r || POSTE_OF[sl.k].f !== "r") return null;   // plat rapide, ou repas cuisiné le jour même
   const age = sl.d, [fridge, freeze] = KEEP[id] || [3, 0];
   if (age <= fridge) return null;
   return freeze ? {freeze: true, txt: "❄ À congeler dès dimanche, puis à passer au frigo la veille."}
@@ -540,7 +541,8 @@ function tooLong(id, d){ if (!R[id].r) return false; const [fr, fz] = KEEP[id] |
 // Soupes : le soir seulement (demande d'Antho)
 const eveningOnly = id => /^soupe/i.test(R[id].n);
 const wrongTime = (id, m) => m === 0 && eveningOnly(id);
-const fitsPoste = (id, p) => !p.slots.some(([d, m]) => tooLong(id, d) || wrongTime(id, m));
+// La conservation ne compte que pour les postes cuisinés le dimanche : vendredi soir et cheat meal sont cuisinés le jour même
+const fitsPoste = (id, p) => !p.slots.some(([d, m]) => (p.f === "r" && tooLong(id, d)) || wrongTime(id, m));
 const norm = t => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/œ/g, "oe").trim();
 // ---- Restes : aliment + quantité + unité ----
 // Mots ramenés au singulier, synonymes, et poids moyen d'une pièce pour convertir pièces ↔ grammes
@@ -692,7 +694,8 @@ function addBan(){
   state.ban = bans().filter(x => stem(x) !== stem(v)).concat(v); inp.value = ""; inp.focus();
   persist(); renderGen(); renderGrid();
 }
-const POOL = p => Object.keys(R).filter(id => R[id][p.f] && fitsPoste(id, p) && !banned(id));
+// Un plat avec un aliment cher n'est tiré que sur un poste doublé (règle d'Antho : il doit servir deux repas)
+const POOL = p => Object.keys(R).filter(id => R[id][p.f] && fitsPoste(id, p) && !banned(id) && (p.slots.length > 1 || !(R[id].c || []).length));
 
 function generate(){
   const pins = (state.pins || []).filter(id => R[id]);
@@ -707,7 +710,10 @@ function generate(){
   });
   // Poste sans aucun plat compatible (aliments à éviter, profil) : on garde le plat actuel et on le signale
   const stuck = P.filter(p => !sel[p.k] && !POOL(p).length);
-  stuck.forEach(p => { sel[p.k] = state.sel[p.slots[0][0] + "-" + p.slots[0][1]]; used.add(sel[p.k]); });
+  // Le plat gardé doit quand même tenir jusqu'au jour prévu : sinon on prend un plat qui tient, même s'il contient un aliment à éviter
+  stuck.forEach(p => { const cur = state.sel[p.slots[0][0] + "-" + p.slots[0][1]];
+    sel[p.k] = R[cur] && R[cur][p.f] && fitsPoste(cur, p) ? cur : Object.keys(R).find(id => R[id][p.f] && fitsPoste(id, p) && !used.has(id)) || cur;
+    used.add(sel[p.k]); });
   // 2. Le reste : on tire beaucoup de semaines au hasard et on garde la mieux notée
   const free = P.filter(p => !sel[p.k]);
   const outMax = SLOTS.length - minSais();   // repas hors saison tolérés
@@ -719,7 +725,7 @@ function generate(){
     let out = P.filter(p => s[p.k] && !inSeason(s[p.k])).reduce((a, p) => a + p.slots.length, 0);
     for (const p of free) {
       let c = POOL(p).filter(id => !u.has(id));
-      if (!c.length) c = POOL(p);   // trop peu de plats compatibles : un plat peut revenir sur deux postes
+      if (!c.length) c = POOL(p).filter(id => !(R[id].c || []).length || !u.has(id));   // trop peu de plats compatibles : un plat peut revenir sur deux postes (jamais un plat cher : 2 repas au plus)
       if (meat + p.slots.length > maxV()) { const veg = c.filter(id => !R[id].v); if (veg.length) c = veg; }   // limite de viande atteinte
       if (out + p.slots.length > outMax) { const sai = c.filter(inSeason); if (sai.length) c = sai; }   // part de saison atteinte
       const pick = c[Math.floor(Math.random() * c.length)];
@@ -1083,7 +1089,7 @@ function mealSelect(sl){
       onchange:(e)=>pick(sl.k, e.target.value)},
     GROUPS.map(([f, label]) => el("optgroup",{label},
       Object.keys(R).filter(x => group(x) === f).sort((a,b) => R[a].n.localeCompare(R[b].n,"fr"))
-        .map(x => { const late = tooLong(x, sl.d) && x !== id, noon = wrongTime(x, sl.m) && x !== id;
+        .map(x => { const late = POSTE_OF[sl.k].f === "r" && tooLong(x, sl.d) && x !== id, noon = wrongTime(x, sl.m) && x !== id;
           const o = el("option",{value:x}, R[x].n + (note(x) ? "  " + starTxt(note(x)) : "") + (R[x].v ? " · viande" : "") + (late ? " · ne tient pas jusque-là" : "") + (noon ? " · le soir seulement" : "") + (banned(x) ? " · contient " + banned(x) : ""));
           if (late || noon) o.disabled = true; if (x === id) o.selected = true; return o; }))));
   return sel;
@@ -1410,4 +1416,4 @@ render();
 ghInit();
 </script>
 
-<p class="ver" style="text-align:center;font-size:.72rem;color:var(--muted);margin:8px 0 24px">Version du 18/10 00:36</p></body></html>
+<p class="ver" style="text-align:center;font-size:.72rem;color:var(--muted);margin:8px 0 24px">Version du 18/10 00:46</p></body></html>
