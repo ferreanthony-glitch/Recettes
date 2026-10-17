@@ -1,0 +1,39 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#f7f3ec"><meta name="color-scheme" content="light"><title>Compte</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,600;9..40,700&display=swap"><link rel="stylesheet" href="style.css"><link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon-180.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Recettes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><script>if ("serviceWorker" in navigator && /github\.io$|^localhost$/.test(location.hostname)) navigator.serviceWorker.register("sw.js", {updateViaCache: "none"}).catch(() => {});</script></head><body><header class="site"><div class="in"><a class="brand" href="index.html">Recettes</a><nav class="nav"><a href="index.html">Recueil</a><a href="semaine.html">Ma semaine</a><a href="aliments.html">Aliments</a><a href="compte.html" class="acc on">Compte</a></nav></div></header><main class="wrap"><section class="hero"><h1>Compte</h1><p>Synchronisation de Ma semaine entre tes appareils : l'app de l'écran d'accueil, Safari et l'ordinateur partagent la semaine, sa validation et les articles cochés.</p></section>
+<div class="acct">
+<section class="acct-box"><h2>Synchro des appareils</h2>
+<p class="acct-st" id="st">Vérification…</p>
+<div id="on"><p class="acct-n">Chaque appareil a besoin, une seule fois, de ta clé GitHub. Elle reste sur cet appareil et n'est jamais publiée.</p>
+<div class="acct-row"><input type="password" id="tok" placeholder="Clé GitHub (github_pat_…)" autocomplete="off" aria-label="Clé GitHub"><button type="button" id="save" class="acct-b">Enregistrer</button></div>
+<div class="acct-row"><button type="button" id="test" class="acct-g">Vérifier la connexion</button><button type="button" id="off" class="acct-g" hidden>Oublier la clé sur cet appareil</button></div></div>
+<p class="acct-n" id="nosync" hidden>La synchro ne fonctionne que sur le site et l'app de l'écran d'accueil, pas dans la copie ouverte dans Claude.</p>
+</section></div>
+<style>.acct{max-width:560px}.acct-box{background:#fbfaf6;border:1px solid var(--line);border-radius:14px;padding:18px;display:grid;gap:10px}
+.acct-box h2{margin:0;font-size:1.05rem}.acct-st{margin:0;font-weight:600}.acct-st.ok{color:var(--accent)}.acct-n{margin:0;color:var(--muted);font-size:.88rem}
+#on{display:grid;gap:10px}.acct-row{display:flex;flex-wrap:wrap;gap:8px}.acct-row input{flex:1;min-width:0;font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff}
+.acct-b,.acct-g{font:inherit;font-size:.88rem;padding:9px 14px;border-radius:10px;cursor:pointer}.acct-b{border:0;background:var(--accent);color:#fbfaf6;font-weight:600}.acct-g{border:1px solid var(--line);background:#fff;color:var(--ink)}</style>
+<script>
+const URL_ = "https://api.github.com/repos/ferreanthony-glitch/Recettes/contents/semaine.json?ref=donnees", K = "recettes-gh-token";
+const ok = /github\.io$|^localhost$|^127\./.test(location.hostname);
+const tok = () => { try { return localStorage.getItem(K) || ""; } catch (e) { return ""; } };
+const st = (t, good) => { const e = document.getElementById("st"); e.textContent = t; e.classList.toggle("ok", !!good); };
+async function test(){
+  document.getElementById("off").hidden = !tok();
+  if (!tok()) return st("Synchro non activée sur cet appareil.");
+  st("Vérification…");
+  try {
+    const r = await fetch(URL_ + "&t=" + Date.now(), {headers: {Authorization: "Bearer " + tok(), Accept: "application/vnd.github+json"}, cache: "no-store"});
+    if (r.status === 401 || r.status === 403) return st("Clé refusée par GitHub. Colle une nouvelle clé.");
+    if (r.status === 404) return st("Synchro activée. Rien d'enregistré pour l'instant.", true);
+    if (!r.ok) return st("GitHub ne répond pas, réessaie plus tard.");
+    const d = JSON.parse(decodeURIComponent(escape(atob((await r.json()).content.replace(/\s/g, "")))));
+    st("Synchro activée." + (d.u ? " Dernière semaine enregistrée le " + new Date(d.u).toLocaleString("fr-FR", {day: "numeric", month: "long", hour: "2-digit", minute: "2-digit"}) + "." : ""), true);
+  } catch (e) { st("Hors ligne pour le moment."); }
+}
+if (!ok) { document.getElementById("on").hidden = true; document.getElementById("nosync").hidden = false; st("Synchro indisponible ici."); }
+else {
+  document.getElementById("save").addEventListener("click", () => { const i = document.getElementById("tok"), v = i.value.trim(); if (!v) return; try { localStorage.setItem(K, v); } catch (e) {} i.value = ""; test(); });
+  document.getElementById("off").addEventListener("click", () => { try { localStorage.removeItem(K); } catch (e) {} test(); });
+  document.getElementById("test").addEventListener("click", test);
+  test();
+}
+</script></main><footer>2 personnes · batch cooking du dimanche · version du 17/10 19:39</footer></body></html>

@@ -41,11 +41,12 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 1.9rem; line
 h2 { font-family: var(--font-display); font-weight: 600; font-size: 1.15rem; margin: 0; }
 .label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 700; }
 
-.variants { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-.variants button { font: inherit; text-align: left; padding: 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; min-width: 0; }
-.variants button b { display: block; font-family: var(--font-display); font-size: 1.05rem; }
-.variants button span { font-size: 0.78rem; color: var(--muted); display: block; }
-.variants button[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+.variants { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 2px 0 4px; }
+.variants > span { font-size: 0.8rem; color: var(--muted); margin-right: 2px; }
+.variants button { font: inherit; font-size: 0.8rem; font-weight: 600; padding: 4px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--muted); cursor: pointer; }
+.variants button:hover { color: var(--ink); border-color: var(--accent); }
+.variants button[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--ink); }
+#gh-line a, #gh-line button { color: var(--accent); background: none; border: 0; padding: 0; font: inherit; cursor: pointer; text-decoration: underline; }
 
 .board { background: var(--bg); padding-block: 8px; display: grid; gap: 8px; }
 .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
@@ -253,17 +254,19 @@ header .label{text-align:center}
 .wrap,#view-semaine,#view-courses,#view-recettes,#postes{grid-template-columns:minmax(0,1fr)}
 .alert{color:var(--ink)!important}
 .keep.bad{font-weight:600!important}
-.variants button b{font-size:.95rem!important}
 .site{border-bottom:1px solid var(--line)}
 .site .in{max-width:1180px;margin:0 auto;padding:18px 16px;display:flex;justify-content:space-between;align-items:baseline;gap:16px}
 .brand{font-family:var(--font-display);font-size:1.35rem;font-weight:700;letter-spacing:-.02em;text-decoration:none;color:var(--ink)}
 .snav{display:flex;gap:22px}
 .snav a{font-size:.72rem;text-transform:uppercase;letter-spacing:.14em;text-decoration:none;color:var(--muted);padding-bottom:3px;border-bottom:1px solid transparent}
 .snav a.on{color:var(--ink);border-bottom-color:var(--ink)}
+.nav a,.snav a{white-space:nowrap}.nav a.acc,.snav a.acc{padding-left:14px;margin-left:-6px;border-left:1px solid var(--line)}
+@media (max-width:480px){.site .in{gap:10px}.brand{font-size:1.1rem}.nav,.snav{gap:10px!important}.nav a,.snav a{font-size:.66rem!important;letter-spacing:.04em!important}.nav a.acc,.snav a.acc{padding-left:9px;margin-left:-2px}}
+
 </style>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,600;9..40,700&display=swap">
 <header class="site"><div class="in"><a class="brand" href="index.html">Recettes</a>
-<nav class="snav"><a href="index.html">Recueil</a><a href="semaine.html" class="on">Ma semaine</a><a href="aliments.html">Aliments</a></nav></div></header>
+<nav class="snav"><a href="index.html">Recueil</a><a href="semaine.html" class="on">Ma semaine</a><a href="aliments.html">Aliments</a><a href="compte.html" class="acc">Compte</a></nav></div></header>
 <div class="wrap">
   <header>
     <h1>Ma semaine</h1>
@@ -314,10 +317,6 @@ header .label{text-align:center}
    </div>
    <div class="main">
     <div class="board" id="board">
-      <section aria-label="Propositions">
-        <div class="label" style="margin-bottom:6px">Partir d'une proposition</div>
-        <div class="variants" id="variants"></div>
-      </section>
       <div class="alerts" id="alerts"></div>
     </div>
 
@@ -325,6 +324,7 @@ header .label{text-align:center}
       <h2>La semaine</h2>
       <p class="note">Touche un repas pour choisir un autre plat. Fais-le glisser sur une autre case pour les échanger (sur téléphone, appuie un instant puis glisse).</p>
       <div class="grid"><table><thead><tr><th>Jour</th><th>Midi</th><th>Soir</th></tr></thead><tbody id="grid"></tbody></table></div>
+      <div class="variants" id="variants" role="group" aria-label="Propositions"><span>Partir d'une proposition</span></div>
       <button class="copy" id="validate" type="button">Valider la semaine</button>
       <div class="done-badge" id="done" hidden>
         <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="currentColor"/><path d="M7 12.5l3.2 3.2L17 9" fill="none" stroke="#fbfaf6" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -334,18 +334,6 @@ header .label{text-align:center}
       <p class="note valid-msg" id="valid-msg"></p>
       <p class="note" id="gh-line"></p>
       <a class="ghost hop" href="#" target="_blank" rel="noopener"></a>
-      <details class="gh" id="gh" hidden>
-        <summary>Synchroniser mes appareils <span id="gh-state"></span></summary>
-        <div class="gh-body">
-          <p class="note">La semaine, sa validation et les articles cochés sont partagés entre l'app de l'écran d'accueil, Safari et l'ordinateur. Chaque appareil a besoin, une seule fois, de ta clé GitHub.</p>
-          <div class="stock-add ban-add">
-            <input type="password" id="gh-tok" placeholder="Clé GitHub (github_pat_…)" autocomplete="off" aria-label="Clé GitHub">
-            <button type="button" id="gh-save">Enregistrer</button>
-          </div>
-          <button type="button" class="ghost" id="gh-now">Synchroniser maintenant</button>
-          <button type="button" class="ghost" id="gh-off" hidden>Oublier la clé sur cet appareil</button>
-        </div>
-      </details>
     </section>
 
     <section class="panel" aria-label="Les plats de la semaine"><h2>Les plats de la semaine</h2><p class="note">Touche un plat pour voir ses ingrédients et sa recette.</p><div id="postes" class="dishes"></div></section>
@@ -941,11 +929,10 @@ function tags(r, p){
     r.c ? el("span",{class:"tag c"},"cher") : null);
 }
 function renderVariants(){
-  const box = document.getElementById("variants"); box.innerHTML = "";
+  const box = document.getElementById("variants"); box.querySelectorAll("button").forEach(b => b.remove());
   for (const k in V) {
     const vs = toSlots(V[k].p), same = SLOTS.every(sl => vs[sl.k] === state.sel[sl.k]);
-    box.append(el("button",{type:"button","aria-pressed":String(same),onclick:()=>{ state.sel = toSlots(V[k].p); persist(); render(); }},
-      el("b",{},"Proposition "+k), el("span",{},V[k].s)));
+    box.append(el("button",{type:"button",title:V[k].s,"aria-label":"Proposition "+k+" : "+V[k].s,"aria-pressed":String(same),onclick:()=>{ state.sel = toSlots(V[k].p); persist(); render(); }}, k));
   }
 }
 function renderGrid(){
@@ -1156,7 +1143,11 @@ let ghSha = null, ghTimer = null, ghBusy = false, ghAgain = false;
 const ghTok = () => { try { return localStorage.getItem(GH_KEY) || ""; } catch (e) { return ""; } };
 // L'état de la synchro s'affiche à côté du titre du panneau et sous le bouton Valider
 const ghState = t => { const e = document.getElementById("gh-state"); if (e) e.textContent = t ? "· " + t : "";
-  const v = document.getElementById("gh-line"); if (v) v.textContent = !ghOk ? "" : !ghTok() ? "Synchro des appareils non activée sur cet appareil (voir plus bas)." : "Synchro des appareils : " + t + "."; };
+  const v = document.getElementById("gh-line"); if (!v) return;
+  if (!ghOk) { v.textContent = ""; return; }
+  if (!ghTok()) { v.innerHTML = 'Synchro des appareils non activée sur cet appareil. <a href="compte.html">L\'activer dans Compte</a>'; return; }
+  v.textContent = "Synchro des appareils : " + t + ". ";
+  v.append(el("button",{type:"button",onclick:()=>{ ghState("synchronisation…"); ghPull(); }},"Synchroniser maintenant")); };
 const ghHead = () => ({Authorization: "Bearer " + ghTok(), Accept: "application/vnd.github+json"});
 const ghData = () => ({sel: state.sel, checked: state.checked, valid: state.valid || null, ppl: state.ppl || 2, u: state.u || 0});
 const hhmm = () => new Date().toLocaleTimeString("fr-FR", {hour: "2-digit", minute: "2-digit"});
@@ -1199,18 +1190,9 @@ async function ghSend(retry){
 }
 function ghInit(){
   if (!ghOk) return;
-  document.getElementById("gh").hidden = false;
-  const off = document.getElementById("gh-off"); off.hidden = !ghTok();
   ghState(ghTok() ? "connexion…" : "pas encore activée");
-  document.getElementById("gh-save").addEventListener("click", () => {
-    const inp = document.getElementById("gh-tok"), v = inp.value.trim(); if (!v) return;
-    try { localStorage.setItem(GH_KEY, v); } catch (e) {}
-    inp.value = ""; off.hidden = false; ghState("connexion…"); ghPull();
-  });
-  off.addEventListener("click", () => { try { localStorage.removeItem(GH_KEY); } catch (e) {} off.hidden = true; ghState("pas encore activée"); });
   ghPull();
   document.addEventListener("visibilitychange", () => { if (!document.hidden) ghPull(); else if (ghTimer) { clearTimeout(ghTimer); ghTimer = null; ghSend(); } });
-  document.getElementById("gh-now").addEventListener("click", () => { ghState("synchronisation…"); ghPull(); });
   setInterval(() => { if (!document.hidden) ghPull(); }, 60000);
 }
 // Envoyer la liste : menu de partage du téléphone (SMS, WhatsApp, Notes…), sinon lien SMS / e-mail ou copie
@@ -1264,4 +1246,4 @@ render();
 ghInit();
 </script>
 
-<p class="ver" style="text-align:center;font-size:.72rem;color:var(--muted);margin:8px 0 24px">Version du 17/10 17:08</p></body></html>
+<p class="ver" style="text-align:center;font-size:.72rem;color:var(--muted);margin:8px 0 24px">Version du 17/10 19:39</p></body></html>
