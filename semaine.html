@@ -172,10 +172,19 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--accent); o
 .cell.late .cname { color: var(--meat); }
 .cell-sel { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; font-size: 16px; border: 0; }
 .dishes { display: grid; gap: 0; }
-.dish { display: grid; gap: 6px; padding: 14px 0; border-top: 1px solid var(--line); }
-.dish:first-child { border-top: 0; padding-top: 4px; }
-.dish h3 { margin: 0; font-size: 1.05rem; }
-.dish .when { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); }
+.dish { border-top: 1px solid var(--line); }
+.dish:first-child { border-top: 0; }
+.dish summary { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 14px 0; cursor: pointer; list-style: none; }
+.dish summary::-webkit-details-marker { display: none; }
+.dish summary b { font-size: 1rem; }
+.dish summary b::before { content: "▸"; display: inline-block; width: 1.1em; color: var(--muted); transition: transform .15s; }
+.dish[open] summary b::before { transform: rotate(90deg); }
+.dish summary .meta { font-size: 0.82rem; color: var(--muted); white-space: nowrap; }
+.dish-body { display: grid; gap: 8px; padding: 0 0 16px 1.1em; }
+.dish-body h4 { margin: 6px 0 0; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); font-weight: 400; }
+.dish-body ol { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; font-size: 0.92rem; }
+.dish-body .full { color: var(--accent); font-size: 0.85rem; }
+@media (max-width: 480px) { .dish summary { flex-direction: column; gap: 2px; } .dish summary .meta { padding-left: 1.1em; } }
 .dish table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
 .dish td { padding: 5px 8px 5px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
 .dish td.q { color: var(--muted); width: 42%; }
@@ -281,7 +290,7 @@ header .label{text-align:center}
       <div class="grid"><table><thead><tr><th>Jour</th><th>Midi</th><th>Soir</th></tr></thead><tbody id="grid"></tbody></table></div>
     </section>
 
-    <section class="panel" aria-label="Les plats de la semaine"><h2>Les plats de la semaine</h2><p class="note">Dans l'ordre de la semaine, avec les aliments pour tous les repas où le plat revient.</p><div id="postes" class="dishes"></div></section>
+    <section class="panel" aria-label="Les plats de la semaine"><h2>Les plats de la semaine</h2><p class="note">Touche un plat pour voir ses ingrédients et sa recette.</p><div id="postes" class="dishes"></div></section>
 
     <section class="panel" aria-label="Petits-déjeuners">
       <h2>Petits-déjeuners et collation</h2>
@@ -657,6 +666,7 @@ Object.assign(SLUG, {"boeufcar": "boeuf-carottes-mijote", "basq": "poulet-basqua
 Object.assign(RECIPES, {"boeufcar": {"t": "2 h 45, dont 20 min actives (2 h 30 de mijotage à couvert)", "ing": [["Bœuf à braiser (paleron, macreuse ou jarret), en cubes de 4 cm", "300 g (150 g par personne)"], ["Carottes", "4 (environ 400 g)"], ["Oignon", "1"], ["Ail", "1 gousse"], ["Vin blanc sec (facultatif, l'alcool s'évapore)", "5 cl"], ["Bouillon de bœuf (cube dilué)", "20 cl"], ["Bouquet garni (thym, laurier)", "1"], ["Huile d'olive", "2 c. à café (au lieu de 10 cl pour 6 dans la source)"], ["Pommes de terre, pour servir", "300 g (150 g par personne)"], ["Sel, poivre", "—"]], "steps": ["1. Couper la viande en cubes de 3 à 4 cm. Émincer l'oignon, éplucher l'ail, éplucher les carottes et les couper en tronçons de 2 cm.", "2. Dans une cocotte, faire dorer la viande quelques minutes dans l'huile, puis ajouter l'oignon 2 à 3 minutes.", "3. Verser le vin blanc, puis le bouillon jusqu'à couvrir la viande. Ajouter l'ail et le bouquet garni. Couvrir et laisser mijoter 1 h à feu doux.", "4. Ajouter les carottes, saler, poivrer, et poursuivre 1 h à 1 h 30 à couvert, jusqu'à ce que la viande se défasse à la fourchette.", "5. Pendant les 25 dernières minutes, cuire les pommes de terre à la vapeur ou à l'eau."], "keep": ["Conservation : 4 jours au réfrigérateur ; se congèle très bien (3 mois), sans les pommes de terre.", "Réchauffage : Casserole à feu doux 8 à 10 min à couvert avec un peu d'eau, ou micro-ondes 3 à 4 min."]}, "basq": {"t": "1 h, dont 20 min actives (40 min de mijotage)", "ing": [["Hauts de cuisse de poulet désossés, sans peau (ou filets)", "300 g (150 g par personne)"], ["Poivron rouge", "1"], ["Poivron vert", "1"], ["Oignon", "1"], ["Ail", "1 gousse"], ["Tomates pelées en conserve", "250 g (ou 3 tomates bien mûres en saison)"], ["Piment d'Espelette en poudre", "1 pincée (la source met 5 piments verts frais pour 6)"], ["Thym, laurier", "1 brin, 1 feuille"], ["Huile d'olive", "2 c. à café"], ["Riz complet (cru), pour servir", "80 g (40 g par personne)"], ["Sel, poivre", "—"]], "steps": ["1. Émincer l'oignon et les poivrons en lanières, hacher l'ail.", "2. Dans une cocotte, faire fondre l'oignon, l'ail et les poivrons dans la moitié de l'huile jusqu'à ce que l'oignon devienne translucide.", "3. Ajouter les tomates concassées, le thym, le laurier et le piment. Saler, poivrer, laisser mijoter 25 minutes à couvert.", "4. Pendant ce temps, couper le poulet en morceaux et le faire dorer dans une poêle avec le reste de l'huile.", "5. Ajouter le poulet à la sauce et laisser mijoter encore 15 minutes, jusqu'à cuisson à cœur.", "6. Cuire le riz complet selon le paquet (30 à 40 min) et servir."], "keep": ["Conservation : 4 jours au réfrigérateur ; se congèle très bien (3 mois), sans le riz.", "Réchauffage : Casserole à feu doux 6 à 8 min, ou micro-ondes 3 min en remuant à mi-parcours."]}, "tajine": {"t": "1 h 05, dont 20 min actives (45 min de mijotage)", "ing": [["Hauts de cuisse de poulet sans peau", "2 (environ 300 g)"], ["Carottes", "2"], ["Courgette (ajout Claude)", "1"], ["Aubergine", "½ (la source en met 50 g)"], ["Oignon", "½"], ["Ail", "1 gousse"], ["Gingembre frais", "15 g, râpé"], ["Ras el hanout", "¼ c. à café"], ["Cumin", "¼ c. à café"], ["Coriandre moulue", "½ c. à café"], ["Cannelle", "2 pincées"], ["Curcuma (à la place du safran)", "½ c. à café"], ["Raisins secs", "15 g (25 g dans la source)"], ["Noix de cajou", "25 g"], ["Coriandre fraîche", "½ botte"], ["Eau", "15 cl"], ["Huile d'olive", "2 c. à café"], ["Semoule complète (crue), pour servir", "80 g (40 g par personne)"]], "steps": ["1. Éplucher les carottes et les couper en gros tronçons. Couper la courgette et l'aubergine en gros morceaux (elles réduisent à la cuisson). Émincer l'oignon, écraser l'ail, râper le gingembre.", "2. Dans une cocotte ou un tajine, faire dorer les hauts de cuisse dans l'huile, puis les réserver.", "3. Faire revenir l'oignon, l'ail, le gingembre et toutes les épices 2 minutes.", "4. Remettre le poulet, ajouter les carottes et l'eau. Couvrir et laisser mijoter 20 minutes à feu doux.", "5. Ajouter la courgette, l'aubergine et les raisins secs, puis poursuivre 25 minutes à couvert.", "6. Servir avec la semoule gonflée à l'eau bouillante, les noix de cajou concassées et la coriandre fraîche."], "keep": ["Conservation : 4 jours au réfrigérateur ; se congèle bien (3 mois), sans la semoule.", "Réchauffage : Casserole à couvert 8 min avec un peu d'eau, ou micro-ondes 3 min. Semoule : micro-ondes 1 min avec une cuillère d'eau."]}, "dahl": {"t": "40 min, dont 10 min actives (25 à 30 min de mijotage)", "ing": [["Lentilles corail (crues)", "120 g (60 g par personne)"], ["Lait de coco", "10 cl (la source en met 40 cl pour 4)"], ["Eau", "40 cl"], ["Tomates concassées ou pelées en conserve", "200 g"], ["Épinards frais (ajout Claude)", "150 g"], ["Oignon", "1"], ["Ail", "1 gousse"], ["Gingembre frais", "1 morceau de la taille d'une noisette"], ["Curry", "2 c. à café"], ["Piment de Cayenne", "1 pincée"], ["Huile d'olive", "1 c. à café"], ["Riz complet (cru), pour servir", "60 g (30 g par personne : les lentilles sont déjà un féculent)"], ["Œufs durs, à côté", "2 (1 par personne)"]], "steps": ["1. Émincer l'oignon, écraser l'ail, éplucher et hacher le gingembre. Rincer les lentilles.", "2. Faire suer l'oignon et l'ail dans l'huile, puis ajouter le curry, le piment et le gingembre et remuer 1 minute.", "3. Verser le lait de coco, l'eau, les lentilles et les tomates. Laisser mijoter 25 minutes à feu moyen en remuant de temps en temps, jusqu'à ce que les lentilles fondent.", "4. Ajouter les épinards les 3 dernières minutes, saler.", "5. Servir avec le riz complet, de la coriandre si vous en avez, et un œuf dur par personne."], "keep": ["Conservation : 4 jours au réfrigérateur ; se congèle très bien (3 mois), sans le riz ni les œufs.", "Réchauffage : Casserole à feu doux 5 min avec un peu d'eau, ou micro-ondes 3 min en remuant."]}, "sincarne": {"t": "45 min, dont 10 min actives (30 min de mijotage)", "ing": [["Patate douce", "200 g (100 g par personne)"], ["Haricots rouges en conserve, égouttés", "200 g"], ["Tomates concassées ou pelées en conserve", "200 g"], ["Poivron rouge (ajout Claude)", "1"], ["Oignon", "1"], ["Ail", "2 gousses"], ["Paprika", "½ c. à soupe"], ["Cumin", "½ c. à café"], ["Huile d'olive", "1 c. à café"], ["Fromage blanc 3 %, pour servir (ajout Claude)", "150 g"], ["Sel, poivre", "—"]], "steps": ["1. Éplucher la patate douce et la couper en dés de 1,5 cm. Émincer l'oignon, le poivron et l'ail.", "2. Dans une sauteuse, faire revenir l'oignon, l'ail et le poivron dans l'huile, puis ajouter le paprika et le cumin quelques minutes.", "3. Ajouter la patate douce et les tomates, couvrir et laisser mijoter 20 à 30 minutes, jusqu'à ce que la patate douce soit bien tendre.", "4. Ajouter les haricots rouges, réchauffer 5 minutes, saler et poivrer.", "5. Servir avec une cuillerée de fromage blanc par-dessus."], "keep": ["Conservation : 4 jours au réfrigérateur ; se congèle très bien (3 mois). Le fromage blanc s'ajoute au moment de servir.", "Réchauffage : Casserole à feu doux 6 min avec un peu d'eau, ou micro-ondes 3 min."]}});
 ["boeufcar", "basq", "tajine", "dahl", "sincarne"].forEach(id => KEEP[id] = [4, 1]);
 
+const KCAL = {"aubergine-tomates-gratinees-3-fromages": 541, "boeuf-carottes-mijote": 629, "bowl-chevre-avocat": 534, "butternut-grillee-farcie": 668, "chili-con-carne-facile": 667, "chili-sin-carne-patate-douce": 336, "courgette-farcie-legumes": 320, "crevettes-coco-courgette": 314, "croquettes-poisson": 325, "dahl-lentilles-corail-epinards": 563, "galette-sarrasin-chevre-epinards": 472, "hachis-pomme-de-terre-boeuf-poivron": 598, "meal-prep-poulet-miel-moutarde": 561, "nems-legumes": 439, "nid-oeuf-patate-douce": 514, "nuggets-healthy": 331, "oeufs-brouilles-fromage-champignons": 422, "oeufs-brouilles-fromage-tomates": 388, "omelette-dinde-emmental-champignons": 403, "omelette-jambon-champignons": 241, "pasta-italienne": 516, "pates-bolognaise": 487, "pates-boulettes-boeuf-sauce": 544, "pates-carbonara-healthy": 560, "avocado-toast": 576, "bol-canadien-yaourt-poire": 311, "chocolat-chaud-intense": 190, "morning-champion": 615, "oeuf-bacon-epinards": 459, "petits-pains-suedois-cream-cheese": 404, "skyr-amandes-poire": 271, "toast-beurre-confiture-orange": 212, "toast-beurre-fromage": 228, "toast-saumon-cream-cheese-pomelo": 334, "poulet-basquaise": 482, "poulet-beurre-cacahuete-tomate": 536, "poulet-thai-courge-patate-douce": 645, "risotto-coquillettes-jambon": 637, "roules-aubergine-poulet": 524, "salade-brocoli-pecorino-oeuf-mollet": 391, "soupe-chou-fleur-roti": 201, "soupe-chou-fleur-tartine-cream-cheese": 395, "soupe-patate-douce-coco": 354, "taboule-vegetarien": 455, "taboule-veggie-orientale": 660, "tajine-poulet-legumes": 582, "tomates-mozza-balsamique": 544, "veau-champignons-creme": 560, "wrap-falafels": 523, "wrap-thon-avocat": 599, "semaine-12-octobre-butternut-farcie-x2": 1303};
 const MAXV = 7, KEY = "semaine-lasseche-1012-v3", DOC = "semaines/2026-10-12";
 
 // ---- État : la semaine choisie et les articles cochés ----
@@ -827,17 +837,27 @@ function renderPostes(){
   const c = counts(), seen = [];
   SLOTS.forEach(sl => { const id = state.sel[sl.k]; if (!seen.includes(id)) seen.push(id); });
   seen.forEach(id => {
-    const r = R[id], rc = RECIPES[id], n = c[id], f = factor(id, n);
+    const r = R[id], rc = RECIPES[id], n = c[id], f = factor(id, n), kc = (typeof KCAL !== "undefined") && KCAL[SLUG[id]];
     const mine = SLOTS.filter(sl => state.sel[sl.k] === id);
     const bad = mine.map(keepInfo).find(k => k && k.bad), frz = mine.map(keepInfo).find(k => k && k.freeze);
-    const card = el("div",{class:"dish"},
-      el("span",{class:"when"}, mine.map(slotName).join(", ") + (f !== 1 ? " · recette ×" + String(f).replace(".", ",") : "")),
-      el("h3",{}, r.n),
-      el("span",{class:"tags"}, r.v ? el("span",{class:"tag v"},"viande") : null, r.c ? el("span",{class:"tag c"},"cher") : null, r.g ? el("span",{class:"tag"},"gourmand") : null));
-    if (rc) card.append(el("table",{}, el("tbody",{}, rc.ing.map(([nm,q]) => el("tr",{}, el("td",{},nm), el("td",{class:"q"}, scaleQty(q,f)))))));
-    else card.append(el("p",{class:"ing"}, r.i.join(" · ")));
-    if (r.d) card.append(el("p",{class:"ing"}, r.d));
-    if (bad) card.append(el("p",{class:"keep bad"}, bad.txt)); else if (frz) card.append(el("p",{class:"keep"}, frz.txt));
+    const card = el("details",{class:"dish"},
+      el("summary",{}, el("b",{}, r.n),
+        el("span",{class:"meta"}, n + " repas" + (kc ? " · " + kc + " kcal par portion" : ""))));
+    const body = el("div",{class:"dish-body"});
+    if (rc) {
+      body.append(el("h4",{}, "Ingrédients pour 2 personnes" + (n > 1 ? ", " + n + " repas" : "")));
+      body.append(el("table",{}, el("tbody",{}, rc.ing.map(([nm,q]) => el("tr",{}, el("td",{},nm), el("td",{class:"q"}, scaleQty(q,f)))))));
+    } else body.append(el("p",{class:"ing"}, r.i.join(" · ")));
+    if (r.d) body.append(el("p",{class:"ing"}, r.d));
+    if (bad) body.append(el("p",{class:"keep bad"}, bad.txt)); else if (frz) body.append(el("p",{class:"keep"}, frz.txt));
+    if (rc && rc.steps.length) {
+      body.append(el("h4",{}, "Recette" + (rc.t ? " · " + rc.t : "")));
+      const ol = el("ol",{}); const rest = [];
+      rc.steps.forEach(st => { const m = st.match(/^\d+\.\s*(.*)$/); if (m && !rest.length) ol.append(el("li",{}, m[1])); else rest.push(st.replace(/^-\s*/, "")); });
+      body.append(ol); rest.forEach(x => body.append(el("p",{class:"ing"}, x)));
+    }
+    if (SLUG[id]) body.append(el("a",{class:"full",href:"r/" + SLUG[id] + ".html"}, "Voir la fiche complète"));
+    card.append(body);
     box.append(card);
   });
 }
