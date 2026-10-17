@@ -148,6 +148,9 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--accent); o
 .stock-add .exp { display: grid; gap: 2px; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
 .stock-add .exp input { text-transform: none; letter-spacing: 0; }
 .stock-add button { align-self: end; }
+.ban-add { grid-template-columns: 1fr auto !important; }
+.ban-add #ban-n { grid-column: auto !important; }
+.bans button { border-color: var(--meat) !important; background: var(--meat-soft) !important; }
 .pins button.soon { border-color: var(--meat); background: var(--meat-soft); }
 .keep { font-size: 0.8rem; color: var(--accent); }
 .keep.bad { color: var(--meat); font-weight: 700; }
@@ -247,6 +250,12 @@ header .label{text-align:center}
           <button type="button" id="st-add">Ajouter</button>
         </div></div>
       <div class="pins" id="stock"></div>
+      <div class="field"><span>Aliments à éviter</span>
+        <div class="stock-add ban-add">
+          <input type="text" id="ban-n" list="ingr" placeholder="Aliment (poivron, crevettes, viande…)" autocomplete="off" aria-label="Aliment à éviter">
+          <button type="button" id="ban-btn">Éviter</button>
+        </div></div>
+      <div class="pins bans" id="ban"></div>
       <datalist id="ingr"></datalist>
       <button class="go" id="gen" type="button">Générer ma semaine</button>
       <p class="msg" id="gen-msg">Le générateur respecte tes règles : 7 repas avec viande au plus, aliments chers sur deux repas, plats en double le dimanche. Il favorise tes recettes les mieux notées et celles qui partagent des ingrédients. Clique à nouveau pour un autre tirage.</p>
@@ -532,7 +541,26 @@ function addStock(){
   nIn.value = ""; qIn.value = 1; uIn.value = "pc"; document.getElementById("st-e").value = ""; nIn.focus();
   persist(); renderGen(); renderList();
 }
-const POOL = p => Object.keys(R).filter(id => R[id][p.f] && fitsPoste(id, p));
+// Aliments à éviter : un plat est écarté s'il en contient un (« viande » écarte tous les plats avec viande)
+const bans = () => state.ban || [];
+let banCache = {key: "", m: {}};
+function banned(id){   // mémorisé : le générateur l'appelle des milliers de fois
+  const key = bans().join("|");
+  if (banCache.key !== key) banCache = {key, m: {}};
+  if (!(id in banCache.m)) banCache.m[id] = bannedRaw(id);
+  return banCache.m[id];
+}
+function bannedRaw(id){
+  const names = [...Q[id].map(x => x[0]), ...(PLACARD[id] || []), ...R[id].i, ...((RECIPES[id] || {}).ing || []).map(x => x[0])];
+  return bans().find(b => norm(b) === "viande" ? R[id].v : names.some(n => same(n, b)));
+}
+function addBan(){
+  const inp = document.getElementById("ban-n"), v = inp.value.trim();
+  if (!v) return;
+  state.ban = bans().filter(x => stem(x) !== stem(v)).concat(v); inp.value = ""; inp.focus();
+  persist(); renderGen(); renderGrid();
+}
+const POOL = p => Object.keys(R).filter(id => R[id][p.f] && fitsPoste(id, p) && !banned(id));
 
 function generate(){
   const pins = (state.pins || []).filter(id => R[id]);
@@ -561,7 +589,11 @@ function generate(){
     const sc = score(s, left, n) + Math.random() * 3;
     if (sc > bestScore) { bestScore = sc; best = s; }
   }
-  if (!best) return;
+  if (!best) {
+    const empty = free.filter(p => !POOL(p).length).map(p => p.t.toLowerCase());
+    document.getElementById("gen-msg").textContent = "Aucune semaine possible avec ces aliments à éviter" + (empty.length ? " : plus aucun plat pour " + empty.join(", ") : "") + ". Retire un aliment de la liste.";
+    return;
+  }
   state.sel = toSlots(best); state.checked = {};
   persist(); render();
   const hit = [], miss = [];
@@ -574,6 +606,8 @@ function generate(){
   if (hit.length) msg.append("Restes utilisés : ", el("b",{}, hit.join(", ")), ". ");
   if (miss.length) msg.append("Aucun plat n'utilise : " + miss.join(", ") + ". ");
   if (warn.length) msg.append("Pas de place pour : " + warn.join(", ") + ". ");
+  const pinBan = pins.filter(banned).map(id => R[id].n + " (" + banned(id) + ")");
+  if (pinBan.length) msg.append("Gardés car choisis par toi malgré un aliment à éviter : " + pinBan.join(", ") + ". ");
   if (early.length) msg.append(el("b",{}, "À utiliser avant ta cuisine du dimanche : " + early.join(", ") + ". "));
   msg.append("Clique à nouveau pour un autre tirage.");
 }
@@ -603,6 +637,8 @@ function renderGen(){
   if (add.options.length === 1) Object.keys(R).sort((a,b) => R[a].n.localeCompare(R[b].n,"fr"))
     .forEach(id => add.append(el("option",{value:id}, R[id].n + (note(id) ? "  " + starTxt(note(id)) : ""))));
   const box = document.getElementById("pins"); box.innerHTML = "";
+  const bb = document.getElementById("ban"); bb.innerHTML = "";
+  bans().forEach(b => bb.append(el("button",{type:"button",title:"Retirer",onclick:()=>{ state.ban = bans().filter(x => x !== b); persist(); renderGen(); renderGrid(); }}, "sans " + b)));
   (state.pins || []).forEach(id => box.append(el("button",{type:"button",title:"Retirer",onclick:()=>{ state.pins = state.pins.filter(x => x !== id); persist(); renderGen(); }}, R[id].n)));
   const dl = document.getElementById("ingr");
   if (!dl.children.length) [...new Set(Object.values(Q).flat().map(x => x[0]))].sort((a,b)=>a.localeCompare(b,"fr")).forEach(x => dl.append(el("option",{value:x})));
@@ -779,7 +815,7 @@ function mealSelect(sl){
     GROUPS.map(([f, label]) => el("optgroup",{label},
       Object.keys(R).filter(x => group(x) === f).sort((a,b) => R[a].n.localeCompare(R[b].n,"fr"))
         .map(x => { const late = tooLong(x, sl.d) && x !== id;
-          const o = el("option",{value:x}, R[x].n + (note(x) ? "  " + starTxt(note(x)) : "") + (R[x].v ? " · viande" : "") + (late ? " · ne tient pas jusque-là" : ""));
+          const o = el("option",{value:x}, R[x].n + (note(x) ? "  " + starTxt(note(x)) : "") + (R[x].v ? " · viande" : "") + (late ? " · ne tient pas jusque-là" : "") + (banned(x) ? " · contient " + banned(x) : ""));
           if (late) o.disabled = true; if (x === id) o.selected = true; return o; }))));
   return sel;
 }
@@ -945,6 +981,8 @@ document.getElementById("pin-add").addEventListener("change", e => {
   state.pins = (state.pins || []).filter(x => x !== id).concat(id); persist(); renderGen();
 });
 document.getElementById("st-add").addEventListener("click", addStock);
+document.getElementById("ban-btn").addEventListener("click", addBan);
+document.getElementById("ban-n").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); addBan(); } });
 ["st-n","st-q"].forEach(id => document.getElementById(id).addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); addStock(); } }));
 document.getElementById("st-n").addEventListener("change", e => { const p = parseStock(e.target.value); if (p && !p.u) document.getElementById("st-u").value = COUNTED.some(x => same(x, p.n) || same(p.n, x)) ? "pc" : knownUnit(p.n); });
 document.getElementById("gen").addEventListener("click", generate);
