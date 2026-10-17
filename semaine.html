@@ -193,6 +193,9 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--accent); o
 .cell.from { opacity: 0.35; }
 .ghost-cell { position: fixed; z-index: 50; pointer-events: none; max-width: 180px; padding: 8px 10px; background: var(--accent); color: #fff; font-weight: 700; font-size: 0.85rem; box-shadow: 0 6px 18px rgba(0,0,0,.25); transform: translate(-50%, -120%); }
 .have { display: block; font-size: 0.72rem; color: var(--accent); font-weight: 700; }
+.ppl { display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 0.95rem; color: var(--muted); margin-top: 10px; }
+.ppl select { font: inherit; font-weight: 700; color: var(--ink); padding: 6px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+#sync { display: none; }
 </style>
 
 <style>
@@ -231,8 +234,8 @@ header .label{text-align:center}
 <nav class="snav"><a href="index.html">Recueil</a><a href="semaine.html" class="on">Ma semaine</a><a href="aliments.html">Aliments</a></nav></div></header>
 <div class="wrap">
   <header>
-    <div class="label" id="week-label">2 personnes</div>
     <h1>Ma semaine</h1>
+    <label class="ppl">Pour <select id="ppl" aria-label="Nombre de personnes"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option></select> personnes</label>
   </header>
 
   <div class="tabs" role="tablist">
@@ -323,7 +326,7 @@ header .label{text-align:center}
     <section class="panel">
       <div class="progress"><h2>Liste de courses</h2><span class="n" id="prog">0/0</span></div>
       <div class="bar"><i id="bar"></i></div>
-      <p class="note">Quantités pour 2 personnes et toute la semaine, plats doublés compris. Coche au fur et à mesure : la liste se met à jour d'après la semaine choisie.</p>
+      <p class="note">Quantités pour <span class="ppl-n">2 personnes</span> et toute la semaine, plats doublés compris. Coche au fur et à mesure : la liste se met à jour d'après la semaine choisie.</p>
       <div class="row-actions">
         <button class="ghost" id="uncheck" type="button">Tout décocher</button>
         <button class="ghost" id="copy-list" type="button">Copier la liste</button>
@@ -452,7 +455,7 @@ function weekText(){
   const f = d => d.toLocaleDateString("fr-FR", {day:"numeric", month:"long"});
   return "semaine du lundi " + f(m) + " au samedi " + f(s);
 }
-document.getElementById("week-label").textContent = weekText()[0].toUpperCase() + weekText().slice(1) + " · 2 personnes";
+
 
 // Dates : dimanche de cuisine = veille du lundi ; jour d (0 = lundi)
 const dayDate = d => { const x = nextMonday(); x.setDate(x.getDate() + d); return x; };
@@ -528,7 +531,7 @@ function consumed(s, it){
   P.forEach(p => { const id = s[p.k]; Q[id].forEach(([n, qq, u]) => {
     if (u === "pl" || !same(n, it.n)) return;
     if (it.exp && iso(cookDate(p)) > it.exp) { late = true; return; }   // cuisiné après la date : ne compte pas
-    const c = conv(qq * multOf(p, id), u, it.u, it.n);
+    const c = conv(qq * multOf(p, id) * pf(), u, it.u, it.n);
     if (c === null) partial = true; else q += c;
   }); });
   return {q, partial, late};
@@ -741,7 +744,9 @@ function pick(k, id){ state.sel[k] = id; persist(); render(); }
 function meals(){ return SLOTS.filter(sl => R[state.sel[sl.k]].v).length; }
 // Nombre de repas par plat, et multiplicateur de recette (« once » : la recette fait déjà 2 repas)
 function counts(){ const c = {}; SLOTS.forEach(sl => { const id = state.sel[sl.k]; c[id] = (c[id] || 0) + 1; }); return c; }
-const factor = (id, n) => R[id].once ? n / 2 : n;
+// Nombre de personnes (les fiches sont écrites pour 2) : toutes les quantités suivent
+const ppl = () => state.ppl || 2, pf = () => ppl() / 2;
+const factor = (id, n) => (R[id].once ? n / 2 : n) * pf();
 const slotName = sl => DAYS[sl.d].slice(0, 3) + ". " + MEALN[sl.m];
 
 // ---- Liste de courses ----
@@ -756,7 +761,7 @@ function buildList(){
     Q[id].forEach(x => add(x, factor(id, n), R[id].n));
     (PLACARD[id]||[]).concat(["huile d'olive","sel, poivre"]).forEach(x => pl[x] = 1);
   });
-  BREAKFAST.forEach(x => add(x, 1, "petits-déjeuners"));
+  BREAKFAST.forEach(x => add(x, pf(), "petits-déjeuners"));
   BREAKFAST_PL.forEach(x => pl[x] = 1);
   // Déduit les restes : chaque reste est consommé article par article, dans l'unité de l'article
   stock().forEach(st => { let left = st.q;
@@ -865,7 +870,7 @@ function renderPostes(){
         el("span",{class:"meta"}, n + " repas" + (kc ? " · " + kc + " kcal par portion" : ""))));
     const body = el("div",{class:"dish-body"});
     if (rc) {
-      body.append(el("h4",{}, "Ingrédients pour 2 personnes" + (n > 1 ? ", " + n + " repas" : "")));
+      body.append(el("h4",{}, "Ingrédients pour " + ppl() + " personne" + (ppl() > 1 ? "s" : "") + (n > 1 ? ", " + n + " repas" : "")));
       body.append(el("table",{}, el("tbody",{}, rc.ing.map(([nm,q]) => el("tr",{}, el("td",{},nm), el("td",{class:"q"}, scaleQty(q,f)))))));
     } else body.append(el("p",{class:"ing"}, r.i.join(" · ")));
     if (r.d) body.append(el("p",{class:"ing"}, r.d));
@@ -951,7 +956,7 @@ function renderRecipes(){
     const when = SLOTS.filter(sl => state.sel[sl.k] === id).map(slotName).join(", ");
     const card = el("details",{class:"recipe"},
       el("summary",{}, el("span",{class:"when"}, when + (f !== 1 ? " · recette ×" + String(f).replace(".", ",") : r.once && n === 2 ? " · la recette fait 2 repas" : "")), el("h2",{}, r.n), rc.t ? el("span",{class:"note"}, "Temps (une fois la recette) : " + rc.t) : null));
-    card.append(el("h3",{},"Ingrédients pour 2 personnes" + (n > 1 ? ", " + n + " repas" : "")));
+    card.append(el("h3",{},"Ingrédients pour " + ppl() + " personne" + (ppl() > 1 ? "s" : "") + (n > 1 ? ", " + n + " repas" : "")));
     card.append(el("table",{}, el("tbody",{}, rc.ing.map(([n,q]) => el("tr",{}, el("td",{},n), el("td",{class:"q"}, scaleQty(q,f)))))));
     if (r.d && /œufs durs/.test(r.d)) card.append(el("p",{class:"extra"}, "En plus : " + 4 * n + " œufs durs à servir à côté (2 par personne et par repas)."));
     card.append(el("h3",{},"Étapes"));
@@ -1004,7 +1009,7 @@ document.addEventListener("touchcancel", () => { if (drag) { clearTimeout(drag.t
 function openMenu(td){ const sel = td.querySelector(".cell-sel"); if (!sel) return; sel.focus(); try { sel.showPicker(); } catch (err) {} }
 grid.addEventListener("contextmenu", e => { if (e.target.closest(".cell")) e.preventDefault(); });
 
-function render(){ renderGen(); renderVariants(); renderGrid(); renderPostes(); renderStats(); renderList(); renderRecipes(); }
+function render(){ document.getElementById("ppl").value = ppl(); document.querySelectorAll(".ppl-n").forEach(x => x.textContent = ppl() + " personne" + (ppl() > 1 ? "s" : "")); renderGen(); renderVariants(); renderGrid(); renderPostes(); renderStats(); renderList(); renderRecipes(); }
 
 document.getElementById("tab-semaine").addEventListener("click", () => showTab("semaine"));
 document.getElementById("tab-courses").addEventListener("click", () => { showTab("courses"); window.scrollTo(0,0); });
@@ -1027,6 +1032,7 @@ document.getElementById("pin-add").addEventListener("change", e => {
 });
 document.getElementById("st-add").addEventListener("click", addStock);
 document.getElementById("ban-btn").addEventListener("click", addBan);
+document.getElementById("ppl").addEventListener("change", e => { state.ppl = +e.target.value; persist(); render(); });
 document.getElementById("maxv").addEventListener("change", e => { state.maxv = +e.target.value; persist(); renderStats(); });
 document.getElementById("ban-n").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); addBan(); } });
 ["st-n","st-q"].forEach(id => document.getElementById(id).addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); addStock(); } }));
