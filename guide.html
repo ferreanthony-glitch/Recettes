@@ -1,229 +1,129 @@
-<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#f7f3ec"><meta name="color-scheme" content="light"><title>Comment ça marche</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,600;9..40,700&display=swap"><link rel="stylesheet" href="style.css"><link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon-180.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Miam!"><meta name="apple-mobile-web-app-status-bar-style" content="default"><script>if ("serviceWorker" in navigator && /github\.io$|^localhost$/.test(location.hostname)) navigator.serviceWorker.register("sw.js", {updateViaCache: "none"}).catch(() => {});</script></head><body><header class="site"><div class="in"><a class="brand" href="index.html">Miam!</a><nav class="nav"><a href="index.html">Recueil</a><a href="semaine.html">Ma semaine</a><a href="guide.html" class="on">Guide</a><a href="compte.html" class="acc">Compte</a></nav></div></header><main class="wrap"><section class="hero"><h1>Comment ça marche</h1><p>Les règles du livret, en version à manipuler : compose une assiette, trouve par quoi remplacer un aliment, convertis le cru en cuit, teste-toi, puis consulte la valeur nutritionnelle des aliments.</p></section>
-<nav class="g-toc" aria-label="Sommaire"><a href="#assiette">L'assiette</a><a href="#regles">Les 10 règles</a><a href="#remplacer">Par quoi remplacer</a><a href="#cuisson">Cru ou cuit</a><a href="#cheat">Le cheat meal</a><a href="#quiz">Le quiz</a><a href="#aliments">Les aliments</a></nav>
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#f7f3ec"><meta name="color-scheme" content="light"><title>Comment ça marche</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,600;9..40,700&display=swap"><link rel="stylesheet" href="style.css"><link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon-180.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Miam!"><meta name="apple-mobile-web-app-status-bar-style" content="default"><script>if ("serviceWorker" in navigator && /github\.io$|^localhost$/.test(location.hostname)) navigator.serviceWorker.register("sw.js", {updateViaCache: "none"}).catch(() => {});</script></head><body><header class="site"><div class="in"><a class="brand" href="index.html">Miam!</a><nav class="nav"><a href="index.html">Recueil</a><a href="semaine.html">Ma semaine</a><a href="guide.html" class="on">Guide</a><a href="compte.html" class="acc">Compte</a></nav></div></header><main class="wrap"><section class="hero"><h1>Comment ça marche</h1><p>La logique de Miam! : comment un repas est composé, comment la semaine est construite, et les équivalences pour adapter une recette. D'après le livret LaSèche 2024 et les règles que tu as fixées.</p></section>
+<nav class="g-toc" aria-label="Sommaire"><a href="#assiette">L'assiette</a><a href="#semaine">La semaine</a><a href="#journee">La journée</a><a href="#regles">Les 10 règles</a><a href="#remplacer">Équivalences</a><a href="#cuisson">Cru et cuit</a><a href="#cheat">Le cheat meal</a><a href="#aliments">Les aliments</a></nav>
 
 <div class="g">
 <section class="g-box" id="assiette" aria-labelledby="as-t">
-  <span class="g-k">1</span><h2 id="as-t">L'assiette idéale</h2>
-  <p class="g-n">Midi et soir, la même règle : la moitié de l'assiette en légumes (et fruits), un quart en féculents, un quart en protéines. Le petit-déjeuner suit sa propre logique.</p>
+  <span class="g-k">1</span><h2 id="as-t">L'assiette</h2>
   <div class="plate-row">
-    <figure class="plate-fig"><svg viewBox="-110 -110 220 220" class="plate" aria-hidden="true"><circle r="104" class="rim"/><g id="ideal"></g><circle r="40" class="hole"/></svg><figcaption>L'idéal</figcaption></figure>
-    <ul class="legend"><li><i class="c-veg"></i><b>50 %</b> légumes et fruits</li><li><i class="c-cer"></i><b>25 %</b> céréales et féculents</li><li><i class="c-pro"></i><b>25 %</b> protéines</li></ul>
+    <svg viewBox="-110 -110 220 220" class="plate" aria-hidden="true"><circle r="104" class="rim"/><path d="M 0.00 -100.00 A 100 100 0 0 1 0.00 100.00 L 0.00 40.00 A 40 40 0 0 0 0.00 -40.00 Z" fill="var(--veg)"/><path d="M 0.00 100.00 A 100 100 0 0 1 -100.00 0.00 L -40.00 0.00 A 40 40 0 0 0 0.00 40.00 Z" fill="var(--cer)"/><path d="M -100.00 0.00 A 100 100 0 0 1 -0.00 -100.00 L -0.00 -40.00 A 40 40 0 0 0 -40.00 0.00 Z" fill="var(--pro)"/><circle r="40" class="hole"/></svg>
+    <ul class="legend"><li><i class="c-veg"></i><span><b>50 % légumes et fruits.</b> La moitié de l'assiette.</span></li><li><i class="c-cer"></i><span><b>25 % céréales et féculents.</b> Pâtes, riz, quinoa, lentilles, patate douce, pain…</span></li><li><i class="c-pro"></i><span><b>25 % protéines.</b> Viande, poisson, œufs, tofu, laitages.</span></li></ul>
   </div>
-  <h3>À toi : compose ton assiette</h3>
-  <p class="g-n">Touche un aliment pour en ajouter une part, touche-le dans ton assiette pour l'enlever.</p>
-  <div class="pick" id="pick"></div>
-  <div class="plate-row mine">
-    <figure class="plate-fig"><svg viewBox="-110 -110 220 220" class="plate" aria-hidden="true"><circle r="104" class="rim"/><g id="mineg"></g><circle r="40" class="hole"/><text id="mine-c" text-anchor="middle" dy="6" class="pc"></text></svg><figcaption>Ton assiette</figcaption></figure>
-    <div class="mine-side"><p class="verdict" id="verdict" aria-live="polite">Ton assiette est vide.</p><div class="onplate" id="onplate"></div>
-      <div class="g-row"><button type="button" class="g-btn ghost" id="ex">Montre-moi un exemple</button><button type="button" class="g-btn ghost" id="clear">Vider</button></div></div>
-  </div>
-  <p class="tip"><b>Astuce du livret :</b> mange dans de petites assiettes. La même portion paraît plus généreuse.</p>
+  <p>Cette règle vaut pour le déjeuner et le dîner. Chaque recette de Miam! est dosée pour une personne d'après les portions du livret : environ 40 g de féculents crus, une portion de protéine (250 g de volaille, 350 g de poisson blanc, 3 œufs…), 10 ml d'huile.</p>
+  <p class="tip">Le livret conseille de petites assiettes : la même portion paraît plus généreuse.</p>
+</section>
+
+<section class="g-box" id="semaine" aria-labelledby="se-t">
+  <span class="g-k">2</span><h2 id="se-t">Comment Miam! construit la semaine</h2>
+  <p>Une semaine, c'est <b>12 repas</b> : midi et soir, du lundi au samedi. Le dimanche, on cuisine. Pour cuisiner le moins possible, chaque plat préparé le dimanche sert <b>deux repas</b>.</p>
+  <div class="tw"><table class="gt"><thead><tr><th>Repas</th><th>Préparation</th></tr></thead><tbody>
+    <tr><td>Midis lundi et mardi</td><td>Cuit le dimanche, gardé au frigo.</td></tr>
+    <tr><td>Midis mercredi et jeudi</td><td>Cuit le dimanche, la part de jeudi va au congélateur.</td></tr>
+    <tr><td>Midis vendredi et samedi</td><td>Cuit le dimanche, congelé, sorti la veille.</td></tr>
+    <tr><td>Soirs lundi et mardi</td><td>Cuit le dimanche, à réchauffer.</td></tr>
+    <tr><td>Soirs mercredi et jeudi</td><td>Cuit le dimanche, la part de jeudi va au congélateur.</td></tr>
+    <tr><td>Soir vendredi</td><td>Le seul plat cuisiné en semaine : rapide, 10 à 25 minutes.</td></tr>
+    <tr><td>Soir samedi</td><td>Cheat meal : un plat gourmand et un petit dessert.</td></tr>
+  </tbody></table></div>
+  <p>Cinq plats en double le dimanche, soit environ trois heures de cuisine. Le générateur choisit les plats en respectant ces règles :</p>
+  <ul class="gl">
+    <li><b>Viande :</b> 5 à 6 repas sur 12 idéalement, jamais plus que la limite réglée (7 par défaut). Volaille, bœuf, veau, porc et jambon comptent comme viande ; poisson, crevettes et œufs non.</li>
+    <li><b>Conservation :</b> un plat n'est jamais placé au-delà du nombre de jours qu'il tient au frigo. S'il se congèle, la seconde part va au congélateur.</li>
+    <li><b>Soupes :</b> uniquement le soir.</li>
+    <li><b>Aliments chers</b> (crevettes, veau, saumon fumé…) : seulement sur un plat qui sert deux repas.</li>
+    <li><b>Économies :</b> les semaines qui réutilisent les mêmes ingrédients sont favorisées.</li>
+    <li><b>Tes notes :</b> les plats notés 4 ou 5 étoiles reviennent plus souvent, ceux à 1 étoile presque jamais.</li>
+    <li><b>Saison :</b> le curseur fixe la part minimale de repas dont les fruits et légumes sont de saison ce mois-ci.</li>
+    <li><b>Restes :</b> les aliments que tu as déjà sont placés en priorité, en commençant par ceux qui périment bientôt.</li>
+    <li><b>Ton profil</b> (page Compte) : allergies, régime et aliments refusés écartent les plats pour toute la table ; les objectifs orientent le choix vers des plats plus légers ou plus riches en protéines.</li>
+  </ul>
+  <p>Quand tu valides la semaine, la liste de courses est calculée pour ces 12 repas, petits-déjeuners et collations compris, pour le nombre de personnes choisi.</p>
+</section>
+
+<section class="g-box" id="journee" aria-labelledby="jo-t">
+  <span class="g-k">3</span><h2 id="jo-t">La journée</h2>
+  <p>L'équilibre se juge sur la journée entière : petit-déjeuner, collation, déjeuner et dîner. Les plans du livret servent d'idées ; Miam! en garde les ingrédients et la logique, pas l'ordre exact des jours.</p>
+  <div class="tw"><table class="gt"><thead><tr><th>Moment</th><th>Composition</th></tr></thead><tbody>
+    <tr><td>Petit-déjeuner</td><td>Une base (laitage ou 40 g de pain complet), un fruit, un peu de gras (beurre, amandes) et au plus une cuillère à café de sucre (miel, confiture, sirop d'érable). Léger en protéines, il ne suit pas la règle de l'assiette.</td></tr>
+    <tr><td>Collation</td><td>30 g d'amandes. C'est là que passent les oléagineux.</td></tr>
+    <tr><td>Déjeuner et dîner</td><td>L'assiette 50/25/25, avec la grosse portion de légumes et de protéines.</td></tr>
+    <tr><td>Après le dîner</td><td>Rien.</td></tr>
+  </tbody></table></div>
 </section>
 
 <section class="g-box" id="regles" aria-labelledby="rg-t">
-  <span class="g-k">2</span><h2 id="rg-t">Les 10 règles</h2>
-  <p class="g-n">Touche une carte pour la retourner : au dos, une façon concrète de l'appliquer.</p>
-  <div class="cards" id="cards"></div>
+  <span class="g-k">4</span><h2 id="rg-t">Les 10 règles du livret</h2>
+  <ol class="rules">
+    <li>Pas de produits industriels ni transformés.</li>
+    <li>8 à 9 heures de sommeil par nuit.</li>
+    <li>Au moins 1,5 litre d'eau par jour.</li>
+    <li>Aucun snack après le dîner.</li>
+    <li>20 minutes de marche par jour.</li>
+    <li>Chaque jour, un peu plus d'effort.</li>
+    <li>Ne sauter ni repas ni séance.</li>
+    <li>Limiter le gras et le sucre.</li>
+    <li>Préparer ses repas à l'avance.</li>
+    <li>Rester convaincu et déterminé.</li>
+  </ol>
 </section>
 
 <section class="g-box" id="remplacer" aria-labelledby="rp-t">
-  <span class="g-k">3</span><h2 id="rp-t">Par quoi remplacer ?</h2>
-  <p class="g-n">Un ingrédient ne te plaît pas ou manque ? Remplace-le par un aliment de la même famille, dans la quantité indiquée. Les quantités sont celles d'une portion du livret.</p>
-  <input type="search" id="rq" class="g-in" placeholder="Cherche un aliment : poulet, courgette, riz…" aria-label="Chercher un aliment">
-  <div class="fam" id="fam" role="tablist" aria-label="Familles d'aliments"></div>
-  <div class="foods" id="foods"></div>
-  <div class="swap" id="swap" hidden>
-    <div class="swap-h"><span>J'ai</span><input type="number" id="sq" class="g-in sm" min="0" step="any" inputmode="decimal" aria-label="Quantité"><span id="su"></span><b id="sn"></b></div>
-    <p class="g-n">Ça équivaut à :</p>
-    <div class="eq" id="eq"></div>
-    <p class="g-n" id="snote"></p>
-  </div>
+  <span class="g-k">5</span><h2 id="rp-t">Équivalences</h2>
+  <p>Un ingrédient ne te plaît pas ou manque : remplace-le par un aliment de la même famille, dans la quantité indiquée. Sur une même ligne ou dans une même famille, toutes les quantités s'équivalent. Quantités pour une personne.</p>
+  <div id="subs" class="subs"></div>
 </section>
 
 <section class="g-box" id="cuisson" aria-labelledby="cu-t">
-  <span class="g-k">4</span><h2 id="cu-t">Cru ou cuit ?</h2>
-  <p class="g-n">Les recettes donnent les féculents crus. En cuisant, ils absorbent de l'eau : les pâtes, le riz et la semoule pèsent environ 2,5 fois plus, les légumes secs 3 fois plus. Pommes de terre et patates douces ne changent pas.</p>
-  <div class="conv">
-    <div class="fam" id="ck" role="tablist" aria-label="Aliment"></div>
-    <div class="conv-row">
-      <label class="cbox"><span>Cru</span><input type="number" id="craw" class="g-in" min="0" step="any" inputmode="decimal" value="40"><small>g</small></label>
-      <span class="arrow" id="cx">× 2,5</span>
-      <label class="cbox"><span>Cuit</span><input type="number" id="ccook" class="g-in" min="0" step="any" inputmode="decimal"><small>g</small></label>
-    </div>
-    <p class="spoon" id="spoon"></p>
-  </div>
+  <span class="g-k">6</span><h2 id="cu-t">Cru et cuit</h2>
+  <p>Les recettes donnent les féculents <b>crus</b>. À la cuisson, ils absorbent de l'eau :</p>
+  <ul class="gl"><li>pâtes, riz, quinoa, boulgour, semoule : poids cuit = poids cru × 2,5 ;</li><li>légumes secs (lentilles, pois chiches, haricots) : poids cuit = poids cru × 3 ;</li><li>pomme de terre et patate douce : le poids ne change pas.</li></ul>
+  <p>Sans balance, une cuillère à soupe contient environ :</p>
+  <div class="tw"><table class="gt"><thead><tr><th>Aliment</th><th>Cru</th><th>Cuit</th></tr></thead><tbody>
+    <tr><td>Riz</td><td>20 g</td><td>25 g</td></tr><tr><td>Pâtes</td><td>20 g</td><td>25 g</td></tr><tr><td>Légumes secs</td><td>20 g</td><td>25 g</td></tr><tr><td>Quinoa, boulgour</td><td>20 g</td><td>25 g</td></tr><tr><td>Semoule</td><td>10 g</td><td>20 g</td></tr>
+  </tbody></table></div>
 </section>
 
 <section class="g-box" id="cheat" aria-labelledby="ch-t">
-  <span class="g-k">5</span><h2 id="ch-t">Le cheat meal</h2>
-  <div class="cheat">
-    <div><h3>Ce que c'est</h3><p>Un repas plaisir par semaine qui sort du plan : un plat gourmand et un petit dessert, pas plus. Dans Ma semaine, c'est le samedi soir.</p></div>
-    <div><h3>Ce que ce n'est pas</h3><p>Une journée de cheat meal, encore moins une semaine. Le livret conseille de le partager avec des amis ou en famille.</p></div>
-    <div><h3>Pourquoi, selon le livret</h3><p>Après des jours de restriction, les hormones de la faim (ghréline) et de la satiété (leptine) jouent contre toi ; un repas plus riche les remettrait d'aplomb.</p></div>
-  </div>
-  <p class="tip"><b>Note de Claude :</b> cet effet hormonal d'un seul repas est peu démontré. L'intérêt le plus solide est ailleurs : savoir que le plaisir est prévu aide à tenir le reste de la semaine.</p>
+  <span class="g-k">7</span><h2 id="ch-t">Le cheat meal</h2>
+  <p>Un repas plaisir par semaine, qui sort du plan : un plat gourmand et un petit dessert, pas plus. Dans Miam!, c'est le samedi soir. Il ne doit pas devenir une journée ni une semaine de cheat meal ; le livret conseille de le partager.</p>
+  <p>Selon le livret, après des jours de restriction, les hormones de la faim (ghréline) et de la satiété (leptine) jouent contre toi, et un repas plus riche les rééquilibre.</p>
+  <p class="tip">Note de Claude : cet effet hormonal d'un seul repas est peu démontré. L'intérêt le plus solide est de savoir que le plaisir est prévu, ce qui aide à tenir le reste de la semaine.</p>
 </section>
 
-<section class="g-box" id="quiz" aria-labelledby="qz-t">
-  <span class="g-k">6</span><h2 id="qz-t">Le quiz</h2>
-  <p class="g-n">Huit questions pour vérifier que tout est rentré.</p>
-  <div id="qz"></div>
-</section>
-<section class="g-box" id="aliments" aria-labelledby="al-t"><span class="g-k">7</span><h2 id="al-t">Les aliments</h2><p class="g-n">Valeurs pour 100 g, utilisées pour calculer chaque recette. Touche un en-tête de colonne pour trier. Elles reprennent les ordres de grandeur de la table française Ciqual (Anses) ; ce sont des moyennes, pas des mesures de tes produits.</p><div class="ali"><div class="search"><input type="search" id="q" placeholder="Chercher un aliment" aria-label="Chercher un aliment"></div><article><div class="tw"><table id="t"><thead><tr><th><button type="button" class="sort" data-k="0">Aliment</button></th><th><button type="button" class="sort" data-k="1">kcal</button></th><th><button type="button" class="sort" data-k="2">Prot.</button></th><th><button type="button" class="sort" data-k="3">Gluc.</button></th><th><button type="button" class="sort" data-k="4">Lip.</button></th><th><button type="button" class="sort" data-k="5">Fibres</button></th></tr></thead><tbody><tr><td>Ail</td><td>130</td><td>6</td><td>24</td><td>0.5</td><td>4.7</td></tr><tr><td>Ail en poudre</td><td>330</td><td>17</td><td>60</td><td>0.7</td><td>9</td></tr><tr><td>Amandes</td><td>620</td><td>25</td><td>8</td><td>53</td><td>12</td></tr><tr><td>Aubergine</td><td>19</td><td>1</td><td>2.9</td><td>0.2</td><td>2.6</td></tr><tr><td>Avocat</td><td>205</td><td>1.6</td><td>0.8</td><td>20.6</td><td>4.6</td></tr><tr><td>Bacon (filet de porc fumé)</td><td>150</td><td>20</td><td>1</td><td>7</td><td>0</td></tr><tr><td>Beurre</td><td>745</td><td>0.7</td><td>0.6</td><td>82</td><td>0</td></tr><tr><td>Beurre de cacahuète</td><td>600</td><td>25</td><td>15</td><td>50</td><td>6</td></tr><tr><td>Blanc d&#x27;œuf</td><td>47</td><td>10.6</td><td>0.7</td><td>0.2</td><td>0</td></tr><tr><td>Blanc de poulet cuit</td><td>150</td><td>30</td><td>0</td><td>3</td><td>0</td></tr><tr><td>Bouillon (dilué)</td><td>5</td><td>0.3</td><td>0.5</td><td>0.2</td><td>0</td></tr><tr><td>Brocoli</td><td>32</td><td>3</td><td>2.5</td><td>0.4</td><td>2.5</td></tr><tr><td>Bœuf à braiser</td><td>145</td><td>21</td><td>0</td><td>7</td><td>0</td></tr><tr><td>Cacao en poudre non sucré</td><td>390</td><td>20</td><td>13</td><td>22</td><td>33</td></tr><tr><td>Carotte</td><td>36</td><td>0.8</td><td>7.6</td><td>0.3</td><td>2.7</td></tr><tr><td>Champignons de Paris</td><td>22</td><td>3</td><td>0.6</td><td>0.3</td><td>1.8</td></tr><tr><td>Chapelure</td><td>380</td><td>12</td><td>74</td><td>4</td><td>4</td></tr><tr><td>Chocolat noir 90 %</td><td>590</td><td>10</td><td>14</td><td>55</td><td>15</td></tr><tr><td>Chou-fleur</td><td>25</td><td>2</td><td>3</td><td>0.3</td><td>2.3</td></tr><tr><td>Citron (jus)</td><td>25</td><td>0.4</td><td>7</td><td>0.2</td><td>0.3</td></tr><tr><td>Clémentine</td><td>47</td><td>0.8</td><td>10</td><td>0.3</td><td>1.7</td></tr><tr><td>Compote sans sucre ajouté</td><td>50</td><td>0.3</td><td>11</td><td>0.2</td><td>1.5</td></tr><tr><td>Concentré de tomate</td><td>85</td><td>4.5</td><td>14</td><td>0.5</td><td>4</td></tr><tr><td>Confiture</td><td>250</td><td>0.5</td><td>60</td><td>0</td><td>1</td></tr><tr><td>Courge butternut</td><td>45</td><td>1</td><td>10</td><td>0.1</td><td>2</td></tr><tr><td>Courgette</td><td>17</td><td>1.2</td><td>2</td><td>0.3</td><td>1.1</td></tr><tr><td>Cream cheese</td><td>240</td><td>6</td><td>4</td><td>23</td><td>0</td></tr><tr><td>Crevettes crues décortiquées</td><td>70</td><td>16</td><td>0.5</td><td>0.8</td><td>0</td></tr><tr><td>Crème de coco</td><td>330</td><td>3</td><td>6</td><td>33</td><td>0</td></tr><tr><td>Crème fraîche ou légère 15 à 20 %</td><td>180</td><td>2.5</td><td>3.5</td><td>18</td><td>0</td></tr><tr><td>Cube de bouillon</td><td>230</td><td>10</td><td>20</td><td>12</td><td>0</td></tr><tr><td>Eau</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr><tr><td>Emmental</td><td>380</td><td>28</td><td>0</td><td>30</td><td>0</td></tr><tr><td>Escalope de veau</td><td>110</td><td>22</td><td>0</td><td>2</td><td>0</td></tr><tr><td>Farine</td><td>335</td><td>10</td><td>68</td><td>1.5</td><td>8</td></tr><tr><td>Feta</td><td>270</td><td>15</td><td>1</td><td>23</td><td>0</td></tr><tr><td>Feuille de riz (nems)</td><td>330</td><td>6</td><td>76</td><td>0.5</td><td>1</td></tr><tr><td>Filet de poulet cru</td><td>121</td><td>23</td><td>0</td><td>2.6</td><td>0</td></tr><tr><td>Fromage blanc 0 %</td><td>45</td><td>8</td><td>4</td><td>0.2</td><td>0</td></tr><tr><td>Fromage blanc 3 %</td><td>75</td><td>7.5</td><td>4</td><td>3.2</td><td>0</td></tr><tr><td>Fromage de brebis râpé</td><td>400</td><td>26</td><td>0</td><td>33</td><td>0</td></tr><tr><td>Fromage de chèvre frais</td><td>205</td><td>11</td><td>2.5</td><td>17</td><td>0</td></tr><tr><td>Fruit frais (moyenne)</td><td>50</td><td>0.6</td><td>11</td><td>0.2</td><td>2</td></tr><tr><td>Galette de sarrasin</td><td>200</td><td>6</td><td>38</td><td>2</td><td>4</td></tr><tr><td>Germes de soja</td><td>30</td><td>3</td><td>4</td><td>0.2</td><td>1.8</td></tr><tr><td>Gingembre frais</td><td>80</td><td>1.8</td><td>17</td><td>0.8</td><td>2</td></tr><tr><td>Graines de chia</td><td>490</td><td>17</td><td>8</td><td>31</td><td>34</td></tr><tr><td>Haricots rouges cuits (conserve)</td><td>100</td><td>7.5</td><td>13</td><td>0.6</td><td>6.5</td></tr><tr><td>Haut de cuisse de poulet sans peau</td><td>140</td><td>19</td><td>0</td><td>7</td><td>0</td></tr><tr><td>Herbes fraîches</td><td>40</td><td>3</td><td>4</td><td>0.7</td><td>3</td></tr><tr><td>Huile (olive, coco)</td><td>900</td><td>0</td><td>0</td><td>100</td><td>0</td></tr><tr><td>Jambon cuit (porc)</td><td>115</td><td>20</td><td>1</td><td>3.5</td><td>0</td></tr><tr><td>Jambon de dinde</td><td>105</td><td>19</td><td>1.5</td><td>2.5</td><td>0</td></tr><tr><td>Jaune d&#x27;œuf</td><td>330</td><td>16</td><td>0.5</td><td>28</td><td>0</td></tr><tr><td>Lait d&#x27;amande</td><td>25</td><td>0.5</td><td>3</td><td>1.2</td><td>0.3</td></tr><tr><td>Lait de coco</td><td>190</td><td>1.8</td><td>3</td><td>19</td><td>0</td></tr><tr><td>Lait demi-écrémé</td><td>46</td><td>3.3</td><td>4.8</td><td>1.6</td><td>0</td></tr><tr><td>Lentilles corail crues</td><td>335</td><td>24</td><td>50</td><td>1.5</td><td>11</td></tr><tr><td>Miel</td><td>320</td><td>0.4</td><td>80</td><td>0</td><td>0</td></tr><tr><td>Morilles séchées</td><td>280</td><td>20</td><td>40</td><td>3</td><td>20</td></tr><tr><td>Moutarde</td><td>150</td><td>7</td><td>5</td><td>11</td><td>3</td></tr><tr><td>Mozzarella</td><td>255</td><td>18</td><td>1</td><td>20</td><td>0</td></tr><tr><td>Noisettes</td><td>650</td><td>15</td><td>7</td><td>61</td><td>10</td></tr><tr><td>Noix (cerneaux)</td><td>700</td><td>15</td><td>7</td><td>65</td><td>6.7</td></tr><tr><td>Noix de cajou</td><td>600</td><td>18</td><td>27</td><td>46</td><td>3</td></tr><tr><td>Oignon</td><td>37</td><td>1.1</td><td>7</td><td>0.2</td><td>1.7</td></tr><tr><td>Oignon en poudre</td><td>340</td><td>10</td><td>75</td><td>1</td><td>9</td></tr><tr><td>Orange</td><td>47</td><td>0.9</td><td>9</td><td>0.2</td><td>2</td></tr><tr><td>Pain complet</td><td>240</td><td>9</td><td>43</td><td>2.5</td><td>7</td></tr><tr><td>Pain de mie complet</td><td>260</td><td>9</td><td>46</td><td>4</td><td>6</td></tr><tr><td>Parmesan</td><td>400</td><td>33</td><td>0</td><td>29</td><td>0</td></tr><tr><td>Patate douce</td><td>86</td><td>1.6</td><td>20</td><td>0.1</td><td>3</td></tr><tr><td>Pecorino</td><td>390</td><td>28</td><td>0</td><td>31</td><td>0</td></tr><tr><td>Pesto rosso</td><td>380</td><td>5</td><td>10</td><td>35</td><td>3</td></tr><tr><td>Petit pain complet</td><td>250</td><td>9</td><td>45</td><td>3</td><td>6</td></tr><tr><td>Petits pains suédois (type Krisprolls)</td><td>405</td><td>11</td><td>68</td><td>8</td><td>7</td></tr><tr><td>Petits pois cuits</td><td>75</td><td>5</td><td>9</td><td>0.5</td><td>5</td></tr><tr><td>Poire</td><td>55</td><td>0.4</td><td>12</td><td>0.3</td><td>3</td></tr><tr><td>Poireau</td><td>27</td><td>1.5</td><td>3.5</td><td>0.3</td><td>2.5</td></tr><tr><td>Pois chiches cuits (conserve)</td><td>115</td><td>7</td><td>14</td><td>2.5</td><td>5</td></tr><tr><td>Poisson blanc (cabillaud, colin)</td><td>80</td><td>18</td><td>0</td><td>0.8</td><td>0</td></tr><tr><td>Poivron</td><td>28</td><td>0.9</td><td>5</td><td>0.3</td><td>1.8</td></tr><tr><td>Pomelo</td><td>37</td><td>0.7</td><td>8</td><td>0.1</td><td>1</td></tr><tr><td>Pommes de terre</td><td>80</td><td>2</td><td>17</td><td>0.1</td><td>1.8</td></tr><tr><td>Potimarron</td><td>40</td><td>1</td><td>8</td><td>0.2</td><td>2.5</td></tr><tr><td>Pâtes complètes crues</td><td>350</td><td>13</td><td>64</td><td>2.5</td><td>8</td></tr><tr><td>Raisins secs</td><td>300</td><td>3</td><td>66</td><td>0.5</td><td>4</td></tr><tr><td>Riz blanc ou basmati cru</td><td>355</td><td>8</td><td>78</td><td>0.8</td><td>1.3</td></tr><tr><td>Riz complet cru</td><td>350</td><td>7.5</td><td>72</td><td>2.7</td><td>3.5</td></tr><tr><td>Salade verte</td><td>15</td><td>1.3</td><td>1.5</td><td>0.2</td><td>1.3</td></tr><tr><td>Sauce soja ou tamari</td><td>60</td><td>10</td><td>5.6</td><td>0.1</td><td>0.8</td></tr><tr><td>Sauce tomate cuisinée</td><td>50</td><td>1.5</td><td>7</td><td>1.5</td><td>1.5</td></tr><tr><td>Saumon fumé</td><td>180</td><td>22</td><td>0.5</td><td>10</td><td>0</td></tr><tr><td>Semoule complète crue</td><td>350</td><td>12</td><td>68</td><td>2</td><td>7</td></tr><tr><td>Semoule crue</td><td>360</td><td>12</td><td>73</td><td>1.5</td><td>4</td></tr><tr><td>Sirop d&#x27;érable</td><td>260</td><td>0</td><td>67</td><td>0</td><td>0</td></tr><tr><td>Skyr nature</td><td>60</td><td>10</td><td>4</td><td>0.2</td><td>0</td></tr><tr><td>Steak végétal au soja</td><td>200</td><td>17</td><td>6</td><td>11</td><td>4</td></tr><tr><td>Thon au naturel égoutté</td><td>115</td><td>26</td><td>0</td><td>1</td><td>0</td></tr><tr><td>Tomate</td><td>19</td><td>0.8</td><td>2.5</td><td>0.3</td><td>1.2</td></tr><tr><td>Tomates cerises</td><td>21</td><td>0.9</td><td>3</td><td>0.3</td><td>1.5</td></tr><tr><td>Tomates en conserve (pelées, pulpe, coulis)</td><td>22</td><td>1.1</td><td>3.5</td><td>0.2</td><td>1.2</td></tr><tr><td>Tortilla de blé</td><td>300</td><td>8</td><td>50</td><td>7</td><td>4</td></tr><tr><td>Viande hachée de bœuf 5 %</td><td>126</td><td>21</td><td>0</td><td>5</td><td>0</td></tr><tr><td>Vin blanc sec</td><td>70</td><td>0.1</td><td>1</td><td>0</td><td>0</td></tr><tr><td>Vinaigre</td><td>20</td><td>0</td><td>0.5</td><td>0</td><td>0</td></tr><tr><td>Vinaigre balsamique</td><td>110</td><td>0.5</td><td>23</td><td>0</td><td>0</td></tr><tr><td>Yaourt nature</td><td>57</td><td>4.3</td><td>5</td><td>1.2</td><td>0</td></tr><tr><td>Échalote</td><td>75</td><td>2.5</td><td>15</td><td>0.1</td><td>3</td></tr><tr><td>Épices et herbes séchées</td><td>300</td><td>12</td><td>35</td><td>10</td><td>30</td></tr><tr><td>Épinards frais</td><td>23</td><td>2.9</td><td>1.4</td><td>0.4</td><td>2.2</td></tr><tr><td>Œuf entier</td><td>140</td><td>12.5</td><td>0.7</td><td>9.8</td><td>0</td></tr></tbody></table></div></article></div><script>const n = s => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/œ/g, "oe");document.getElementById("q").addEventListener("input", e => { const q = n(e.target.value); for (const tr of document.querySelectorAll("#t tbody tr")) tr.hidden = q && !n(tr.cells[0].textContent).includes(q); });let sk = 0, sd = 1; const tb = document.querySelector("#t tbody");for (const b of document.querySelectorAll("#t .sort")) b.addEventListener("click", () => { const k = +b.dataset.k; sd = k === sk ? -sd : (k ? -1 : 1); sk = k; const v = tr => k ? parseFloat(tr.cells[k].textContent) : n(tr.cells[0].textContent); [...tb.rows].sort((a, c) => (k ? v(a) - v(c) : v(a).localeCompare(v(c))) * sd).forEach(tr => tb.appendChild(tr)); for (const o of document.querySelectorAll("#t .sort")) { o.classList.toggle("on", o === b); o.dataset.dir = o === b ? (sd > 0 ? "▲" : "▼") : ""; } });document.querySelector("#t .sort").classList.add("on"); document.querySelector("#t .sort").dataset.dir = "▲";</script></section>
+<section class="g-box" id="aliments" aria-labelledby="al-t"><span class="g-k">8</span><h2 id="al-t">Les aliments</h2><p class="g-n">Valeurs pour 100 g, utilisées pour calculer chaque recette. Touche un en-tête de colonne pour trier. Elles reprennent les ordres de grandeur de la table française Ciqual (Anses) ; ce sont des moyennes, pas des mesures de tes produits.</p><div class="ali"><div class="search"><input type="search" id="q" placeholder="Chercher un aliment" aria-label="Chercher un aliment"></div><article><div class="tw"><table id="t"><thead><tr><th><button type="button" class="sort" data-k="0">Aliment</button></th><th><button type="button" class="sort" data-k="1">kcal</button></th><th><button type="button" class="sort" data-k="2">Prot.</button></th><th><button type="button" class="sort" data-k="3">Gluc.</button></th><th><button type="button" class="sort" data-k="4">Lip.</button></th><th><button type="button" class="sort" data-k="5">Fibres</button></th></tr></thead><tbody><tr><td>Ail</td><td>130</td><td>6</td><td>24</td><td>0.5</td><td>4.7</td></tr><tr><td>Ail en poudre</td><td>330</td><td>17</td><td>60</td><td>0.7</td><td>9</td></tr><tr><td>Amandes</td><td>620</td><td>25</td><td>8</td><td>53</td><td>12</td></tr><tr><td>Aubergine</td><td>19</td><td>1</td><td>2.9</td><td>0.2</td><td>2.6</td></tr><tr><td>Avocat</td><td>205</td><td>1.6</td><td>0.8</td><td>20.6</td><td>4.6</td></tr><tr><td>Bacon (filet de porc fumé)</td><td>150</td><td>20</td><td>1</td><td>7</td><td>0</td></tr><tr><td>Beurre</td><td>745</td><td>0.7</td><td>0.6</td><td>82</td><td>0</td></tr><tr><td>Beurre de cacahuète</td><td>600</td><td>25</td><td>15</td><td>50</td><td>6</td></tr><tr><td>Blanc d&#x27;œuf</td><td>47</td><td>10.6</td><td>0.7</td><td>0.2</td><td>0</td></tr><tr><td>Blanc de poulet cuit</td><td>150</td><td>30</td><td>0</td><td>3</td><td>0</td></tr><tr><td>Bouillon (dilué)</td><td>5</td><td>0.3</td><td>0.5</td><td>0.2</td><td>0</td></tr><tr><td>Brocoli</td><td>32</td><td>3</td><td>2.5</td><td>0.4</td><td>2.5</td></tr><tr><td>Bœuf à braiser</td><td>145</td><td>21</td><td>0</td><td>7</td><td>0</td></tr><tr><td>Cacao en poudre non sucré</td><td>390</td><td>20</td><td>13</td><td>22</td><td>33</td></tr><tr><td>Carotte</td><td>36</td><td>0.8</td><td>7.6</td><td>0.3</td><td>2.7</td></tr><tr><td>Champignons de Paris</td><td>22</td><td>3</td><td>0.6</td><td>0.3</td><td>1.8</td></tr><tr><td>Chapelure</td><td>380</td><td>12</td><td>74</td><td>4</td><td>4</td></tr><tr><td>Chocolat noir 90 %</td><td>590</td><td>10</td><td>14</td><td>55</td><td>15</td></tr><tr><td>Chou-fleur</td><td>25</td><td>2</td><td>3</td><td>0.3</td><td>2.3</td></tr><tr><td>Citron (jus)</td><td>25</td><td>0.4</td><td>7</td><td>0.2</td><td>0.3</td></tr><tr><td>Clémentine</td><td>47</td><td>0.8</td><td>10</td><td>0.3</td><td>1.7</td></tr><tr><td>Compote sans sucre ajouté</td><td>50</td><td>0.3</td><td>11</td><td>0.2</td><td>1.5</td></tr><tr><td>Concentré de tomate</td><td>85</td><td>4.5</td><td>14</td><td>0.5</td><td>4</td></tr><tr><td>Confiture</td><td>250</td><td>0.5</td><td>60</td><td>0</td><td>1</td></tr><tr><td>Courge butternut</td><td>45</td><td>1</td><td>10</td><td>0.1</td><td>2</td></tr><tr><td>Courgette</td><td>17</td><td>1.2</td><td>2</td><td>0.3</td><td>1.1</td></tr><tr><td>Cream cheese</td><td>240</td><td>6</td><td>4</td><td>23</td><td>0</td></tr><tr><td>Crevettes crues décortiquées</td><td>70</td><td>16</td><td>0.5</td><td>0.8</td><td>0</td></tr><tr><td>Crème de coco</td><td>330</td><td>3</td><td>6</td><td>33</td><td>0</td></tr><tr><td>Crème fraîche ou légère 15 à 20 %</td><td>180</td><td>2.5</td><td>3.5</td><td>18</td><td>0</td></tr><tr><td>Cube de bouillon</td><td>230</td><td>10</td><td>20</td><td>12</td><td>0</td></tr><tr><td>Eau</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr><tr><td>Emmental</td><td>380</td><td>28</td><td>0</td><td>30</td><td>0</td></tr><tr><td>Escalope de veau</td><td>110</td><td>22</td><td>0</td><td>2</td><td>0</td></tr><tr><td>Farine</td><td>335</td><td>10</td><td>68</td><td>1.5</td><td>8</td></tr><tr><td>Feta</td><td>270</td><td>15</td><td>1</td><td>23</td><td>0</td></tr><tr><td>Feuille de riz (nems)</td><td>330</td><td>6</td><td>76</td><td>0.5</td><td>1</td></tr><tr><td>Filet de poulet cru</td><td>121</td><td>23</td><td>0</td><td>2.6</td><td>0</td></tr><tr><td>Fromage blanc 0 %</td><td>45</td><td>8</td><td>4</td><td>0.2</td><td>0</td></tr><tr><td>Fromage blanc 3 %</td><td>75</td><td>7.5</td><td>4</td><td>3.2</td><td>0</td></tr><tr><td>Fromage de brebis râpé</td><td>400</td><td>26</td><td>0</td><td>33</td><td>0</td></tr><tr><td>Fromage de chèvre frais</td><td>205</td><td>11</td><td>2.5</td><td>17</td><td>0</td></tr><tr><td>Fruit frais (moyenne)</td><td>50</td><td>0.6</td><td>11</td><td>0.2</td><td>2</td></tr><tr><td>Galette de sarrasin</td><td>200</td><td>6</td><td>38</td><td>2</td><td>4</td></tr><tr><td>Germes de soja</td><td>30</td><td>3</td><td>4</td><td>0.2</td><td>1.8</td></tr><tr><td>Gingembre frais</td><td>80</td><td>1.8</td><td>17</td><td>0.8</td><td>2</td></tr><tr><td>Graines de chia</td><td>490</td><td>17</td><td>8</td><td>31</td><td>34</td></tr><tr><td>Haricots rouges cuits (conserve)</td><td>100</td><td>7.5</td><td>13</td><td>0.6</td><td>6.5</td></tr><tr><td>Haut de cuisse de poulet sans peau</td><td>140</td><td>19</td><td>0</td><td>7</td><td>0</td></tr><tr><td>Herbes fraîches</td><td>40</td><td>3</td><td>4</td><td>0.7</td><td>3</td></tr><tr><td>Huile (olive, coco)</td><td>900</td><td>0</td><td>0</td><td>100</td><td>0</td></tr><tr><td>Jambon cuit (porc)</td><td>115</td><td>20</td><td>1</td><td>3.5</td><td>0</td></tr><tr><td>Jambon de dinde</td><td>105</td><td>19</td><td>1.5</td><td>2.5</td><td>0</td></tr><tr><td>Jaune d&#x27;œuf</td><td>330</td><td>16</td><td>0.5</td><td>28</td><td>0</td></tr><tr><td>Lait d&#x27;amande</td><td>25</td><td>0.5</td><td>3</td><td>1.2</td><td>0.3</td></tr><tr><td>Lait de coco</td><td>190</td><td>1.8</td><td>3</td><td>19</td><td>0</td></tr><tr><td>Lait demi-écrémé</td><td>46</td><td>3.3</td><td>4.8</td><td>1.6</td><td>0</td></tr><tr><td>Lentilles corail crues</td><td>335</td><td>24</td><td>50</td><td>1.5</td><td>11</td></tr><tr><td>Miel</td><td>320</td><td>0.4</td><td>80</td><td>0</td><td>0</td></tr><tr><td>Morilles séchées</td><td>280</td><td>20</td><td>40</td><td>3</td><td>20</td></tr><tr><td>Moutarde</td><td>150</td><td>7</td><td>5</td><td>11</td><td>3</td></tr><tr><td>Mozzarella</td><td>255</td><td>18</td><td>1</td><td>20</td><td>0</td></tr><tr><td>Noisettes</td><td>650</td><td>15</td><td>7</td><td>61</td><td>10</td></tr><tr><td>Noix (cerneaux)</td><td>700</td><td>15</td><td>7</td><td>65</td><td>6.7</td></tr><tr><td>Noix de cajou</td><td>600</td><td>18</td><td>27</td><td>46</td><td>3</td></tr><tr><td>Oignon</td><td>37</td><td>1.1</td><td>7</td><td>0.2</td><td>1.7</td></tr><tr><td>Oignon en poudre</td><td>340</td><td>10</td><td>75</td><td>1</td><td>9</td></tr><tr><td>Orange</td><td>47</td><td>0.9</td><td>9</td><td>0.2</td><td>2</td></tr><tr><td>Pain complet</td><td>240</td><td>9</td><td>43</td><td>2.5</td><td>7</td></tr><tr><td>Pain de mie complet</td><td>260</td><td>9</td><td>46</td><td>4</td><td>6</td></tr><tr><td>Parmesan</td><td>400</td><td>33</td><td>0</td><td>29</td><td>0</td></tr><tr><td>Patate douce</td><td>86</td><td>1.6</td><td>20</td><td>0.1</td><td>3</td></tr><tr><td>Pecorino</td><td>390</td><td>28</td><td>0</td><td>31</td><td>0</td></tr><tr><td>Pesto rosso</td><td>380</td><td>5</td><td>10</td><td>35</td><td>3</td></tr><tr><td>Petit pain complet</td><td>250</td><td>9</td><td>45</td><td>3</td><td>6</td></tr><tr><td>Petits pains suédois (type Krisprolls)</td><td>405</td><td>11</td><td>68</td><td>8</td><td>7</td></tr><tr><td>Petits pois cuits</td><td>75</td><td>5</td><td>9</td><td>0.5</td><td>5</td></tr><tr><td>Poire</td><td>55</td><td>0.4</td><td>12</td><td>0.3</td><td>3</td></tr><tr><td>Poireau</td><td>27</td><td>1.5</td><td>3.5</td><td>0.3</td><td>2.5</td></tr><tr><td>Pois chiches cuits (conserve)</td><td>115</td><td>7</td><td>14</td><td>2.5</td><td>5</td></tr><tr><td>Poisson blanc (cabillaud, colin)</td><td>80</td><td>18</td><td>0</td><td>0.8</td><td>0</td></tr><tr><td>Poivron</td><td>28</td><td>0.9</td><td>5</td><td>0.3</td><td>1.8</td></tr><tr><td>Pomelo</td><td>37</td><td>0.7</td><td>8</td><td>0.1</td><td>1</td></tr><tr><td>Pommes de terre</td><td>80</td><td>2</td><td>17</td><td>0.1</td><td>1.8</td></tr><tr><td>Potimarron</td><td>40</td><td>1</td><td>8</td><td>0.2</td><td>2.5</td></tr><tr><td>Pâtes complètes crues</td><td>350</td><td>13</td><td>64</td><td>2.5</td><td>8</td></tr><tr><td>Raisins secs</td><td>300</td><td>3</td><td>66</td><td>0.5</td><td>4</td></tr><tr><td>Riz blanc ou basmati cru</td><td>355</td><td>8</td><td>78</td><td>0.8</td><td>1.3</td></tr><tr><td>Riz complet cru</td><td>350</td><td>7.5</td><td>72</td><td>2.7</td><td>3.5</td></tr><tr><td>Salade verte</td><td>15</td><td>1.3</td><td>1.5</td><td>0.2</td><td>1.3</td></tr><tr><td>Sauce soja ou tamari</td><td>60</td><td>10</td><td>5.6</td><td>0.1</td><td>0.8</td></tr><tr><td>Sauce tomate cuisinée</td><td>50</td><td>1.5</td><td>7</td><td>1.5</td><td>1.5</td></tr><tr><td>Saumon fumé</td><td>180</td><td>22</td><td>0.5</td><td>10</td><td>0</td></tr><tr><td>Semoule complète crue</td><td>350</td><td>12</td><td>68</td><td>2</td><td>7</td></tr><tr><td>Semoule crue</td><td>360</td><td>12</td><td>73</td><td>1.5</td><td>4</td></tr><tr><td>Sirop d&#x27;érable</td><td>260</td><td>0</td><td>67</td><td>0</td><td>0</td></tr><tr><td>Skyr nature</td><td>60</td><td>10</td><td>4</td><td>0.2</td><td>0</td></tr><tr><td>Steak végétal au soja</td><td>200</td><td>17</td><td>6</td><td>11</td><td>4</td></tr><tr><td>Thon au naturel égoutté</td><td>115</td><td>26</td><td>0</td><td>1</td><td>0</td></tr><tr><td>Tomate</td><td>19</td><td>0.8</td><td>2.5</td><td>0.3</td><td>1.2</td></tr><tr><td>Tomates cerises</td><td>21</td><td>0.9</td><td>3</td><td>0.3</td><td>1.5</td></tr><tr><td>Tomates en conserve (pelées, pulpe, coulis)</td><td>22</td><td>1.1</td><td>3.5</td><td>0.2</td><td>1.2</td></tr><tr><td>Tortilla de blé</td><td>300</td><td>8</td><td>50</td><td>7</td><td>4</td></tr><tr><td>Viande hachée de bœuf 5 %</td><td>126</td><td>21</td><td>0</td><td>5</td><td>0</td></tr><tr><td>Vin blanc sec</td><td>70</td><td>0.1</td><td>1</td><td>0</td><td>0</td></tr><tr><td>Vinaigre</td><td>20</td><td>0</td><td>0.5</td><td>0</td><td>0</td></tr><tr><td>Vinaigre balsamique</td><td>110</td><td>0.5</td><td>23</td><td>0</td><td>0</td></tr><tr><td>Yaourt nature</td><td>57</td><td>4.3</td><td>5</td><td>1.2</td><td>0</td></tr><tr><td>Échalote</td><td>75</td><td>2.5</td><td>15</td><td>0.1</td><td>3</td></tr><tr><td>Épices et herbes séchées</td><td>300</td><td>12</td><td>35</td><td>10</td><td>30</td></tr><tr><td>Épinards frais</td><td>23</td><td>2.9</td><td>1.4</td><td>0.4</td><td>2.2</td></tr><tr><td>Œuf entier</td><td>140</td><td>12.5</td><td>0.7</td><td>9.8</td><td>0</td></tr></tbody></table></div></article></div><script>const n = s => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/œ/g, "oe");document.getElementById("q").addEventListener("input", e => { const q = n(e.target.value); for (const tr of document.querySelectorAll("#t tbody tr")) tr.hidden = q && !n(tr.cells[0].textContent).includes(q); });let sk = 0, sd = 1; const tb = document.querySelector("#t tbody");for (const b of document.querySelectorAll("#t .sort")) b.addEventListener("click", () => { const k = +b.dataset.k; sd = k === sk ? -sd : (k ? -1 : 1); sk = k; const v = tr => k ? parseFloat(tr.cells[k].textContent) : n(tr.cells[0].textContent); [...tb.rows].sort((a, c) => (k ? v(a) - v(c) : v(a).localeCompare(v(c))) * sd).forEach(tr => tb.appendChild(tr)); for (const o of document.querySelectorAll("#t .sort")) { o.classList.toggle("on", o === b); o.dataset.dir = o === b ? (sd > 0 ? "▲" : "▼") : ""; } });document.querySelector("#t .sort").classList.add("on"); document.querySelector("#t .sort").dataset.dir = "▲";</script></section>
 </div>
 
 <style>
 .g-toc{max-width:860px;margin:0 auto;display:flex;gap:6px;overflow-x:auto;padding:4px 0 18px;scrollbar-width:none;position:sticky;top:0;background:var(--bg);z-index:5}
 .g-toc::-webkit-scrollbar{display:none}
-#aliments .tw{max-height:520px;overflow:auto;border-top:1px solid var(--line)}#aliments thead th{position:sticky;top:0;background:#fbfaf6;z-index:1}#aliments .ali{max-width:none}
 .g-toc a{flex:none;font-size:.82rem;padding:6px 13px;border:1px solid var(--line);border-radius:999px;text-decoration:none;color:var(--ink);background:#fbfaf6}
 .g-toc a:hover{border-color:var(--accent)}
 .g{display:grid;gap:22px;max-width:860px;margin:0 auto}
-.g-box{position:relative;background:#fbfaf6;border:1px solid var(--line);border-radius:14px;padding:22px 20px;display:grid;gap:14px;scroll-margin-top:60px}
-.g-box h2{margin:0;font-size:1.3rem;padding-left:40px;line-height:32px}.g-box h3{margin:6px 0 0;font-size:1rem}
+.g-box{position:relative;background:#fbfaf6;border:1px solid var(--line);border-radius:14px;padding:22px 20px;display:grid;gap:12px;scroll-margin-top:60px}
+.g-box h2{margin:0;font-size:1.3rem;padding-left:40px;line-height:32px}
+.g-box p{margin:0;font-size:.95rem;line-height:1.55}
 .g-k{position:absolute;left:20px;top:22px;width:30px;height:30px;border-radius:50%;background:var(--accent);color:#fbfaf6;font-weight:700;display:grid;place-items:center;font-size:.9rem}
 .g-n{margin:0;color:var(--muted);font-size:.92rem}
-.tip{margin:0;font-size:.88rem;padding:10px 12px;border-radius:10px;background:var(--accent-soft)}
+.tip{font-size:.88rem!important;padding:10px 12px;border-radius:10px;background:var(--accent-soft)}
 :root{--veg:#7f9c72;--cer:#d6a75a;--pro:#c47862}
 .c-veg{background:var(--veg)}.c-cer{background:var(--cer)}.c-pro{background:var(--pro)}
 .plate-row{display:flex;flex-wrap:wrap;align-items:center;gap:18px}
-.plate-fig{margin:0;text-align:center;font-size:.8rem;color:var(--muted)}
-.plate{width:170px;height:170px;display:block}
-.plate .rim{fill:#fff;stroke:var(--line);stroke-width:3}.plate .hole{fill:#fff}
-.plate path{stroke:#fff;stroke-width:2;transition:d .3s}
-.plate .pc{font:700 20px var(--font-display,inherit);fill:var(--ink)}
-.legend{list-style:none;margin:0;padding:0;display:grid;gap:8px;font-size:.92rem}
-.legend li{display:flex;align-items:center;gap:8px}.legend i{width:14px;height:14px;border-radius:4px;display:inline-block}
-.pick{display:grid;gap:8px}
-.pick-r{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
-.pick-r>span{font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);width:100%}
-.chip{font:inherit;font-size:.85rem;padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--ink);cursor:pointer;display:inline-flex;align-items:center;gap:6px}
-.chip i{width:9px;height:9px;border-radius:50%}
-.chip:hover{border-color:var(--accent)}
-.chip[aria-selected="true"]{background:var(--accent-soft);border-color:var(--accent)}
-.mine-side{flex:1;min-width:200px;display:grid;gap:10px}
-.verdict{margin:0;font-weight:600}.verdict.ok{color:var(--accent)}
-.onplate{display:flex;flex-wrap:wrap;gap:6px}
-.g-row{display:flex;flex-wrap:wrap;gap:8px}
-.g-btn{font:inherit;font-size:.88rem;padding:8px 14px;border-radius:10px;cursor:pointer;border:1px solid var(--line);background:#fff;color:var(--ink)}
-.g-btn.pri{border:0;background:var(--accent);color:#fbfaf6;font-weight:600}
-.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
-.card10{perspective:800px;height:150px;cursor:pointer;border:0;padding:0;background:none;font:inherit;text-align:left}
-.card10 .in{position:relative;width:100%;height:100%;transition:transform .45s;transform-style:preserve-3d}
-.card10.on .in{transform:rotateY(180deg)}
-.card10 .f,.card10 .b{position:absolute;inset:0;border-radius:12px;padding:12px;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;flex-direction:column;gap:6px;border:1px solid var(--line)}
-.card10 .f{background:#fff}.card10 .f b{font-size:1.6rem;color:var(--accent);line-height:1}.card10 .f span{font-size:.9rem;font-weight:600;color:var(--ink)}
-.card10 .b{background:var(--accent-soft);transform:rotateY(180deg);font-size:.84rem;color:var(--ink);justify-content:center}
-.card10 .b small{font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;color:var(--accent)}
-@media (prefers-reduced-motion:reduce){.card10 .in{transition:none}}
-.g-in{font:inherit;font-size:.95rem;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);width:100%;box-sizing:border-box;min-width:0}
-.g-in.sm{width:90px}
-.fam{display:flex;flex-wrap:wrap;gap:6px}
-.foods{display:flex;flex-wrap:wrap;gap:6px;max-height:220px;overflow:auto}
-.swap{display:grid;gap:10px;border-top:1px solid var(--line);padding-top:14px}
-.swap-h{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:1rem}
-.eq{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px}
-.eq div{background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:.9rem}
-.eq div b{display:block;font-size:1.1rem;color:var(--accent)}
-.conv{display:grid;gap:14px}
-.conv-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.cbox{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:8px;flex:1;min-width:140px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:8px 12px}
-.cbox span{font-size:.75rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
-.cbox .g-in{border:0;padding:6px 0;font-size:1.4rem;font-weight:700}
-.arrow{font-weight:700;color:var(--accent);white-space:nowrap}
-.spoon{margin:0;font-size:.92rem}
-.cheat{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
-.cheat>div{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px}.cheat p{margin:6px 0 0;font-size:.9rem;color:var(--muted)}
-.cheat h3{margin:0}
-.q{display:grid;gap:10px}
-.q-n{font-size:.75rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
-.q-t{margin:0;font-size:1.05rem;font-weight:600}
-.q-o{display:grid;gap:8px}
-.q-o button{font:inherit;text-align:left;padding:11px 14px;border-radius:10px;border:1px solid var(--line);background:#fff;color:var(--ink);cursor:pointer}
-.q-o button:hover:not(:disabled){border-color:var(--accent)}
-.q-o button.good{background:var(--accent-soft);border-color:var(--accent)}
-.q-o button.bad{background:#f6e6e1;border-color:#c47862}
-.q-o button:disabled{cursor:default}
-.q-x{margin:0;font-size:.9rem;color:var(--muted)}
-.q-bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden}.q-bar i{display:block;height:100%;background:var(--accent);transition:width .3s}
-.q-end{text-align:center;display:grid;gap:10px;justify-items:center}.q-end b{font-size:2.4rem;color:var(--accent);line-height:1}
-@media (max-width:560px){.g-box{padding:18px 16px}.g-k{left:16px;top:18px}.plate{width:140px;height:140px}}
+.plate{width:160px;height:160px;flex:none}.plate .rim{fill:#fff;stroke:var(--line);stroke-width:3}.plate .hole{fill:#fff}.plate path{stroke:#fff;stroke-width:2}
+.legend{list-style:none;margin:0;padding:0;display:grid;gap:10px;font-size:.92rem;flex:1;min-width:220px}
+.legend li{display:flex;align-items:flex-start;gap:10px}.legend i{width:14px;height:14px;border-radius:4px;flex:none;margin-top:3px}
+.gl{margin:0;padding-left:18px;display:grid;gap:6px;font-size:.93rem;line-height:1.5}
+.rules{margin:0;padding-left:22px;display:grid;gap:6px;font-size:.95rem}.rules li::marker{color:var(--accent);font-weight:700}
+.gt{width:100%;border-collapse:collapse;font-size:.9rem}.gt th{text-align:left;font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:500;padding:6px 10px 6px 0;border-bottom:1px solid var(--line)}
+.gt td{padding:8px 10px 8px 0;border-bottom:1px solid var(--line);vertical-align:top}.gt td:first-child{font-weight:600;white-space:nowrap}
+.subs{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.sub{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:grid;gap:6px;align-content:start}
+.sub h3{margin:0;font-size:.95rem}.sub ul{margin:0;padding:0;list-style:none;display:grid;gap:4px;font-size:.86rem}
+.sub li b{color:var(--accent);margin-right:4px;white-space:nowrap}.sub small{color:var(--muted);font-size:.8rem}
+#aliments .tw{max-height:520px;overflow:auto;border-top:1px solid var(--line)}#aliments thead th{position:sticky;top:0;background:#fbfaf6;z-index:1}#aliments .ali{max-width:none}
+@media (max-width:560px){.g-box{padding:18px 16px}.g-k{left:16px;top:18px}.plate{width:130px;height:130px}.gt td:first-child{white-space:normal}}
 </style>
-
 <script>
 (() => {
-const $ = id => document.getElementById(id);
-const h = (t, a = {}, ...c) => { const e = document.createElement(t); for (const k in a) { if (k.startsWith("on")) e.addEventListener(k.slice(2), a[k]); else if (a[k] != null && a[k] !== false) e.setAttribute(k, a[k]); } e.append(...c.filter(x => x != null)); return e; };
-const fr = n => (Math.round(n * 10) / 10).toLocaleString("fr-FR");
-const norm = t => t.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/œ/g, "oe");
-
-// ---------- 1. L'assiette ----------
-const COL = {veg: "var(--veg)", cer: "var(--cer)", pro: "var(--pro)"};
-function arcs(g, parts){   // parts : [[clé, part], …] dont la somme vaut 1
-  g.innerHTML = ""; let a0 = -Math.PI / 2;
-  parts.filter(p => p[1] > 0).forEach(([k, p]) => {
-    const a1 = a0 + p * 2 * Math.PI, R = 100, r = 40;
-    if (p >= 0.9999) { g.append(svg("circle", {r: 70, fill: "none", stroke: COL[k], "stroke-width": 60})); return; }
-    const big = p > 0.5 ? 1 : 0, P = (rad, a) => [rad * Math.cos(a), rad * Math.sin(a)].map(v => v.toFixed(2)).join(" ");
-    g.append(svg("path", {d: `M ${P(R, a0)} A ${R} ${R} 0 ${big} 1 ${P(R, a1)} L ${P(r, a1)} A ${r} ${r} 0 ${big} 0 ${P(r, a0)} Z`, fill: COL[k]}));
-    a0 = a1;
-  });
-}
-const svg = (t, a) => { const e = document.createElementNS("http://www.w3.org/2000/svg", t); for (const k in a) e.setAttribute(k, a[k]); return e; };
-arcs($("ideal"), [["veg", .5], ["cer", .25], ["pro", .25]]);
-const FOODS = {
-  veg: ["Brocoli", "Courgette", "Carotte", "Haricots verts", "Épinards", "Poivron", "Tomate", "Champignons", "Une pomme"],
-  cer: ["Riz complet", "Pâtes complètes", "Quinoa", "Patate douce", "Lentilles", "Pain complet"],
-  pro: ["Poulet", "Bœuf haché 5 %", "Cabillaud", "Saumon", "Œufs", "Tofu"]};
-const FAM = {veg: "Légumes et fruits", cer: "Féculents", pro: "Protéines"};
-let plate = [];
-const pick = $("pick");
-for (const k in FOODS) pick.append(h("div", {class: "pick-r"}, h("span", {}, FAM[k]), ...FOODS[k].map(f => h("button", {type: "button", class: "chip", onclick: () => { plate.push([k, f]); drawMine(); }}, h("i", {class: "c-" + k}), f))));
-function drawMine(){
-  const n = plate.length, c = {veg: 0, cer: 0, pro: 0};
-  plate.forEach(([k]) => c[k]++);
-  arcs($("mineg"), n ? Object.keys(c).map(k => [k, c[k] / n]) : []);
-  $("mine-c").textContent = n ? n + (n > 1 ? " parts" : " part") : "";
-  $("mine-c").setAttribute("font-size", 16);
-  const op = $("onplate"); op.innerHTML = "";
-  plate.forEach((p, i) => op.append(h("button", {type: "button", class: "chip", title: "Enlever", "aria-label": "Enlever " + p[1], onclick: () => { plate.splice(i, 1); drawMine(); }}, h("i", {class: "c-" + p[0]}), p[1], " ×")));
-  const v = $("verdict"); v.classList.remove("ok");
-  if (!n) { v.textContent = "Ton assiette est vide."; return; }
-  const s = k => c[k] / n, msg = [];
-  if (!c.veg) msg.push("Il manque les légumes : c'est la moitié de l'assiette.");
-  else if (s("veg") < .4) msg.push("Ajoute des légumes : ils doivent couvrir la moitié de l'assiette.");
-  else if (s("veg") > .6) msg.push("Beaucoup de légumes : ajoute un féculent ou une protéine pour tenir jusqu'au repas suivant.");
-  if (!c.cer) msg.push("Pas de féculent : un quart de l'assiette, pour l'énergie.");
-  else if (s("cer") > .35) msg.push("Trop de féculents : un quart suffit.");
-  if (!c.pro) msg.push("Pas de protéine : il en faut un quart.");
-  else if (s("pro") > .35) msg.push("Trop de protéines : un quart suffit.");
-  if (!msg.length) { v.textContent = "Assiette équilibrée, bravo !"; v.classList.add("ok"); }
-  else v.textContent = msg[0];
-}
-$("ex").addEventListener("click", () => { plate = [["veg", "Brocoli"], ["veg", "Carotte"], ["cer", "Riz complet"], ["pro", "Poulet"]]; drawMine(); });
-$("clear").addEventListener("click", () => { plate = []; drawMine(); });
-drawMine();
-
-// ---------- 2. Les 10 règles ----------
-const RULES = [
-  ["Pas de produits industriels ni transformés", "Regarde la liste d'ingrédients : si elle est longue et pleine de noms inconnus, repose le produit."],
-  ["8 à 9 heures de sommeil par nuit", "Après une nuit trop courte, on a plus faim le lendemain. Le sommeil fait partie du plan."],
-  ["Au moins 1,5 litre d'eau par jour", "Deux gourdes de 75 cl, une le matin, une l'après-midi."],
-  ["Aucun snack après le dîner", "Brosse-toi les dents juste après le dîner : la cuisine est fermée."],
-  ["20 minutes de marche par jour", "Descends un arrêt plus tôt, ou fais le tour du pâté de maisons après le déjeuner."],
-  ["Chaque jour, un peu plus", "Un pas de plus que la veille suffit : une série, cinq minutes, un légume de plus."],
-  ["Ne saute ni repas ni séance", "Un repas sauté se rattrape souvent en grignotant. Ma semaine prévoit tes 12 repas : ils comptent tous."],
-  ["Limite le gras et le sucre", "10 ml d'huile par personne et par plat, une cuillère à café de miel ou de confiture au maximum le matin."],
-  ["Prépare tes repas à l'avance", "C'est le batch cooking du dimanche : environ 3 heures pour la semaine, et chaque plat sert deux repas."],
-  ["Convaincu et déterminé, tu gagneras", "Le cheat meal du samedi soir est là pour t'aider à tenir sur la durée."]];
-const cards = $("cards");
-RULES.forEach(([t, b], i) => { const c = h("button", {type: "button", class: "card10", "aria-pressed": "false", "aria-label": "Règle " + (i + 1) + " : " + t + ". Toucher pour voir l'astuce."},
-  h("div", {class: "in"}, h("div", {class: "f"}, h("b", {}, String(i + 1)), h("span", {}, t)), h("div", {class: "b"}, h("small", {}, "Astuce"), b)));
-  c.addEventListener("click", () => { c.classList.toggle("on"); c.setAttribute("aria-pressed", String(c.classList.contains("on"))); });
-  cards.append(c); });
-
-// ---------- 3. Par quoi remplacer ----------
-// Chaque groupe : [quantité, unité, [aliments]] ; tout ce qui est dans un même groupe s'équivaut (livret LaSèche, p. 4 à 8)
+// Tables d'équivalence du livret LaSèche (p. 4 à 8) : [quantité, unité, [aliments]] ; tout ce qui est dans une même famille s'équivaut
 const SUB = [
   ["Légumes", "Légumes", [[0.25, "pc", ["artichaut", "betterave", "panais"]], [150, "g", ["asperges", "champignons (bruns ou de Paris)", "chou-fleur", "épinards", "haricots verts", "morilles lyophilisées", "potimarron", "tomates cerises"]], [1, "pc", ["aubergine", "carotte", "concombre", "courgette", "navet", "poivron"]], [200, "g", ["blettes", "endives"]], [100, "g", ["brocoli", "chou blanc", "chou rouge", "chou vert", "courge butternut"]], [80, "g", ["choux de Bruxelles", "chou frisé ou kale"]], [0.75, "pc", ["poireau"]], [300, "g", ["radis rouges"]], [2, "pc", ["tomates"]], [10, "g", ["tomates séchées"]], [15, "g", ["olives noires ou vertes"]], [50, "g", ["fèves", "petits pois"]]]],
   ["Viandes", "Viandes", [[100, "g", ["côte ou gigot d'agneau", "mouton"]], [250, "g", ["filet ou pavé de rumsteck", "tournedos de bœuf"]], [250, "g", ["steak haché ou viande hachée de bœuf 5 %"]], [130, "g", ["steak de bœuf"]], [280, "g", ["jambon de dinde ou de poulet (7 tranches)"]], [250, "g", ["escalope ou filet de dinde", "escalope ou filet de poulet", "escalope de veau", "filet de porc"]]]],
@@ -242,85 +142,18 @@ const SUB = [
   ["Matières grasses", "Matières grasses", [[10, "ml", ["huile d'olive", "huile de coco", "huile de tournesol"]], [10, "g", ["beurre", "beurre de cacahuète", "purée d'amandes", "margarine"]]], "Pour assaisonner, 10 ml d'huile de lin, de noix ou de sésame. L'huile de cuisson et le beurre s'échangent (10 ml = 10 g)."],
   ["Sucré", "Produits sucrés", [[10, "g", ["confiture", "miel", "sirop d'agave", "sirop de coco"]], [15, "g", ["sirop d'érable"]], [6, "g", ["stévia", "sucre de coco", "sucre muscovado", "sucre rapadura"]]], "10 g de dattes, figues sèches ou raisins secs s'échangent contre 10 g d'autres fruits déshydratés."],
   ["Oléagineux", "Oléagineux", [[20, "g", ["amandes", "noisettes", "noix", "noix de cajou", "noix de macadamia", "noix de pécan", "noix du Brésil"]], [25, "g", ["pistaches"]]]]];
-const ALL = [];
-SUB.forEach(([s, t, gs, note], fi) => gs.forEach(([q, u, ns], gi) => ns.forEach(n => ALL.push({n, q, u, fi, gi}))));
-let fam = 0, cur = null;
 const FRAC = {0.25: "¼", 0.33: "⅓", 0.5: "½", 0.75: "¾", 1.5: "1 ½"};
-const FR2 = {0.25: "¼", 0.5: "½", 0.75: "¾"};
-const pcs = q => { if (FRAC[q]) return FRAC[q]; const r = Math.round(q * 4) / 4, i = Math.floor(r), d = r - i; return r === 0 ? "un peu" : (i ? i + (d ? " " : "") : "") + (d ? FR2[d] : ""); };
-const qtxt = (q, u, exact) => u === "pc" ? (exact ? FRAC[q] || fr(q) : pcs(q)) : (exact ? fr(q) : String(q >= 50 ? Math.round(q / 5) * 5 : Math.round(q))) + " " + u;
-const famBox = $("fam");
-SUB.forEach(([s], i) => famBox.append(h("button", {type: "button", class: "chip", role: "tab", "aria-selected": String(i === 0), onclick: () => { fam = i; $("rq").value = ""; drawFoods(); }}, s)));
-function drawFoods(){
-  const q = norm($("rq").value.trim());
-  [...famBox.children].forEach((b, i) => b.setAttribute("aria-selected", String(!q && i === fam)));
-  const box = $("foods"); box.innerHTML = "";
-  const list = q ? ALL.filter(x => norm(x.n).includes(q)) : ALL.filter(x => x.fi === fam);
-  if (!list.length) box.append(h("p", {class: "g-n"}, "Pas dans le livret. Essaie un mot plus court, ou regarde la famille la plus proche."));
-  list.forEach(x => box.append(h("button", {type: "button", class: "chip", "aria-selected": String(cur === x), onclick: () => { cur = x; $("sq").value = x.q; drawFoods(); drawSwap(); }}, x.n)));
-}
-function drawSwap(){
-  if (!cur) return;
-  $("swap").hidden = false;
-  $("su").textContent = cur.u === "pc" ? "" : cur.u + " de";
-  $("sn").textContent = cur.n;
-  const k = (+$("sq").value || 0) / cur.q, eq = $("eq"); eq.innerHTML = "";
-  const [, , gs, note] = SUB[cur.fi];
-  gs.forEach(([q, u, ns]) => ns.filter(n => n !== cur.n).forEach(n => eq.append(h("div", {}, h("b", {}, k ? qtxt(q * k, u, k === 1) : "—"), n))));
-  $("snote").textContent = note || "";
-}
-$("rq").addEventListener("input", drawFoods);
-$("sq").addEventListener("input", drawSwap);
-drawFoods();
-
-// ---------- 4. Cru ou cuit ----------
-const CK = [["Pâtes", 2.5, 20], ["Riz", 2.5, 20], ["Quinoa, boulgour", 2.5, 20], ["Semoule", 2.5, 10], ["Légumes secs", 3, 20], ["Pomme de terre, patate douce", 1, 0]];
-let ck = 0, from = "raw";
-const ckBox = $("ck");
-CK.forEach(([n], i) => ckBox.append(h("button", {type: "button", class: "chip", role: "tab", "aria-selected": String(i === 0), onclick: () => { ck = i; [...ckBox.children].forEach((b, j) => b.setAttribute("aria-selected", String(j === i))); conv(); }}, n)));
-function conv(){
-  const [n, x, sp] = CK[ck], raw = $("craw"), cook = $("ccook");
-  if (from === "raw") cook.value = raw.value === "" ? "" : Math.round(+raw.value * x);
-  else raw.value = cook.value === "" ? "" : Math.round(+cook.value / x);
-  $("cx").textContent = "× " + fr(x);
-  const g = +raw.value || 0;
-  $("spoon").textContent = sp ? "Sans balance : une cuillère à soupe contient environ " + sp + " g de " + n.toLowerCase() + " cru" + (n === "Pâtes" ? "es" : n === "Semoule" ? "e" : "s") + (g ? ", soit à peu près " + fr(Math.round(g / sp * 2) / 2) + " cuillère" + (g / sp > 1 ? "s" : "") + " pour " + g + " g." : ".")
-    : "Ici, rien à convertir : le poids cru est égal au poids cuit.";
-}
-$("craw").addEventListener("input", () => { from = "raw"; conv(); });
-$("ccook").addEventListener("input", () => { from = "cook"; conv(); });
-conv();
-
-// ---------- 6. Le quiz ----------
-const QZ = [
-  ["Quelle part de l'assiette pour les légumes et les fruits ?", ["Un quart", "La moitié", "Les trois quarts"], 1, "La moitié de l'assiette : 50 %. Féculents et protéines se partagent l'autre moitié."],
-  ["40 g de pâtes crues pèsent combien une fois cuites ?", ["Environ 40 g", "Environ 100 g", "Environ 160 g"], 1, "Les féculents prennent environ 2,5 fois leur poids : 40 × 2,5 = 100 g."],
-  ["100 g de lentilles sèches donnent, cuites…", ["150 g", "250 g", "300 g"], 2, "Les légumes secs triplent : 300 g."],
-  ["Plus de poulet : par quoi remplacer 250 g d'escalope ?", ["250 g de steak de bœuf", "130 g de steak de bœuf", "50 g de steak de bœuf"], 1, "130 g de steak de bœuf, ou 250 g de bœuf haché 5 %."],
-  ["Et l'avocat, par quoi le remplacer ?", ["Une banane", "Des olives", "Rien, il n'a pas de substitut"], 2, "Le livret est formel : l'avocat n'a pas de substitut."],
-  ["Combien d'eau boire au minimum chaque jour ?", ["1 litre", "1,5 litre", "3 litres"], 1, "Au moins 1,5 litre, c'est la règle n° 3."],
-  ["Un petit creux après le dîner…", ["Une poignée d'amandes", "Un yaourt", "Rien du tout"], 2, "Aucun snack après le dîner : les oléagineux, c'est à la collation de l'après-midi."],
-  ["Un cheat meal, c'est…", ["Un plat gourmand et un petit dessert", "Une journée libre", "Un week-end libre"], 0, "Un seul repas plaisir dans la semaine, pas une journée ni un week-end."]];
-let qi = 0, score = 0;
-function quiz(){
-  const box = $("qz"); box.innerHTML = "";
-  if (qi >= QZ.length) {
-    const m = score === QZ.length ? "Sans faute, tu peux enseigner le livret." : score >= 6 ? "Très bien, tu as l'essentiel." : score >= 4 ? "Pas mal. Un tour dans les sections du dessus et ce sera parfait." : "Relis les sections du dessus et retente ta chance.";
-    box.append(h("div", {class: "q-end"}, h("b", {}, score + " / " + QZ.length), h("p", {class: "g-n"}, m), h("button", {type: "button", class: "g-btn pri", onclick: () => { qi = 0; score = 0; quiz(); }}, "Recommencer")));
-    return;
-  }
-  const [t, opts, good, why] = QZ[qi];
-  const bar = h("div", {class: "q-bar"}, h("i", {style: "width:" + (100 * qi / QZ.length) + "%"}));
-  const ex = h("p", {class: "q-x", "aria-live": "polite"});
-  const next = h("button", {type: "button", class: "g-btn pri", hidden: true, onclick: () => { qi++; quiz(); }}, qi === QZ.length - 1 ? "Voir mon score" : "Question suivante");
-  const ob = h("div", {class: "q-o"});
-  opts.forEach((o, i) => ob.append(h("button", {type: "button", onclick: e => {
-    [...ob.children].forEach((b, j) => { b.disabled = true; if (j === good) b.classList.add("good"); });
-    if (i === good) { score++; ex.textContent = "Bonne réponse. " + why; } else { e.currentTarget.classList.add("bad"); ex.textContent = "Raté. " + why; }
-    next.hidden = false; next.focus(); }}, o)));
-  box.append(h("div", {class: "q"}, bar, h("span", {class: "q-n"}, "Question " + (qi + 1) + " sur " + QZ.length), h("p", {class: "q-t"}, t), ob, ex, h("div", {}, next)));
-}
-quiz();
+const q = (n, u) => (FRAC[n] || String(n).replace(".", ",")) + (u === "pc" ? "" : " " + u);
+const box = document.getElementById("subs");
+SUB.forEach(([, title, gs, note]) => {
+  const d = document.createElement("div"); d.className = "sub";
+  const h = document.createElement("h3"); h.textContent = title; d.append(h);
+  const ul = document.createElement("ul");
+  gs.forEach(([n, u, names]) => { const li = document.createElement("li"); const b = document.createElement("b"); b.textContent = q(n, u); li.append(b, names.join(", ")); ul.append(li); });
+  d.append(ul);
+  if (note) { const s = document.createElement("small"); s.textContent = note; d.append(s); }
+  box.append(d);
+});
 })();
 </script>
-</main><footer>2 personnes · batch cooking du dimanche · version du 17/10 22:53</footer></body></html>
+</main><footer>2 personnes · batch cooking du dimanche · version du 17/10 22:56</footer></body></html>
