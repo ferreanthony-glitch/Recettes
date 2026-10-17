@@ -463,7 +463,10 @@ function keepInfo(sl){
 }
 // Plat du dimanche qui ne tient pas jusqu'au jour d (frigo dépassé et se congèle mal) : jamais proposé
 function tooLong(id, d){ if (!R[id].r) return false; const [fr, fz] = KEEP[id] || [3, 0]; return d + 1 > fr && !fz; }
-const fitsPoste = (id, p) => !p.slots.some(([d]) => tooLong(id, d));
+// Soupes : le soir seulement (demande d'Antho)
+const eveningOnly = id => /^soupe/i.test(R[id].n);
+const wrongTime = (id, m) => m === 0 && eveningOnly(id);
+const fitsPoste = (id, p) => !p.slots.some(([d, m]) => tooLong(id, d) || wrongTime(id, m));
 const norm = t => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/œ/g, "oe").trim();
 // ---- Restes : aliment + quantité + unité ----
 // Mots ramenés au singulier, synonymes, et poids moyen d'une pièce pour convertir pièces ↔ grammes
@@ -801,7 +804,7 @@ function renderGrid(){
   SLOTS.forEach(sl => cells[sl.d][sl.m] = R[state.sel[sl.k]].n);
   const tb = document.getElementById("grid"); tb.innerHTML = "";
   const cell = (d, m) => { const sl = SLOTS[d * 2 + m], k = keepInfo(sl);
-    return el("td",{class:"cell" + (k && k.bad ? " late" : ""),"data-k":sl.k},
+    return el("td",{class:"cell" + (k && k.bad || wrongTime(state.sel[sl.k], sl.m) ? " late" : ""),"data-k":sl.k},
       el("span",{class:"cname"}, cells[d][m]), mealSelect(sl)); };   // menu invisible posé sur toute la case : la case ne change pas de taille
   DAYS.forEach((day,d) => tb.append(el("tr",{}, el("td",{class:"d"},day.slice(0,3)+"."), cell(d,0), cell(d,1))));
 }
@@ -814,9 +817,9 @@ function mealSelect(sl){
       onchange:(e)=>pick(sl.k, e.target.value)},
     GROUPS.map(([f, label]) => el("optgroup",{label},
       Object.keys(R).filter(x => group(x) === f).sort((a,b) => R[a].n.localeCompare(R[b].n,"fr"))
-        .map(x => { const late = tooLong(x, sl.d) && x !== id;
-          const o = el("option",{value:x}, R[x].n + (note(x) ? "  " + starTxt(note(x)) : "") + (R[x].v ? " · viande" : "") + (late ? " · ne tient pas jusque-là" : "") + (banned(x) ? " · contient " + banned(x) : ""));
-          if (late) o.disabled = true; if (x === id) o.selected = true; return o; }))));
+        .map(x => { const late = tooLong(x, sl.d) && x !== id, noon = wrongTime(x, sl.m) && x !== id;
+          const o = el("option",{value:x}, R[x].n + (note(x) ? "  " + starTxt(note(x)) : "") + (R[x].v ? " · viande" : "") + (late ? " · ne tient pas jusque-là" : "") + (noon ? " · le soir seulement" : "") + (banned(x) ? " · contient " + banned(x) : ""));
+          if (late || noon) o.disabled = true; if (x === id) o.selected = true; return o; }))));
   return sel;
 }
 function renderPostes(){
@@ -855,6 +858,8 @@ function renderStats(){
   const count = c;
   const bad = SLOTS.filter(sl => (keepInfo(sl) || {}).bad).map(slotName);
   if (bad.length) al.append(el("div",{class:"alert meat"}, "Conservation trop longue : " + bad.join(", ") + ". Ces plats se congèlent mal, avance-les dans la semaine."));
+  const noon = SLOTS.filter(sl => wrongTime(state.sel[sl.k], sl.m)).map(slotName);
+  if (noon.length) al.append(el("div",{class:"alert meat"}, "Soupe à midi : " + noon.join(", ") + ". Les soupes sont prévues pour le soir, échange ces repas."));
   const frz = SLOTS.filter(sl => (keepInfo(sl) || {}).freeze).map(slotName);
   if (frz.length) al.append(el("div",{class:"alert"}, "À congeler dimanche : " + frz.join(", ") + "."));
   for (const id in count) if (count[id] > 2) al.append(el("div",{class:"alert"}, `${R[id].n} revient ${count[id]} fois dans la semaine.`));
