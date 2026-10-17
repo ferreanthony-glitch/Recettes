@@ -119,7 +119,7 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--accent); o
 .grid td.d { font-weight: 700; white-space: nowrap; }
 .x2 { font-size: 0.72rem; font-weight: 700; color: var(--accent); }
 .note { font-size: 0.8rem; color: var(--muted); margin: 0; }
-.tabs { display: grid; grid-template-columns: repeat(4, auto); justify-content: stretch; gap: 4px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 4px; }
+.tabs { display: grid; grid-template-columns: repeat(5, auto); justify-content: stretch; gap: 4px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 4px; }
 .tabs button { font: inherit; font-weight: 700; padding: 10px 4px; white-space: nowrap; border: 0; border-radius: 9px; background: transparent; color: var(--muted); cursor: pointer; }
 .tabs button[aria-selected="true"] { background: var(--accent); color: var(--surface); }
 .sync { font-size: 0.75rem; color: var(--muted); text-align: right; min-height: 1em; }
@@ -220,6 +220,16 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--accent); o
 .dish p { margin: 0; }
 .cell.over { background: var(--accent-soft); outline: 2px dashed var(--accent); outline-offset: -2px; }
 .cell.from { opacity: 0.35; }
+.day-nav { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.day-nav h2 { margin: 0; text-align: center; flex: 1; font-size: 1.1rem; }
+.day-nav button { min-width: 44px; }
+.meal-card h3 { margin: 0 0 4px; font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+.meal-card .dish { font-weight: 700; font-size: 1.05rem; margin: 0 0 6px; }
+.meal-card .act { margin: 0; }
+.meal-card .act b { color: var(--accent); }
+.meal-card .heat { margin: 6px 0 0; font-size: .85rem; color: var(--muted); }
+.meal-card a { color: var(--accent); }
+.freezer { border-left: 4px solid var(--accent); }
 .se-tools { align-items: center; }
 .se-start input { font: inherit; padding: 4px 6px; border: 1px solid var(--line); border-radius: 8px; }
 .se-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
@@ -304,6 +314,7 @@ header .label{text-align:center}
 
   <div class="tabs" role="tablist">
     <button type="button" role="tab" id="tab-semaine" aria-selected="true" aria-controls="view-semaine">Semaine</button>
+    <button type="button" role="tab" id="tab-jour" aria-selected="false" aria-controls="view-jour">Aujourd'hui</button>
     <button type="button" role="tab" id="tab-seance" aria-selected="false" aria-controls="view-seance">Dimanche</button>
     <button type="button" role="tab" id="tab-courses" aria-selected="false" aria-controls="view-courses">Courses</button>
     <button type="button" role="tab" id="tab-recettes" aria-selected="false" aria-controls="view-recettes">Recettes</button>
@@ -375,6 +386,10 @@ header .label{text-align:center}
     </section>
 
    </div>
+  </div>
+
+  <div id="view-jour" role="tabpanel" aria-labelledby="tab-jour" hidden style="display:grid;gap:12px">
+    <div id="jour" style="display:grid;gap:12px"></div>
   </div>
 
   <div id="view-seance" role="tabpanel" aria-labelledby="tab-seance" hidden style="display:grid;gap:12px">
@@ -1225,12 +1240,13 @@ function renderStats(){
   for (const id in count) if (count[id] > 2) al.append(el("div",{class:"alert"}, `${R[id].n} revient ${count[id]} fois dans la semaine.`));
 }
 
-const TABS = ["semaine", "seance", "courses", "recettes"];
+const TABS = ["semaine", "jour", "seance", "courses", "recettes"];
 function showTab(t){
   if (!TABS.includes(t)) t = "semaine";
   tab = t;
   try { localStorage.setItem(KEY+"-tab", t); } catch (e) {}
   TABS.forEach(x => { document.getElementById("tab-" + x).setAttribute("aria-selected", String(t === x)); document.getElementById("view-" + x).hidden = t !== x; });
+  if (t === "jour") { dayOff = 0; renderToday(); }
 }
 // ---- Recettes ajustées ----
 function scaleNum(txt, f){
@@ -1351,6 +1367,59 @@ function slotProblem(sel, k){
   return "";
 }
 
+// ---- Vue Aujourd'hui ----
+const BREAKFAST_DAY = ["bol canadien yaourt-poire", "skyr, amandes, poire", "bol canadien yaourt-poire", "toast saumon fumé et cream cheese, avec une poire", "bol canadien yaourt-poire", "skyr, amandes, poire", "toast saumon fumé et cream cheese, avec une poire"];
+let dayOff = 0;   // jour affiché, en jours à partir d'aujourd'hui
+function renderToday(){
+  const box = document.getElementById("jour"); box.innerHTML = "";
+  const v = state.valid;
+  if (!v || !v.sel) { box.append(el("section",{class:"panel"}, el("h2",{}, "Aucune semaine validée"),
+    el("p",{}, "Valide ta semaine dans l'onglet Semaine : cette page affichera alors, chaque jour, quoi réchauffer ou cuisiner et quoi sortir du congélateur."))); return; }
+  const start = weekStart(v), day = today(); day.setDate(day.getDate() + dayOff);
+  const d = Math.round((day - start) / 864e5), end = new Date(start); end.setDate(end.getDate() + 6);
+  const nav = el("div",{class:"day-nav"},
+    el("button",{type:"button",class:"ghost","aria-label":"Jour précédent",onclick:()=>{ dayOff--; renderToday(); }}, "‹"),
+    el("h2",{}, (dayOff === 0 ? "Aujourd'hui, " : dayOff === 1 ? "Demain, " : dayOff === -1 ? "Hier, " : "") + fmtDay(day)),
+    el("button",{type:"button",class:"ghost","aria-label":"Jour suivant",onclick:()=>{ dayOff++; renderToday(); }}, "›"));
+  const head = el("section",{class:"panel"}, nav);
+  if (dayOff) head.append(el("p",{class:"note",style:"text-align:center"}, el("button",{type:"button",class:"ghost",onclick:()=>{ dayOff = 0; renderToday(); }}, "Revenir à aujourd'hui")));
+  box.append(head);
+  // Choix du dimanche de départ, si la semaine validée n'est pas celle qu'on croit
+  const s0 = sundayOf(Date.now()), prev = new Date(s0); prev.setDate(prev.getDate() - 7);
+  const pickStart = el("select",{"aria-label":"Dimanche de départ de la semaine validée", onchange:e => { state.valid.start = e.target.value; persist(); render(); }},
+    [prev, s0].concat(v.start && ![iso(prev), iso(s0)].includes(v.start) ? [start] : []).map(x => { const o = el("option",{value:iso(x)}, "dimanche " + x.toLocaleDateString("fr-FR", {day: "numeric", month: "long"})); if (iso(x) === iso(start)) o.selected = true; return o; }));
+  const startLine = el("p",{class:"note"}, "Semaine validée du ", el("b",{}, short(iso(start))), " au ", el("b",{}, short(iso(end))), ". Elle commence le ", pickStart, ".");
+  if (d < 0 || d > 6) { box.append(el("section",{class:"panel"}, el("p",{}, d < 0 ? "La semaine validée n'a pas encore commencé." : "La semaine validée est terminée : valide la suivante dans l'onglet Semaine."), startLine)); return; }
+  if (d === 0) {
+    const frz = SLOTS.filter(sl => (keepInfo(sl, v.sel) || {}).freeze).map(sl => R[v.sel[sl.k]].n + " (" + slotName(sl) + ")");
+    box.append(el("section",{class:"panel freezer"}, el("h2",{}, "Séance de cuisine"),
+      el("p",{}, "C'est aujourd'hui que tu cuisines les plats de la semaine."),
+      frz.length ? el("p",{}, el("b",{}, "À congeler en fin de séance : "), frz.join(", ") + ".") : el("p",{class:"note"}, "Rien à congeler cette semaine."),
+      el("button",{type:"button",class:"copy",onclick:()=>{ showTab("seance"); window.scrollTo(0,0); }}, "Ouvrir le déroulé de la séance")));
+  }
+  [0, 1].forEach(m => {
+    const sl = SLOTS[d * 2 + m], id = v.sel[sl.k], p = POSTE_OF[sl.k], ki = keepInfo(sl, v.sel), kc = kcalOf(id);
+    const card = el("section",{class:"panel meal-card"}, el("h3",{}, MEALN[m]), el("p",{class:"dish"}, R[id].n));
+    if (R[id].r && p.f === "r") {
+      if (d === 0) card.append(el("p",{class:"act"}, el("b",{}, "Cuisiné pendant la séance"), ", à manger le jour même."));
+      else {
+        card.append(el("p",{class:"act"}, el("b",{}, "À réchauffer"), ki && ki.freeze ? " : la part vient du congélateur (sortie hier soir, elle a décongelé au frigo). Si tu as oublié, décongèle-la au micro-ondes." : " : la part est au frigo depuis dimanche."));
+        if (ki && ki.bad) card.append(el("p",{class:"act keep bad"}, "⚠ Ce plat a dépassé sa durée de conservation. Vérifie-le avant de le manger."));
+        if (heatOf(id)) card.append(el("p",{class:"heat"}, heatOf(id)));
+      }
+    } else card.append(el("p",{class:"act"}, el("b",{}, "À cuisiner"), (RECIPES[id] && RECIPES[id].t ? " : " + RECIPES[id].t : "") + "."));
+    if (kc) card.append(el("p",{class:"heat"}, "Environ " + kc + " kcal par portion."));
+    card.append(el("p",{class:"heat"}, el("a",{href:"#",onclick:e=>{ e.preventDefault(); showTab("recettes"); window.scrollTo(0,0); }}, "Voir la recette")));
+    box.append(card);
+  });
+  // À sortir du congélateur ce soir pour demain
+  const out = d < 6 ? [0, 1].map(m => SLOTS[(d + 1) * 2 + m]).filter(sl => (keepInfo(sl, v.sel) || {}).freeze) : [];
+  box.append(el("section",{class:"panel freezer"}, el("h2",{}, "Pour demain"),
+    out.length ? el("p",{}, el("b",{}, "Ce soir, sors du congélateur et mets au frigo : "), out.map(sl => R[v.sel[sl.k]].n + " (" + MEALN[sl.m] + ")").join(", ") + ".")
+      : el("p",{}, d === 6 ? "Demain, c'est la séance de cuisine de la semaine suivante." : "Rien à sortir du congélateur.")));
+  box.append(el("section",{class:"panel"}, el("p",{}, el("b",{}, "Petit-déjeuner : "), BREAKFAST_DAY[d] + ". Collation : 30 g d'amandes."), startLine));
+}
+
 // ---- Séance du dimanche : déroulé ordonné, tâches communes regroupées, four et plaques en parallèle ----
 // SEANCE[id] = tâches estimées pour 4 portions (voir site/seance.json) : L laver/éplucher (regroupé), C couper, F féculent (regroupé par type),
 // A plaque active, H plaque passive [min, min actives], O four [min, °C], M assembler, R attendre
@@ -1469,11 +1538,12 @@ document.getElementById("se-start").addEventListener("change", e => { const s = 
 document.getElementById("se-uncheck").addEventListener("click", () => { const s = seLoad(); s.done = {}; seSave(s); renderSeance(); });
 
 
-function render(){ document.getElementById("ppl").value = ppl(); document.querySelectorAll(".ppl-n").forEach(x => x.textContent = ppl() + " personne" + (ppl() > 1 ? "s" : "")); renderGen(); renderVariants(); renderFavs(); renderGrid(); renderPostes(); renderStats(); renderList(); renderRecipes(); renderValid(); renderSeance(); }
+function render(){ document.getElementById("ppl").value = ppl(); document.querySelectorAll(".ppl-n").forEach(x => x.textContent = ppl() + " personne" + (ppl() > 1 ? "s" : "")); renderGen(); renderVariants(); renderFavs(); renderGrid(); renderPostes(); renderStats(); renderList(); renderRecipes(); renderValid(); renderToday(); renderSeance(); }
 
 document.getElementById("tab-semaine").addEventListener("click", () => showTab("semaine"));
 document.getElementById("tab-courses").addEventListener("click", () => { showTab("courses"); window.scrollTo(0,0); });
 document.getElementById("tab-recettes").addEventListener("click", () => { showTab("recettes"); window.scrollTo(0,0); });
+document.getElementById("tab-jour").addEventListener("click", () => { showTab("jour"); window.scrollTo(0,0); });
 document.getElementById("tab-seance").addEventListener("click", () => { showTab("seance"); window.scrollTo(0,0); });
 document.getElementById("uncheck").addEventListener("click", () => { state.checked = {}; persist(); renderList(); });
 // Valider : la liste de courses suit cette semaine-là, ici et (par le lien) de l'autre côté
@@ -1629,4 +1699,4 @@ render();
 ghInit();
 </script>
 
-<p class="ver" style="text-align:center;font-size:.72rem;color:var(--muted);margin:8px 0 24px">Version du 18/10 01:07</p></body></html>
+<p class="ver" style="text-align:center;font-size:.72rem;color:var(--muted);margin:8px 0 24px">Version du 18/10 01:08</p></body></html>
