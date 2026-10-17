@@ -1,4 +1,4 @@
-<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow"><meta name="color-scheme" content="light"><meta name="theme-color" content="#f7f3ec"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow"><meta name="color-scheme" content="light"><meta name="theme-color" content="#f7f3ec"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon-180.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Recettes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><script>if ("serviceWorker" in navigator && /github\.io$|^localhost$/.test(location.hostname)) navigator.serviceWorker.register("sw.js").catch(() => {});</script></head><body>
 <title>Ma semaine</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1106,7 +1106,7 @@ function renderValid(){
     : "Semaine validée " + when(v.at) + ". La liste de courses est à jour.";
   ["valid-msg", "list-msg"].forEach(id => { const e = document.getElementById(id); e.textContent = txt; e.classList.toggle("todo", !!todo); });
   document.getElementById("validate").textContent = todo ? "Valider les changements" : v ? "Semaine validée" : "Valider la semaine";
-  document.querySelectorAll(".hop").forEach(a => { a.textContent = IS_SITE ? "Ouvrir dans l'app" : "Ouvrir dans le site"; a.href = HOP_URL + "#" + pack(); });
+  document.querySelectorAll(".hop").forEach(a => { a.textContent = IS_SITE ? "Ouvrir dans Claude" : "Ouvrir dans le site"; a.href = HOP_URL + "#" + pack(); });
 }
 document.getElementById("validate").addEventListener("click", () => {
   state.valid = {sel: {...state.sel}, at: Date.now()}; persist(); render();
