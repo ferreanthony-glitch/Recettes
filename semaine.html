@@ -210,7 +210,9 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--accent); o
 .dish-body { display: grid; gap: 8px; padding: 0 0 16px 1.1em; }
 .dish-body h4 { margin: 6px 0 0; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); font-weight: 400; }
 .dish-body ol { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; font-size: 0.92rem; }
-.dish-body .full { color: var(--accent); font-size: 0.85rem; }
+.dish-body .full, .recipe .full { color: var(--accent); font-size: 0.85rem; }
+.recipe .full { display: inline-block; margin-top: 10px; }
+.recipe summary .note + .note { margin-top: 2px; }
 @media (max-width: 480px) { .dish summary { flex-direction: column; gap: 2px; } .dish summary .meta { padding-left: 1.1em; } }
 .dish table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
 .dish td { padding: 5px 8px 5px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
@@ -1169,20 +1171,35 @@ function renderRecipes(){
   const box = document.getElementById("recettes"); box.innerHTML = "";
   const c = counts();
   Object.keys(c).forEach(id => {
-    const r = R[id], rc = RECIPES[id], n = c[id], f = factor(id, n);
-    if (!rc) return;
-    const when = SLOTS.filter(sl => state.sel[sl.k] === id).map(slotName).join(", ");
+    const r = R[id], rc = RECIPES[id], n = c[id], f = factor(id, n), kc = (typeof KCAL !== "undefined") && KCAL[SLUG[id]];
+    const mine = SLOTS.filter(sl => state.sel[sl.k] === id), when = mine.map(slotName).join(", ");
+    const bad = mine.map(keepInfo).find(k => k && k.bad), frz = mine.map(keepInfo).find(k => k && k.freeze);
+    const full = SLUG[id] ? el("a",{class:"full",href:"r/" + SLUG[id] + ".html"}, "Voir la fiche complète") : null;
+    if (!rc) {   // plat sans recette détaillée : ingrédients et lien vers la fiche
+      const card = el("details",{class:"recipe"}, el("summary",{}, el("span",{class:"when"}, when), el("h2",{}, r.n),
+        el("span",{class:"note"}, n + " repas" + (kc ? " · " + kc + " kcal par portion" : ""))));
+      card.append(el("p",{class:"extra"}, r.i.join(" · ")));
+      if (r.d) card.append(el("p",{class:"extra"}, r.d));
+      if (bad) card.append(el("p",{class:"extra keep bad"}, bad.txt)); else if (frz) card.append(el("p",{class:"extra keep"}, frz.txt));
+      if (full) card.append(full);
+      box.append(card); return;
+    }
     const card = el("details",{class:"recipe"},
-      el("summary",{}, el("span",{class:"when"}, when + (f !== 1 ? " · recette ×" + String(f).replace(".", ",") : r.once && n === 2 ? " · la recette fait 2 repas" : "")), el("h2",{}, r.n), rc.t ? el("span",{class:"note"}, "Temps (une fois la recette) : " + rc.t) : null));
+      el("summary",{}, el("span",{class:"when"}, when + (f !== 1 ? " · recette ×" + String(f).replace(".", ",") : r.once && n === 2 ? " · la recette fait 2 repas" : "")), el("h2",{}, r.n),
+      el("span",{class:"note"}, n + " repas" + (kc ? " · " + kc + " kcal par portion" : "")),
+      rc.t ? el("span",{class:"note"}, "Temps (une fois la recette) : " + rc.t) : null));
+    if (bad) card.append(el("p",{class:"extra keep bad"}, bad.txt)); else if (frz) card.append(el("p",{class:"extra keep"}, frz.txt));
     card.append(el("h3",{},"Ingrédients pour " + ppl() + " personne" + (ppl() > 1 ? "s" : "") + (n > 1 ? ", " + n + " repas" : "")));
     card.append(el("table",{}, el("tbody",{}, (rc.ing || []).map(([n,q]) => el("tr",{}, el("td",{},n), el("td",{class:"q"}, scaleQty(q,f)))))));
     if (r.d && /œufs durs/.test(r.d)) card.append(el("p",{class:"extra"}, "En plus : " + 4 * n + " œufs durs à servir à côté (2 par personne et par repas)."));
+    else if (r.d) card.append(el("p",{class:"extra"}, r.d));
     card.append(el("h3",{},"Étapes"));
     const ol = el("ol",{}); const rest = [];
     rc.steps.forEach(s => { const m = s.match(/^\d+\.\s*(.*)$/); if (m && !rest.length) ol.append(el("li",{}, m[1])); else rest.push(s.replace(/^-\s*/, "")); });
     card.append(ol);
     rest.forEach(s => card.append(el("p",{class:"extra"}, s)));
     if ((rc.keep || []).length) { card.append(el("h3",{},"Conservation")); rc.keep.forEach(s => card.append(el("p",{class:"extra"}, s))); }
+    if (full) card.append(full);
     box.append(card);
   });
 }
@@ -1386,4 +1403,4 @@ render();
 ghInit();
 </script>
 
-<p class="ver" style="text-align:center;font-size:.72rem;color:var(--muted);margin:8px 0 24px">Version du 17/10 23:52</p></body></html>
+<p class="ver" style="text-align:center;font-size:.72rem;color:var(--muted);margin:8px 0 24px">Version du 17/10 23:53</p></body></html>
