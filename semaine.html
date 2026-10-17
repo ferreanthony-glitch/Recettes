@@ -142,6 +142,10 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--accent); o
 .gen .msg { font-size: 0.85rem; color: var(--muted); margin: 0; }
 .gen .msg b { color: var(--ink); }
 .stars { color: var(--accent); font-size: 0.8rem; letter-spacing: 0.05em; }
+.stock-add { display: grid; grid-template-columns: 1fr 1fr auto; gap: 6px; }
+.stock-add #st-n { grid-column: 1 / -1; }
+.stock-add input, .stock-add select { font: inherit; font-size: 0.95rem; min-width: 0; padding: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
+.stock-add button { font: inherit; font-weight: 700; padding: 10px 14px; border: 1px solid var(--accent); background: var(--surface); color: var(--accent); cursor: pointer; }
 .have { display: block; font-size: 0.72rem; color: var(--accent); font-weight: 700; }
 </style>
 
@@ -191,8 +195,14 @@ header .label{text-align:center}
       <label class="field"><span>Plats que je veux cette semaine</span>
         <select id="pin-add"><option value="">Ajouter un plat…</option></select></label>
       <div class="pins" id="pins"></div>
-      <label class="field"><span>Ce qu'il me reste (séparé par des virgules)</span>
-        <input type="text" id="left" list="ingr" placeholder="courgette, riz, œufs…" autocomplete="off"></label>
+      <div class="field"><span>Ce qu'il me reste</span>
+        <div class="stock-add">
+          <input type="text" id="st-n" list="ingr" placeholder="Aliment (aubergine, riz…)" autocomplete="off" aria-label="Aliment">
+          <input type="number" id="st-q" value="1" min="0" step="0.5" inputmode="decimal" aria-label="Quantité">
+          <select id="st-u" aria-label="Unité"><option value="pc">pièce(s)</option><option value="g">g</option><option value="ml">ml</option><option value="botte">botte(s)</option><option value="gousse">gousse(s)</option></select>
+          <button type="button" id="st-add">Ajouter</button>
+        </div></div>
+      <div class="pins" id="stock"></div>
       <datalist id="ingr"></datalist>
       <button class="go" id="gen" type="button">Générer ma semaine</button>
       <p class="msg" id="gen-msg">Le générateur respecte tes règles : 7 repas avec viande au plus, aliments chers sur deux repas, plats en double le dimanche. Il favorise tes recettes les mieux notées et celles qui partagent des ingrédients. Clique à nouveau pour un autre tirage.</p>
@@ -380,17 +390,79 @@ function weekText(){
 document.getElementById("week-label").textContent = weekText()[0].toUpperCase() + weekText().slice(1) + " · 2 personnes";
 
 const norm = t => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/œ/g, "oe").trim();
-function leftovers(){ return (state.left || "").split(",").map(norm).filter(Boolean); }
-// Mots d'un ingrédient restant retrouvés dans un plat (ses ingrédients clés et sa liste d'achats)
-function uses(id, w){
-  const stem = w.replace(/s$/, "");
-  return R[id].i.concat(Q[id].map(x => x[0])).some(x => norm(x).includes(stem));
+// ---- Restes : aliment + quantité + unité ----
+// Mots ramenés au singulier, synonymes, et poids moyen d'une pièce pour convertir pièces ↔ grammes
+const stem = t => norm(t).split(/\s+/).map(w => w.replace(/(s|x)$/, "")).join(" ");
+const SYN = {"courge":"butternut","potiron":"butternut","potimarron":"butternut","pomme de terre":"pommes de terre","patate":"pommes de terre","champignon":"champignons de paris","epinard":"epinards frais","tomate cerise":"tomates cerises","oeuf":"oeufs","lait coco":"lait de coco"};
+const PIECE_G = {"patate douce":300,"courgette":200,"aubergine":300,"butternut":1000,"pomme de terre":150,"carotte":100,"oignon":100,"oignon rouge":100,"tomate":120,"tomate cerise":15,"brocoli":400,"chou-fleur":800,"poivron rouge":150,"poivron vert":150,"champignon de pari":20,"avocat":200,"echalote":30};
+const syn = n => { const k = stem(n); return SYN[k] ? stem(SYN[k]) : k; };
+function same(listName, stockName){
+  const a = stem(listName), b = syn(stockName);
+  return (" " + a + " ").includes(" " + b + " ");   // mots entiers : « oeuf » ne doit pas trouver « boeuf »
+}
+function pieceG(name){ const k = Object.keys(PIECE_G).find(x => same(x, name) || same(name, x)); return k ? PIECE_G[k] : 0; }
+// Convertit une quantité de l'unité u1 vers u2 ; null si impossible
+function conv(q, u1, u2, name){
+  if (u1 === u2) return q;
+  const pg = pieceG(name);
+  if (u1 === "pc" && u2 === "g" && pg) return q * pg;
+  if (u1 === "g" && u2 === "pc" && pg) return q / pg;
+  return null;
+}
+const WORDS = {demi:0.5,"un":1,"une":1,deux:2,trois:3,quatre:4,cinq:5,six:6};
+// « 2 aubergines », « demi courge », « 300 g de riz », « 1,5 kg pommes de terre »
+function parseStock(txt){
+  const m = txt.trim().match(/^(\d+(?:[.,]\d+)?|demi|une?|deux|trois|quatre|cinq|six)?\s*(kg|g|cl|ml|l|bottes?|gousses?)?\s*(?:de |d'|d’)?\s*(.+)$/i);
+  if (!m || !m[3]) return null;
+  let q = m[1] ? (WORDS[m[1].toLowerCase()] ?? parseFloat(m[1].replace(",", "."))) : null, u = null;
+  const unit = (m[2] || "").toLowerCase();
+  if (unit === "kg") { u = "g"; q *= 1000; } else if (unit === "g") u = "g";
+  else if (unit === "l") { u = "ml"; q *= 1000; } else if (unit === "cl") { u = "ml"; q *= 10; } else if (unit === "ml") u = "ml";
+  else if (unit.startsWith("botte")) u = "botte"; else if (unit.startsWith("gousse")) u = "gousse";
+  return {n: m[3].trim(), q, u};
+}
+function knownUnit(name){ for (const id in Q) for (const x of Q[id]) if (same(x[0], name)) return x[2]; return "pc"; }
+function stock(){
+  if (!state.stock) {   // ancienne saisie libre séparée par des virgules
+    state.stock = (state.left || "").split(",").map(parseStock).filter(Boolean).map(x => ({n: x.n, q: x.q ?? 1, u: x.u || "pc"}));
+    delete state.left;
+  }
+  return state.stock;
+}
+const multOf = (p, id) => p.slots.length > 1 && !R[id].once ? 2 : 1;
+// Quantité d'un reste consommée par une semaine (dans l'unité du reste) ; « partiel » si on ne peut pas convertir
+function consumed(s, it){
+  let q = 0, partial = false;
+  P.forEach(p => { const id = s[p.k]; Q[id].forEach(([n, qq, u]) => {
+    if (u === "pl" || !same(n, it.n)) return;
+    const c = conv(qq * multOf(p, id), u, it.u, it.n);
+    if (c === null) partial = true; else q += c;
+  }); });
+  return {q, partial};
+}
+function fmtStock(it){
+  const q = String(Math.round(it.q * 100) / 100).replace(".", ",").replace(/^0,5$/, "½");
+  const u = {pc: "", g: " g", ml: " ml", botte: " botte" + (it.q > 1 ? "s" : ""), gousse: " gousse" + (it.q > 1 ? "s" : "")}[it.u] || "";
+  return q + u + " " + it.n;
+}
+function addStock(){
+  const nIn = document.getElementById("st-n"), qIn = document.getElementById("st-q"), uIn = document.getElementById("st-u");
+  const parsed = parseStock(nIn.value);
+  if (!parsed) return;
+  const it = parsed.q != null ? {n: parsed.n, q: parsed.q, u: parsed.u || "pc"}   // « 2 aubergines » tapé d'un bloc
+    : {n: parsed.n, q: parseFloat(String(qIn.value).replace(",", ".")) || 1, u: parsed.u || uIn.value};
+  const list = stock().filter(x => stem(x.n) !== stem(it.n) || x.u !== it.u);
+  const old = stock().find(x => stem(x.n) === stem(it.n) && x.u === it.u);
+  if (old) it.q += old.q;
+  state.stock = list.concat(it);
+  nIn.value = ""; qIn.value = 1; uIn.value = "pc"; nIn.focus();
+  persist(); renderGen(); renderList();
 }
 const POOL = p => Object.keys(R).filter(id => R[id][p.f]);
 
 function generate(){
   const pins = (state.pins || []).filter(id => R[id]);
-  const left = leftovers(), n = notes();
+  const left = stock(), n = notes();
   const sel = {}, used = new Set(), warn = [];
   // 1. Plats imposés : sur le poste compatible qui a le moins de choix
   pins.forEach(id => {
@@ -418,8 +490,10 @@ function generate(){
   if (!best) return;
   state.sel = best; state.checked = {};
   persist(); render();
-  const hit = left.filter(w => P.some(p => uses(best[p.k], w)));
-  const miss = left.filter(w => !hit.includes(w));
+  const hit = [], miss = [];
+  left.forEach(it => { const c = consumed(best, it);
+    if (c.q > 0) hit.push(it.n + " " + String(Math.round(Math.min(c.q, it.q) * 10) / 10).replace(".", ",") + "/" + String(it.q).replace(".", ","));
+    else if (c.partial) hit.push(it.n); else miss.push(it.n); });
   const msg = document.getElementById("gen-msg"); msg.innerHTML = "";
   msg.append("Semaine générée : " + meals() + " repas avec viande. ");
   if (hit.length) msg.append("Restes utilisés : ", el("b",{}, hit.join(", ")), ". ");
@@ -438,7 +512,8 @@ function score(s, left, n){
     if (r === 1) sc -= 20;
     if ((R[id].c || []).length && p.slots.length < 2) sc -= 30;   // aliment cher sur un seul repas
   });
-  left.forEach(w => { const k = P.filter(p => uses(s[p.k], w)).length; if (k) sc += 6 + k; });
+  left.forEach(it => { const c = consumed(s, it);   // un reste bien utilisé rapporte plus qu'un reste effleuré
+    if (c.q > 0) sc += 4 + 8 * Math.min(c.q, it.q) / it.q; else if (c.partial) sc += 6; });
   const cnt = {};
   new Set(P.map(p => s[p.k])).forEach(id => R[id].i.forEach(x => cnt[x] = (cnt[x]||0) + 1));
   sc += 0.8 * Object.values(cnt).filter(v => v > 1).length;   // ingrédients partagés = économies
@@ -452,7 +527,8 @@ function renderGen(){
   (state.pins || []).forEach(id => box.append(el("button",{type:"button",title:"Retirer",onclick:()=>{ state.pins = state.pins.filter(x => x !== id); persist(); renderGen(); }}, R[id].n)));
   const dl = document.getElementById("ingr");
   if (!dl.children.length) [...new Set(Object.values(Q).flat().map(x => x[0]))].sort((a,b)=>a.localeCompare(b,"fr")).forEach(x => dl.append(el("option",{value:x})));
-  document.getElementById("left").value = state.left || "";
+  const sb = document.getElementById("stock"); sb.innerHTML = "";
+  stock().forEach(it => sb.append(el("button",{type:"button",title:"Retirer",onclick:()=>{ state.stock = stock().filter(x => x !== it); persist(); renderGen(); renderList(); }}, fmtStock(it))));
 }
 
 const MAXV = 7, KEY = "semaine-lasseche-1012-v3", DOC = "semaines/2026-10-12";
@@ -517,6 +593,18 @@ function buildList(){
   });
   BREAKFAST.forEach(x => add(x, 1, "petits-déjeuners"));
   BREAKFAST_PL.forEach(x => pl[x] = 1);
+  // Déduit les restes : chaque reste est consommé article par article, dans l'unité de l'article
+  stock().forEach(st => { let left = st.q;
+    Object.values(items).forEach(it => {
+      if (left <= 0 || !same(it.name, st.n)) return;
+      const have = conv(left, st.u, it.u, st.n);
+      if (have === null) { it.hint = "il t'en reste " + fmtStock(st).replace(" " + st.n, ""); return; }
+      const take = Math.min(have, it.q);
+      it.q -= take; left -= conv(take, it.u, st.u, st.n);
+      it.hint = it.q <= 1e-9 ? "tu en as assez" : "il t'en reste, " + fmtStock({n: "", q: take, u: it.u}).trim() + " déduit";
+      if (it.q <= 1e-9) it.enough = true;
+    });
+  });
   Object.keys(pl).forEach(x => items[x+"|pl"] = {key: x+"|pl", name: x, u: "pl", ray: "PL", q: 0, src: new Set()});
   return Object.values(items);
 }
@@ -543,8 +631,8 @@ function renderList(){
       const id = "c-" + it.key.replace(/[^a-z0-9]/gi, "_");
       sec.append(el("label",{class:"item"+(on?" done":""),for:id},
         el("input",{type:"checkbox",id,checked:on,onchange:(e)=>{ if (e.target.checked) state.checked[it.key] = true; else delete state.checked[it.key]; persist(); renderList(); }}),
-        el("span",{class:"what"}, it.name, leftovers().some(w => norm(it.name).includes(w.replace(/s$/, ""))) ? el("span",{class:"have"}, "il t'en reste") : null, it.src.size ? el("small",{}, [...it.src].join(", ")) : null),
-        el("span",{class:"qty"}, fmt(it))));
+        el("span",{class:"what"}, it.name, it.hint ? el("span",{class:"have"}, it.hint) : null, it.src.size ? el("small",{}, [...it.src].join(", ")) : null),
+        el("span",{class:"qty"}, it.enough ? "—" : fmt(it))));
     });
     box.append(sec);
   });
@@ -555,7 +643,7 @@ function listText(){
   const items = buildList();
   let t = "Courses " + weekText() + "\n";
   Object.keys(RAYONS).forEach(r => {
-    const rows = items.filter(i => i.ray === r && !state.checked[i.key]).sort((a,b) => a.name.localeCompare(b.name,"fr"));
+    const rows = items.filter(i => i.ray === r && !state.checked[i.key] && !i.enough).sort((a,b) => a.name.localeCompare(b.name,"fr"));
     if (!rows.length) return;
     t += "\n" + RAYONS[r] + "\n" + rows.map(i => "- " + i.name + (fmt(i) ? " : " + fmt(i).replace("× ","") : "")).join("\n") + "\n";
   });
@@ -702,8 +790,10 @@ document.getElementById("pin-add").addEventListener("change", e => {
   if (!id) return;
   state.pins = (state.pins || []).filter(x => x !== id).concat(id); persist(); renderGen();
 });
-document.getElementById("left").addEventListener("change", e => { state.left = e.target.value; persist(); renderList(); });
-document.getElementById("gen").addEventListener("click", () => { state.left = document.getElementById("left").value; generate(); });
+document.getElementById("st-add").addEventListener("click", addStock);
+["st-n","st-q"].forEach(id => document.getElementById(id).addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); addStock(); } }));
+document.getElementById("st-n").addEventListener("change", e => { const p = parseStock(e.target.value); if (p && !p.u) document.getElementById("st-u").value = pieceG(p.n) ? "pc" : knownUnit(p.n); });
+document.getElementById("gen").addEventListener("click", generate);
 
 showTab(tab);
 render();
