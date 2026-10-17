@@ -177,8 +177,8 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--accent); o
 .dish summary { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 14px 0; cursor: pointer; list-style: none; }
 .dish summary::-webkit-details-marker { display: none; }
 .dish summary b { font-size: 1rem; }
-.dish summary b::before { content: "▸"; display: inline-block; width: 1.1em; color: var(--muted); transition: transform .15s; }
-.dish[open] summary b::before { transform: rotate(90deg); }
+.dish summary b::before { content: "▸"; display: inline-block; width: 1.1em; color: var(--muted); }
+.dish[open] summary b::before { content: "▾"; }
 .dish summary .meta { font-size: 0.82rem; color: var(--muted); white-space: nowrap; }
 .dish-body { display: grid; gap: 8px; padding: 0 0 16px 1.1em; }
 .dish-body h4 { margin: 6px 0 0; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); font-weight: 400; }
@@ -196,6 +196,24 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--accent); o
 .ppl { display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 0.95rem; color: var(--muted); margin-top: 10px; }
 .ppl select { font: inherit; font-weight: 700; color: var(--ink); padding: 6px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
 #sync { display: none; }
+/* Ordinateur : générateur à gauche (il reste visible), semaine à droite */
+.side, .main { display: grid; gap: 18px; align-content: start; min-width: 0; }
+@media (min-width: 1024px) {
+  .wrap { max-width: 1180px !important; padding-inline: 16px !important; }
+  .wrap > header, .tabs { width: 100%; max-width: 640px; justify-self: center; }
+  #view-semaine:not([hidden]) { grid-template-columns: 400px minmax(0, 1fr); gap: 32px !important; align-items: start; }
+  .side { position: sticky; top: 16px; max-height: calc(100vh - 32px); overflow-y: auto; padding-right: 4px; }
+  .main .board { top: 0; }
+  .grid table { font-size: 1rem !important; }
+  #list { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); align-items: start; }
+  #recettes { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+  .dish-body { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 28px; }
+  .dish-body > * { grid-column: 1 / -1; }
+  .dish-body > h4:first-child, .dish-body > table { grid-column: 1; }
+  .dish-body > h4:first-child { grid-row: 1; }
+  .dish-body > table { grid-row: 2 / span 20; align-self: start; }
+  .dish-body > h4:not(:first-child), .dish-body > ol, .dish-body > p, .dish-body > .full { grid-column: 2; }
+}
 </style>
 
 <style>
@@ -223,7 +241,7 @@ header .label{text-align:center}
 .keep.bad{font-weight:600!important}
 .variants button b{font-size:.95rem!important}
 .site{border-bottom:1px solid var(--line)}
-.site .in{max-width:1080px;margin:0 auto;padding:18px 16px;display:flex;justify-content:space-between;align-items:baseline;gap:16px}
+.site .in{max-width:1180px;margin:0 auto;padding:18px 16px;display:flex;justify-content:space-between;align-items:baseline;gap:16px}
 .brand{font-family:var(--font-display);font-size:1.35rem;font-weight:700;letter-spacing:-.02em;text-decoration:none;color:var(--ink)}
 .snav{display:flex;gap:22px}
 .snav a{font-size:.72rem;text-transform:uppercase;letter-spacing:.14em;text-decoration:none;color:var(--muted);padding-bottom:3px;border-bottom:1px solid transparent}
@@ -246,6 +264,7 @@ header .label{text-align:center}
   <div class="sync" id="sync"></div>
 
   <div id="view-semaine" role="tabpanel" aria-labelledby="tab-semaine" style="display:grid;gap:18px">
+   <div class="side">
     <p class="sub" style="margin:0">Choisis un plat pour chaque repas. Un plat choisi pour deux repas est cuisiné une seule fois, en double, le dimanche. La liste de courses et les recettes suivent toutes seules.</p>
 
     <section class="gen" aria-label="Générer une semaine">
@@ -280,6 +299,8 @@ header .label{text-align:center}
       <div class="variants" id="variants"></div>
     </section>
 
+   </div>
+   <div class="main">
     <div class="board" id="board">
       <div class="stats">
         <div class="stat" id="st-meat"><div class="n" id="n-meat">0/7</div><div class="t">repas avec viande</div></div>
@@ -312,6 +333,7 @@ header .label{text-align:center}
       <button class="copy" id="go-courses" type="button">Voir ma liste de courses</button>
       <button class="reset" id="reset" type="button">Revenir à la proposition A</button>
     </section>
+   </div>
   </div>
 
   <div id="view-recettes" role="tabpanel" aria-labelledby="tab-recettes" hidden style="display:grid;gap:12px">
