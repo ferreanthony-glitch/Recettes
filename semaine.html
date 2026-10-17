@@ -47,7 +47,7 @@ h2 { font-family: var(--font-display); font-weight: 600; font-size: 1.15rem; mar
 .variants button span { font-size: 0.78rem; color: var(--muted); display: block; }
 .variants button[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
 
-.board { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); padding-block: 8px; display: grid; gap: 8px; }
+.board { background: var(--bg); padding-block: 8px; display: grid; gap: 8px; }
 .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 .stat { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; min-width: 0; }
 .stat .n { font-family: var(--font-display); font-weight: 800; font-size: 1.4rem; font-variant-numeric: tabular-nums; line-height: 1.1; }
@@ -89,6 +89,9 @@ h2 { font-family: var(--font-display); font-weight: 600; font-size: 1.15rem; mar
 .copy { font: inherit; font-weight: 700; font-size: 1rem; padding: 14px; border-radius: 12px; border: 0; background: var(--accent); color: var(--surface); cursor: pointer; }
 .reset { font: inherit; font-size: 0.85rem; padding: 8px; border: 0; background: transparent; color: var(--muted); text-decoration: underline; cursor: pointer; }
 #fallback { width: 100%; min-height: 160px; font: inherit; font-size: 0.85rem; padding: 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
+.send-box { display: grid; gap: 8px; }
+.send-box a.ghost { text-decoration: none; display: inline-block; }
+#send-txt { width: 100%; min-height: 140px; font: inherit; font-size: 0.82rem; padding: 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
 .toast { font-size: 0.85rem; color: var(--ok); text-align: center; min-height: 1.2em; }
 button:focus-visible, select:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 @media (prefers-reduced-motion: no-preference) { .opt, .variants button { transition: background-color .15s, border-color .15s; } }
@@ -312,6 +315,16 @@ header .label{text-align:center}
       <h2>La semaine</h2>
       <p class="note">Touche un repas pour choisir un autre plat. Fais-le glisser sur une autre case pour les échanger (sur téléphone, appuie un instant puis glisse).</p>
       <div class="grid"><table><thead><tr><th>Jour</th><th>Midi</th><th>Soir</th></tr></thead><tbody id="grid"></tbody></table></div>
+      <button class="copy" id="send" type="button">Valider et envoyer la liste de courses</button>
+      <div class="send-box" id="send-box" hidden>
+        <p class="note" id="send-msg"></p>
+        <div class="row-actions">
+          <a class="ghost" id="send-sms" href="#">Ouvrir un SMS</a>
+          <a class="ghost" id="send-mail" href="#">Ouvrir un e-mail</a>
+          <button class="ghost" id="send-copy" type="button">Copier le texte</button>
+        </div>
+        <textarea id="send-txt" readonly aria-label="Texte à envoyer"></textarea>
+      </div>
     </section>
 
     <section class="panel" aria-label="Les plats de la semaine"><h2>Les plats de la semaine</h2><p class="note">Touche un plat pour voir ses ingrédients et sa recette.</p><div id="postes" class="dishes"></div></section>
@@ -767,7 +780,7 @@ async function flush(){
     if (dirty || writing || snap.metadata.hasPendingWrites || !snap.exists) return;
     const d = snap.data();
     if (!valid(d)) return;
-    state = {sel: {...d.sel}, checked: {...d.checked}};
+    state = {...state, sel: {...d.sel}, checked: {...d.checked}};   // garde les réglages (personnes, générateur)
     try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
     syncEl().textContent = "Synchronisé.";
     render();
@@ -1047,6 +1060,31 @@ document.getElementById("tab-semaine").addEventListener("click", () => showTab("
 document.getElementById("tab-courses").addEventListener("click", () => { showTab("courses"); window.scrollTo(0,0); });
 document.getElementById("tab-recettes").addEventListener("click", () => { showTab("recettes"); window.scrollTo(0,0); });
 document.getElementById("uncheck").addEventListener("click", () => { state.checked = {}; persist(); renderList(); });
+// Valider la semaine : le texte (plats + courses) part par le menu de partage du téléphone (SMS, WhatsApp, Notes…),
+// sinon par un lien SMS / e-mail ou une copie.
+function sendText(){
+  const lines = SLOTS.map(sl => DAYS[sl.d].slice(0, 3) + ". " + MEALN[sl.m].toLowerCase() + " : " + R[state.sel[sl.k]].n);
+  return "Menus " + weekText() + " (" + ppl() + " pers.)\n" + lines.join("\n") + "\n\n" + listText();
+}
+document.getElementById("send").addEventListener("click", async () => {
+  const txt = sendText(), box = document.getElementById("send-box"), msg = document.getElementById("send-msg");
+  state.valid = new Date().toISOString(); persist();
+  document.getElementById("send-txt").value = txt;
+  document.getElementById("send-sms").href = "sms:?&body=" + encodeURIComponent(txt);
+  document.getElementById("send-mail").href = "mailto:?subject=" + encodeURIComponent("Courses " + weekText()) + "&body=" + encodeURIComponent(txt);
+  if (navigator.share) {
+    try { await navigator.share({title: "Courses " + weekText(), text: txt}); box.hidden = true; return; }
+    catch (e) { if (e && e.name === "AbortError") return; }
+  }
+  box.hidden = false;
+  msg.textContent = "Semaine validée. Choisis comment envoyer la liste. Si le lien SMS ou e-mail ne s'ouvre pas, copie le texte et colle-le dans ton message.";
+});
+document.getElementById("send-copy").addEventListener("click", () => {
+  const ta = document.getElementById("send-txt"), msg = document.getElementById("send-msg");
+  const sel = () => { ta.focus(); ta.select(); msg.textContent = "Copie automatique impossible : le texte est sélectionné, copie-le."; };
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(ta.value).then(() => { msg.textContent = "Texte copié : colle-le dans un SMS, WhatsApp ou une note."; }, sel);
+  else sel();
+});
 document.getElementById("copy-list").addEventListener("click", () => {
   const txt = listText(), toast = document.getElementById("toast"), fb = document.getElementById("fallback");
   const fallback = () => { fb.value = txt; fb.hidden = false; fb.focus(); fb.select(); toast.textContent = "Copie automatique impossible : sélectionne le texte et copie-le."; };
