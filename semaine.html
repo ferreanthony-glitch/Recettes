@@ -1499,7 +1499,7 @@ function planSeance(sel){
       if (n.a > 0 && cook > t) continue;
       if (n.res === "feu" && runs("feu", t).length >= PLAQUES) continue;
       if (n.res === "four") { const r = runs("four", t);
-        if (r.length >= FOUR_PLACES || oven.deg === null || Math.abs(oven.deg - n.deg) > 20 || oven.ready > t) {
+        if (r.length >= FOUR_PLACES || oven.deg === null || Math.abs(oven.deg - n.deg) > 20 || r.some(x => Math.abs(x.deg - n.deg) > 20) || oven.ready > t) {   // deux plats ensemble : à 20 °C près l'un de l'autre
           if (!r.length && t >= oven.ready && (oven.deg === null || Math.abs(oven.deg - n.deg) > 20)) { oven = {deg: n.deg, ready: t + PREHEAT}; pre.push({s: t, m: PREHEAT, a: 0, k: "P", t: "Préchauffer le four à " + n.deg + " °C"}); }
           continue; } }
       n.s = t; if (n.a > 0) cook = t + n.a;
@@ -1741,4 +1741,4 @@ render();
 ghInit();
 </script>
 
-<p class="ver" style="text-align:center;font-size:.72rem;color:var(--muted);margin:8px 0 24px">Version du 18/10 01:08</p></body></html>
+<p class="ver" style="text-align:center;font-size:.72rem;color:var(--muted);margin:8px 0 24px">Version du 18/10 01:14</p></body></html>
