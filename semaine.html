@@ -151,6 +151,11 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--accent); o
 .meal-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
 .meal-head span { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.14em; color: var(--muted); }
 .meal select { font: inherit; font-weight: 700; font-size: 0.98rem; width: 100%; min-width: 0; padding: 9px 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
+.cell { cursor: grab; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; border-radius: 0; }
+.cell.picked { background: var(--accent-soft); outline: 2px solid var(--accent); outline-offset: -2px; }
+.cell.over { background: var(--accent-soft); outline: 2px dashed var(--accent); outline-offset: -2px; }
+.cell.from { opacity: 0.35; }
+.ghost-cell { position: fixed; z-index: 50; pointer-events: none; max-width: 180px; padding: 8px 10px; background: var(--accent); color: #fff; font-weight: 700; font-size: 0.85rem; box-shadow: 0 6px 18px rgba(0,0,0,.25); transform: translate(-50%, -120%); }
 .have { display: block; font-size: 0.72rem; color: var(--accent); font-weight: 700; }
 </style>
 
@@ -229,6 +234,7 @@ header .label{text-align:center}
 
     <section class="panel" aria-label="Vue de la semaine">
       <h2>La semaine</h2>
+      <p class="note">Fais glisser un repas sur une autre case pour les échanger (sur téléphone, appuie un instant puis glisse). Tu peux aussi toucher un repas, puis celui avec lequel l'échanger.</p>
       <div class="grid"><table><thead><tr><th>Jour</th><th>Midi</th><th>Soir</th></tr></thead><tbody id="grid"></tbody></table></div>
     </section>
 
@@ -682,7 +688,8 @@ function renderGrid(){
   const cells = DAYS.map(() => ["",""]);
   SLOTS.forEach(sl => cells[sl.d][sl.m] = R[state.sel[sl.k]].n);
   const tb = document.getElementById("grid"); tb.innerHTML = "";
-  DAYS.forEach((day,d) => tb.append(el("tr",{}, el("td",{class:"d"},day.slice(0,3)+"."), el("td",{},cells[d][0]), el("td",{},cells[d][1]))));
+  const cell = (d, m) => el("td",{class:"cell" + (picked === d+"-"+m ? " picked" : ""),"data-k":d+"-"+m}, cells[d][m]);
+  DAYS.forEach((day,d) => tb.append(el("tr",{}, el("td",{class:"d"},day.slice(0,3)+"."), cell(d,0), cell(d,1))));
 }
 function renderPostes(){
   const box = document.getElementById("postes"); box.innerHTML = "";
@@ -785,6 +792,47 @@ function renderRecipes(){
     box.append(card);
   });
 }
+// ---- Déplacer un repas : glisser-déposer (souris, ou appui long au doigt) ou toucher deux cases ----
+let picked = null, drag = null, noClick = false;
+function swap(a, b){ if (a === b) return; [state.sel[a], state.sel[b]] = [state.sel[b], state.sel[a]]; picked = null; persist(); render(); }
+const cellAt = (x, y) => { const e = document.elementFromPoint(x, y); return e && e.closest("#grid .cell"); };
+function dragStart(td, x, y){
+  drag.on = true; td.classList.add("from");
+  drag.ghost = el("div",{class:"ghost-cell"}, td.textContent); document.body.append(drag.ghost); dragMove(x, y);
+  if (navigator.vibrate) navigator.vibrate(15);
+}
+function dragMove(x, y){
+  drag.ghost.style.left = x + "px"; drag.ghost.style.top = y + "px";
+  document.querySelectorAll("#grid .over").forEach(c => c.classList.remove("over"));
+  const t = cellAt(x, y); if (t && t.dataset.k !== drag.k) t.classList.add("over");
+}
+function dragEnd(x, y){
+  clearTimeout(drag && drag.timer);
+  if (drag && drag.on) { drag.ghost.remove(); noClick = true; setTimeout(() => noClick = false, 50);
+    const t = cellAt(x, y); const k = drag.k; drag = null;
+    if (t) swap(k, t.dataset.k); else render(); return; }
+  drag = null;
+}
+const grid = document.getElementById("grid");
+grid.addEventListener("mousedown", e => { const td = e.target.closest(".cell"); if (!td || e.button) return; drag = {k: td.dataset.k, td, x: e.clientX, y: e.clientY}; });
+document.addEventListener("mousemove", e => { if (!drag) return;
+  if (!drag.on && Math.hypot(e.clientX - drag.x, e.clientY - drag.y) > 6) dragStart(drag.td, e.clientX, e.clientY);
+  if (drag.on) dragMove(e.clientX, e.clientY); });
+document.addEventListener("mouseup", e => { if (drag) dragEnd(e.clientX, e.clientY); });
+grid.addEventListener("touchstart", e => { const td = e.target.closest(".cell"); if (!td) return; const t = e.touches[0];
+  drag = {k: td.dataset.k, td, x: t.clientX, y: t.clientY};
+  drag.timer = setTimeout(() => { if (drag) dragStart(td, drag.x, drag.y); }, 250); }, {passive: true});
+document.addEventListener("touchmove", e => { if (!drag) return; const t = e.touches[0];
+  if (drag.on) { e.preventDefault(); dragMove(t.clientX, t.clientY); }
+  else if (Math.hypot(t.clientX - drag.x, t.clientY - drag.y) > 8) { clearTimeout(drag.timer); drag = null; } }, {passive: false});
+document.addEventListener("touchend", e => { if (!drag) return; const t = e.changedTouches[0]; if (drag.on) e.preventDefault(); dragEnd(t.clientX, t.clientY); });
+document.addEventListener("touchcancel", () => { if (drag) { clearTimeout(drag.timer); if (drag.ghost) drag.ghost.remove(); drag = null; render(); } });
+grid.addEventListener("click", e => { const td = e.target.closest(".cell"); if (!td || noClick) return;
+  if (!picked) { picked = td.dataset.k; renderGrid(); }
+  else if (picked === td.dataset.k) { picked = null; renderGrid(); }
+  else swap(picked, td.dataset.k); });
+grid.addEventListener("contextmenu", e => { if (e.target.closest(".cell")) e.preventDefault(); });
+
 function render(){ renderGen(); renderVariants(); renderGrid(); renderPostes(); renderStats(); renderList(); renderRecipes(); }
 
 document.getElementById("tab-semaine").addEventListener("click", () => showTab("semaine"));
