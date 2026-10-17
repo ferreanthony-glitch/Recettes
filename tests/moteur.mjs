@@ -124,6 +124,52 @@ const edge = await page.evaluate(() => {
   return out;
 });
 
+// Phase 1 : séance du dimanche, vue Aujourd'hui, échange de repas
+const p1 = await page.evaluate((N) => {
+  const out = [], check = (rule, cond, why) => out.push({rule, ok: !!cond, why});
+  state.maxv = 7; state.sais = 0; state.ban = []; state.pins = []; state.stock = []; PROF = []; banCache = {key: "", m: {}};
+  for (let run = 0; run < N; run++) {
+    generate(); const sel = state.sel, plan = planSeance(sel), N_ = plan.nodes;
+    // Tous les plats cuisinés le dimanche sont dans la séance
+    const want = new Set(SLOTS.filter(sl => POSTE_OF[sl.k].f === "r" && R[sel[sl.k]].r).map(sl => sel[sl.k]));
+    check("séance : tous les plats du dimanche", [...want].every(id => plan.ids.includes(id)) && plan.ids.length === want.size, "plats attendus " + [...want].join(",") + " / planifiés " + plan.ids.join(","));
+    check("séance : toutes les étapes placées", N_.every(n => n.s != null), "étape sans horaire");
+    N_.forEach(n => n.dep.forEach(j => check("séance : ordre des étapes respecté", n.s >= N_[j].s + N_[j].m, "« " + n.t + " » commence avant la fin de « " + N_[j].t + " »")));
+    const act = N_.filter(n => n.a > 0).map(n => [n.s, n.s + n.a, n.t]).sort((a, b) => a[0] - b[0]);
+    for (let i = 1; i < act.length; i++) check("séance : un seul cuisinier", act[i][0] >= act[i - 1][1], "« " + act[i][2] + " » et « " + act[i - 1][2] + " » demandent le cuisinier en même temps");
+    for (let m = 0; m <= plan.total; m++) {
+      const feu = N_.filter(n => n.res === "feu" && n.s <= m && m < n.s + n.m).length;
+      const four = N_.filter(n => n.res === "four" && n.s <= m && m < n.s + n.m);
+      if (feu > PLAQUES) check("séance : plaques", false, feu + " plaques à la minute " + m);
+      if (four.length > FOUR_PLACES || four.some(x => Math.abs(x.deg - four[0].deg) > 20)) check("séance : four", false, four.map(x => x.t + " " + x.deg + "°").join(" + ") + " à la minute " + m);
+    }
+    N_.filter(n => n.res === "four").forEach(n => check("séance : four préchauffé", plan.pre.some(p => p.s + p.m <= n.s && p.t.includes(n.deg)) || plan.pre.some(p => p.s + p.m <= n.s && Math.abs(+p.t.match(/(\d+) °C/)[1] - n.deg) <= 20), "« " + n.t + " » enfourné sans préchauffage"));
+    check("séance : féculents regroupés", new Set(N_.filter(n => n.k === "F").map(n => n.type)).size === N_.filter(n => n.k === "F").length, "deux casseroles pour le même féculent");
+    check("séance : durée raisonnable", plan.total > 0 && plan.total < 600, "durée " + plan.total + " min");
+    // Échange : l'alerte correspond exactement aux règles de conservation et de soupes
+    const a = SLOTS[Math.floor(Math.random() * 14)].k, b = SLOTS[Math.floor(Math.random() * 14)].k, s = {...sel}; [s[a], s[b]] = [s[b], s[a]];
+    [a, b].forEach(k => { const sl = SLOTS.find(x => x.k === k), ki = keepInfo(sl, s), bad = !!(ki && ki.bad) || wrongTime(s[k], sl.m);
+      check("échange : alerte si une règle est enfreinte", !!slotProblem(s, k) === bad, R[s[k]].n + " " + slotName(sl) + " : alerte " + !!slotProblem(s, k) + ", règle enfreinte " + bad); });
+  }
+  // Aujourd'hui : dimanche de départ déduit de la date de validation
+  const at = (y, m, d, h) => new Date(y, m - 1, d, h).getTime();
+  [[at(2026, 10, 17, 20), "2026-10-18"], [at(2026, 10, 18, 9), "2026-10-18"], [at(2026, 10, 19, 9), "2026-10-25"], [at(2026, 10, 24, 23), "2026-10-25"]].forEach(([t, w]) =>
+    check("aujourd'hui : dimanche de la semaine validée", iso(weekStart({at: t})) === w, new Date(t).toLocaleString("fr-FR") + " → " + iso(weekStart({at: t})) + " au lieu de " + w));
+  check("aujourd'hui : dimanche choisi à la main", iso(weekStart({at: at(2026, 10, 19, 9), start: "2026-10-18"})) === "2026-10-18", "start ignoré");
+  return out;
+}, Math.max(20, Math.round(N / 5)));
+// Échange en deux touchers, sur la vraie page
+await page.evaluate(() => { state.sel = toSlots(V.A.p); render(); });
+await page.click("#swap-btn"); await page.click('#grid .cell[data-k="1-0"]');
+const risky = await page.evaluate(() => [...document.querySelectorAll("#grid .cell.risk")].map(c => c.dataset.k));
+await page.click('#grid .cell[data-k="2-1"]');
+const after = await page.evaluate(() => ({a: state.sel["1-0"], b: state.sel["2-1"], msg: document.getElementById("swap-msg").innerText, bad: document.getElementById("swap-msg").classList.contains("bad")}));
+p1.push({rule: "échange en deux touchers", ok: after.a === "souppd" && after.b === "mp", why: "les plats n'ont pas été échangés (" + after.a + ", " + after.b + ")"});
+p1.push({rule: "échange en deux touchers", ok: risky.includes("2-1") && after.bad && /soupe/i.test(after.msg), why: "pas d'avertissement pour une soupe placée le midi : " + after.msg});
+await page.click("#swap-msg button");
+p1.push({rule: "échange en deux touchers", ok: await page.evaluate(() => state.sel["1-0"] === "mp" && state.sel["2-1"] === "souppd"), why: "« Annuler l'échange » ne remet pas les plats"});
+edge.push(...p1);
+
 await browser.close(); srv.close();
 let bad = 0;
 console.log(N + " semaines générées en " + Math.round(res.ms / 1000) + " s\n");
