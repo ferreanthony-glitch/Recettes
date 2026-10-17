@@ -1,0 +1,556 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Ma semaine LaSèche</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+/* Layout : une colonne façon carnet de marché ; bandeau compteurs collant, puis 6 jours en cartes, déjeuner au-dessus du dîner. */
+:root {
+  --bg: #eef1ec;
+  --surface: #fbfcfa;
+  --ink: #1d2620;
+  --muted: #5d6a61;
+  --line: #d3dbd4;
+  --accent: #2f5d46;
+  --accent-soft: #dbe8df;
+  --meat: #9a3b2a;
+  --meat-soft: #f5e0da;
+  --cher: #8a5a00;
+  --cher-soft: #f7ebcc;
+  --ok: #2f6b3a;
+  --font-display: "Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --font-body: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #131915; --surface: #1b231e; --ink: #e6ece7; --muted: #9aa89e; --line: #2f3a33;
+    --accent: #8fc7a6; --accent-soft: #23362b; --meat: #f0a08f; --meat-soft: #3a221d;
+    --cher: #e8c06a; --cher-soft: #3a2f15; --ok: #8fd19b; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #131915; --surface: #1b231e; --ink: #e6ece7; --muted: #9aa89e; --line: #2f3a33;
+  --accent: #8fc7a6; --accent-soft: #23362b; --meat: #f0a08f; --meat-soft: #3a221d;
+  --cher: #e8c06a; --cher-soft: #3a2f15; --ok: #8fd19b; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.45; }
+.wrap { max-width: 640px; margin: 0 auto; padding-inline: 16px; padding-block: 20px 40px; display: grid; gap: 18px; }
+h1 { font-family: var(--font-display); font-weight: 800; font-size: 1.9rem; line-height: 1.05; margin: 0; text-wrap: balance; letter-spacing: -0.01em; }
+.sub { color: var(--muted); margin: 6px 0 0; }
+h2 { font-family: var(--font-display); font-weight: 600; font-size: 1.15rem; margin: 0; }
+.label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 700; }
+
+.variants { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.variants button { font: inherit; text-align: left; padding: 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; min-width: 0; }
+.variants button b { display: block; font-family: var(--font-display); font-size: 1.05rem; }
+.variants button span { font-size: 0.78rem; color: var(--muted); display: block; }
+.variants button[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+
+.board { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); padding-block: 8px; display: grid; gap: 8px; }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.stat { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; min-width: 0; }
+.stat .n { font-family: var(--font-display); font-weight: 800; font-size: 1.4rem; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.stat .t { font-size: 0.75rem; color: var(--muted); }
+.stat.bad { border-color: var(--meat); background: var(--meat-soft); }
+.stat.bad .n { color: var(--meat); }
+.alerts { display: grid; gap: 6px; }
+.alert { font-size: 0.85rem; padding: 7px 10px; border-radius: 8px; background: var(--cher-soft); color: var(--ink); border-left: 3px solid var(--cher); }
+.alert.meat { background: var(--meat-soft); border-left-color: var(--meat); }
+
+.day { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px; display: grid; gap: 10px; }
+.day h2 { display: flex; justify-content: space-between; align-items: baseline; }
+.day h2 small { font-family: var(--font-body); font-weight: 400; font-size: 0.8rem; color: var(--muted); }
+.slot { display: grid; gap: 6px; }
+.slot-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.cheat { font-size: 0.72rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.06em; }
+.opts { display: grid; gap: 6px; }
+.opt { font: inherit; color: var(--ink); text-align: left; display: grid; gap: 2px; padding: 8px 10px; border-radius: 9px; border: 1px solid var(--line); background: transparent; cursor: pointer; min-width: 0; }
+.opt[aria-pressed="true"] { border: 2px solid var(--accent); background: var(--accent-soft); padding: 7px 9px; }
+.opt .name { font-weight: 700; }
+.opt .ing { font-size: 0.8rem; color: var(--muted); }
+.tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.tag { font-size: 0.7rem; font-weight: 700; padding: 1px 7px; border-radius: 999px; background: var(--bg); color: var(--muted); }
+.tag.v { background: var(--meat-soft); color: var(--meat); }
+.tag.c { background: var(--cher-soft); color: var(--cher); }
+.tag.b { background: var(--accent-soft); color: var(--accent); }
+.other { display: flex; gap: 6px; align-items: center; font-size: 0.82rem; color: var(--muted); }
+.other select { font: inherit; font-size: 0.85rem; flex: 1; min-width: 0; padding: 6px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); }
+
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px; display: grid; gap: 8px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font-size: 0.82rem; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line); }
+.chip b { font-variant-numeric: tabular-nums; color: var(--accent); }
+.chip.one { color: var(--muted); border-style: dashed; }
+.panel p { margin: 0; }
+.panel ul { margin: 0; padding-left: 1.1em; }
+
+.actions { display: grid; gap: 8px; }
+.copy { font: inherit; font-weight: 700; font-size: 1rem; padding: 14px; border-radius: 12px; border: 0; background: var(--accent); color: var(--surface); cursor: pointer; }
+.reset { font: inherit; font-size: 0.85rem; padding: 8px; border: 0; background: transparent; color: var(--muted); text-decoration: underline; cursor: pointer; }
+#fallback { width: 100%; min-height: 160px; font: inherit; font-size: 0.85rem; padding: 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
+.toast { font-size: 0.85rem; color: var(--ok); text-align: center; min-height: 1.2em; }
+button:focus-visible, select:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+@media (prefers-reduced-motion: no-preference) { .opt, .variants button { transition: background-color .15s, border-color .15s; } }
+.grid { overflow-x: auto; }
+.grid table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+.grid th, .grid td { padding: 5px 6px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+.grid th { color: var(--muted); font-weight: 700; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; }
+.grid td.d { font-weight: 700; white-space: nowrap; }
+.x2 { font-size: 0.72rem; font-weight: 700; color: var(--accent); }
+.note { font-size: 0.8rem; color: var(--muted); margin: 0; }
+.tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 4px; }
+.tabs button { font: inherit; font-weight: 700; padding: 10px; border: 0; border-radius: 9px; background: transparent; color: var(--muted); cursor: pointer; }
+.tabs button[aria-selected="true"] { background: var(--accent); color: var(--surface); }
+.sync { font-size: 0.75rem; color: var(--muted); text-align: right; min-height: 1em; }
+.progress { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.progress .n { font-family: var(--font-display); font-weight: 800; font-size: 1.4rem; font-variant-numeric: tabular-nums; }
+.bar { height: 6px; border-radius: 99px; background: var(--line); overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--accent); width: 0; }
+.rayon { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 6px 12px; }
+.rayon h2 { padding-block: 8px 4px; display: flex; justify-content: space-between; align-items: baseline; }
+.rayon h2 small { font-family: var(--font-body); font-weight: 400; font-size: 0.78rem; color: var(--muted); }
+.item { display: grid; grid-template-columns: 26px 1fr auto; gap: 10px; align-items: center; padding-block: 10px; border-top: 1px solid var(--line); cursor: pointer; }
+.item input { width: 22px; height: 22px; margin: 0; accent-color: var(--accent); }
+.item .what { min-width: 0; }
+.item .what small { display: block; font-size: 0.75rem; color: var(--muted); }
+.item .qty { font-variant-numeric: tabular-nums; font-weight: 700; white-space: nowrap; }
+.item.done .what, .item.done .qty { text-decoration: line-through; color: var(--muted); }
+.recipe { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px; display: grid; gap: 10px; }
+.recipe summary { cursor: pointer; display: grid; gap: 4px; list-style: none; }
+.recipe summary::-webkit-details-marker { display: none; }
+.recipe summary h2::after { content: " +"; color: var(--muted); font-weight: 400; }
+.recipe[open] summary h2::after { content: " −"; }
+.recipe .when { font-size: 0.8rem; color: var(--accent); font-weight: 700; }
+.recipe table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+.recipe td { padding: 6px 4px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.recipe td.q { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; padding-left: 10px; }
+.recipe ol { margin: 0; padding-left: 1.3em; display: grid; gap: 6px; }
+.recipe .extra { font-size: 0.82rem; color: var(--muted); margin: 0; }
+.recipe h3 { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 4px 0 0; }
+.row-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.ghost { font: inherit; font-size: 0.85rem; padding: 8px 12px; border-radius: 9px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; }
+</style>
+
+<div class="wrap"><nav style="display:flex;gap:8px"><a href="index.html" style="font-weight:700;color:var(--accent)">← Recueil de recettes</a></nav>
+  <header>
+    <div class="label">Semaine du lundi 12 au samedi 17 octobre · 2 personnes</div>
+    <h1>Ma semaine LaSèche</h1>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <button type="button" role="tab" id="tab-semaine" aria-selected="true" aria-controls="view-semaine">Semaine</button>
+    <button type="button" role="tab" id="tab-courses" aria-selected="false" aria-controls="view-courses">Courses</button>
+    <button type="button" role="tab" id="tab-recettes" aria-selected="false" aria-controls="view-recettes">Recettes</button>
+  </div>
+  <div class="sync" id="sync"></div>
+
+  <div id="view-semaine" role="tabpanel" aria-labelledby="tab-semaine" style="display:grid;gap:18px">
+    <p class="sub" style="margin:0">Chaque plat cuisiné le dimanche est fait en double et sert deux repas. Choisis 7 plats : la semaine et la liste de courses se remplissent toutes seules.</p>
+
+    <section aria-label="Point de départ">
+      <div class="label" style="margin-bottom:6px">Partir d'une proposition</div>
+      <div class="variants" id="variants"></div>
+    </section>
+
+    <div class="board" id="board">
+      <div class="stats">
+        <div class="stat" id="st-meat"><div class="n" id="n-meat">0/7</div><div class="t">repas avec viande</div></div>
+        <div class="stat"><div class="n" id="n-cook">0</div><div class="t">plats à cuisiner</div></div>
+        <div class="stat"><div class="n" id="n-shared">0</div><div class="t">ingrédients partagés</div></div>
+      </div>
+      <div class="alerts" id="alerts"></div>
+    </div>
+
+    <section class="panel" aria-label="Vue de la semaine">
+      <h2>La semaine</h2>
+      <div class="grid"><table><thead><tr><th>Jour</th><th>Midi</th><th>Soir</th></tr></thead><tbody id="grid"></tbody></table></div>
+    </section>
+
+    <main id="postes" style="display:grid;gap:12px"></main>
+
+    <section class="panel" aria-label="Petits-déjeuners">
+      <h2>Petits-déjeuners et collation</h2>
+      <ul>
+        <li>Lundi, vendredi : skyr, amandes, poire</li>
+        <li>Mardi, jeudi : bol canadien yaourt-poire</li>
+        <li>Mercredi, samedi : toast saumon fumé et cream cheese, avec une poire</li>
+        <li>Chaque jour : 30 g d'amandes par personne en collation</li>
+      </ul>
+      <p class="note">Ils sont inclus dans la liste de courses.</p>
+    </section>
+
+    <section class="actions">
+      <button class="copy" id="go-courses" type="button">Voir ma liste de courses</button>
+      <button class="reset" id="reset" type="button">Revenir à la proposition A</button>
+    </section>
+  </div>
+
+  <div id="view-recettes" role="tabpanel" aria-labelledby="tab-recettes" hidden style="display:grid;gap:12px">
+    <section class="panel">
+      <h2>Recettes de la semaine</h2>
+      <p class="note">Les plats choisis, dans l'ordre de la semaine. Quand un plat sert deux repas, les quantités sont déjà doublées. Les quantités citées dans les étapes restent celles de la fiche : double-les aussi. Les quantités sans chiffre (« un filet », « quelques brins ») sont à doubler à l'œil.</p>
+    </section>
+    <div id="recettes" style="display:grid;gap:12px"></div>
+  </div>
+
+  <div id="view-courses" role="tabpanel" aria-labelledby="tab-courses" hidden style="display:grid;gap:12px">
+    <section class="panel">
+      <div class="progress"><h2>Liste de courses</h2><span class="n" id="prog">0/0</span></div>
+      <div class="bar"><i id="bar"></i></div>
+      <p class="note">Quantités pour 2 personnes et toute la semaine, plats doublés compris. Coche au fur et à mesure : la liste se met à jour d'après la semaine choisie.</p>
+      <div class="row-actions">
+        <button class="ghost" id="uncheck" type="button">Tout décocher</button>
+        <button class="ghost" id="copy-list" type="button">Copier la liste</button>
+      </div>
+      <div class="toast" id="toast" role="status"></div>
+      <textarea id="fallback" hidden readonly aria-label="La liste en texte"></textarea>
+    </section>
+    <div id="list" style="display:grid;gap:12px"></div>
+  </div>
+</div>
+
+<script>
+// r : se réchauffe bien, peut être cuit en double ; q : rapide le soir ; g : gourmand (cheat) ; once : la recette fait déjà 2 repas
+const R = {
+  mp:{n:"Meal prep poulet miel-moutarde",v:1,r:1,once:1,i:["poulet","patate douce","brocoli","miel","moutarde"],d:"la recette fait déjà 2 repas, pas besoin de doubler"},
+  thai:{n:"Poulet thaï, courge, patate douce",v:1,r:1,i:["poulet","courge","patate douce","lait de coco","coriandre"]},
+  butter:{n:"Butternut farcie au poulet",v:1,r:1,i:["poulet","courge","œufs","tomates cerises","fromage blanc"]},
+  roul:{n:"Roulés d'aubergine au poulet, pesto rosso",v:1,r:1,i:["poulet","aubergine","pesto rosso","pulpe de tomate","parmesan"]},
+  pbc:{n:"Poulet sauce cacahuète-tomate et riz",v:1,r:1,i:["poulet","beurre de cacahuète","coulis de tomate","riz","citron vert"]},
+  chili:{n:"Chili con carne",v:1,r:1,i:["bœuf haché","poivron","haricots rouges","tomates pelées","riz"]},
+  hachis:{n:"Hachis pomme de terre, bœuf, poivron",v:1,r:1,g:1,i:["bœuf haché","pommes de terre","poivron","crème"]},
+  boul:{n:"Pâtes et boulettes de bœuf",v:1,r:1,g:1,i:["bœuf haché","pâtes complètes","tomates","épinards","parmesan"]},
+  bolo:{n:"Pâtes bolognaise",v:1,r:1,g:1,i:["bœuf haché","pâtes complètes","sauce tomate","tomates cerises"]},
+  croq:{n:"Croquettes de poisson",r:1,i:["poisson blanc","pommes de terre","œufs","persil","ciboulette"]},
+  tabo:{n:"Taboulé veggie à l'orientale",r:1,i:["steak végétal","semoule","pois chiches","carotte","menthe","persil","coriandre"],d:"froid, tient 2 jours au frigo"},
+  gratin:{n:"Aubergine gratinée 3 fromages",r:1,i:["aubergine","tomates","tomates cerises","mozzarella","feta"]},
+  courg:{n:"Courgettes farcies aux légumes",r:1,i:["courgette","champignons","carotte","sauce tomate","noisettes"],d:"pauvre en protéines : 2 œufs durs ajoutés à la liste"},
+  souppd:{n:"Soupe de patate douce au lait de coco",r:1,i:["patate douce","lait de coco","gingembre"],d:"légère : 2 œufs durs ajoutés à la liste"},
+  soupcf:{n:"Soupe épicée de chou-fleur rôti",r:1,i:["chou-fleur","crème"],d:"très légère : 2 œufs durs ajoutés à la liste"},
+  soupct:{n:"Soupe de chou-fleur et tartine cream cheese",r:1,i:["chou-fleur","pain de mie","cream cheese"]},
+  crev:{n:"Crevettes coco, courgette",r:1,q:1,c:["crevettes"],i:["crevettes","courgette","lait de coco","gingembre","salade"]},
+  salbro:{n:"Salade brocoli, pecorino, œuf mollet",q:1,i:["brocoli","pecorino","œufs","salade"]},
+  tmz:{n:"Tomates-mozza balsamique",q:1,i:["mozzarella","tomates cerises","persil"]},
+  bowl:{n:"Bowl chèvre-avocat",q:1,i:["chèvre frais","avocat","épinards","champignons","noix"]},
+  obc:{n:"Œufs brouillés, fromage, champignons",q:1,i:["œufs","champignons","emmental"]},
+  obt:{n:"Œufs brouillés, tomates cerises",q:1,i:["œufs","tomates cerises","emmental","salade"]},
+  omdinde:{n:"Omelette dinde, emmental, champignons",v:1,q:1,i:["jambon de dinde","œufs","champignons","épinards","emmental"]},
+  galette:{n:"Galette sarrasin chèvre-épinards",q:1,i:["galettes de sarrasin","chèvre frais","épinards","œufs"]},
+  thon:{n:"Wrap thon-avocat",q:1,i:["thon","avocat","tortillas","citron vert","fromage blanc"]},
+  pasta:{n:"Pasta à l'italienne",q:1,g:1,i:["pâtes complètes","sauce tomate","mozzarella","parmesan"]},
+  carbo:{n:"Pâtes carbonara healthy",v:1,q:1,g:1,i:["jambon","bacon","champignons","lait de coco","pâtes complètes"]},
+  risotto:{n:"Risotto de coquillettes au jambon",v:1,g:1,i:["jambon de dinde","pâtes complètes","champignons","carotte","emmental","parmesan","crème"]},
+  veau:{n:"Veau aux champignons et morilles",v:1,g:1,c:["veau","morilles"],i:["veau","morilles","champignons","crème"]},
+};
+
+// Achats pour UN repas à 2 (meal prep : pour ses 2 repas). [article, quantité, unité, rayon]
+const RAYONS = {FL:"Fruits et légumes",VI:"Boucherie, volaille, charcuterie",PO:"Poisson, surgelés",CR:"Crèmerie, œufs",FR:"Frais",BO:"Boulangerie",EP:"Épicerie",CO:"Conserves",PL:"Placard : vérifier qu'il en reste"};
+const Q = {
+  mp:[["patate douce",800,"g","FL"],["brocoli",800,"g","FL"],["filets de poulet",600,"g","VI"]],
+  thai:[["filets de poulet",300,"g","VI"],["butternut",0.5,"pc","FL"],["patate douce",200,"g","FL"],["ail",1,"gousse","FL"],["oignon",0.5,"pc","FL"],["lait de coco",200,"ml","EP"],["crème de coco",40,"ml","EP"],["coriandre",0.5,"botte","FL"]],
+  butter:[["butternut",2,"pc","FL"],["filets de poulet",300,"g","VI"],["tomates cerises",100,"g","FL"],["oignon rouge",0.5,"pc","FL"],["œufs",4,"pc","CR"],["fromage blanc",60,"g","CR"]],
+  roul:[["aubergine",1,"pc","FL"],["filets de poulet",300,"g","VI"],["pesto rosso",100,"g","EP"],["pulpe de tomate",200,"g","CO"],["parmesan",40,"g","CR"]],
+  pbc:[["filets de poulet",300,"g","VI"],["oignon",0.5,"pc","FL"],["coulis de tomate",100,"g","CO"],["crème de coco",10,"ml","EP"],["beurre de cacahuète",30,"g","EP"],["citron vert",2,"pc","FL"],["riz basmati",90,"g","EP"],["tomates cerises",100,"g","FL"]],
+  chili:[["oignon",1,"pc","FL"],["ail",2,"gousse","FL"],["poivron rouge",1,"pc","FL"],["bœuf haché 5 %",300,"g","VI"],["tomates pelées",200,"g","CO"],["haricots rouges",200,"g","CO"],["riz basmati",100,"g","EP"],["persil",0.25,"botte","FL"]],
+  hachis:[["oignon",1.5,"pc","FL"],["poivron vert",0.5,"pc","FL"],["poivron rouge",0.5,"pc","FL"],["ail",1,"gousse","FL"],["bœuf haché 5 %",380,"g","VI"],["pommes de terre",400,"g","FL"],["crème fraîche 15 %",60,"g","CR"]],
+  boul:[["bœuf haché 5 %",230,"g","VI"],["chapelure",20,"g","EP"],["oignon",1,"pc","FL"],["échalote",1,"pc","FL"],["tomates",6,"pc","FL"],["épinards frais",60,"g","FL"],["pâtes complètes",100,"g","EP"],["parmesan",20,"g","CR"]],
+  bolo:[["bœuf haché 5 %",320,"g","VI"],["pâtes complètes",120,"g","EP"],["tomates cerises",160,"g","FL"],["oignon",0.25,"pc","FL"],["sauce tomate",140,"ml","CO"]],
+  croq:[["poisson blanc (cabillaud, colin…)",300,"g","PO"],["pommes de terre",100,"g","FL"],["petit pain complet",1,"pc","BO"],["persil",0.5,"botte","FL"],["ciboulette",0.5,"botte","FL"],["œufs",1,"pc","CR"],["légumes d'accompagnement au choix",300,"g","FL"],["salade",0.5,"pc","FL"],["fromage blanc",100,"g","CR"]],
+  tabo:[["steak végétal au soja",360,"g","FR"],["semoule",60,"g","EP"],["pois chiches",200,"g","CO"],["carotte",1,"pc","FL"],["oignon rouge",1,"pc","FL"],["raisins secs",10,"g","EP"],["citron vert",1,"pc","FL"],["persil",0.25,"botte","FL"],["menthe",0.5,"botte","FL"],["coriandre",0.25,"botte","FL"]],
+  gratin:[["mozzarella",2,"pc","CR"],["feta",30,"g","CR"],["emmental râpé",20,"g","CR"],["aubergine",2,"pc","FL"],["tomates cerises",160,"g","FL"],["tomates",4,"pc","FL"],["ail",2,"gousse","FL"],["basilic",0.25,"botte","FL"]],
+  courg:[["courgette",2,"pc","FL"],["champignons de Paris",160,"g","FL"],["carotte",2,"pc","FL"],["oignon",0.25,"pc","FL"],["salade",0.5,"pc","FL"],["sauce tomate",60,"ml","CO"],["noisettes",40,"g","EP"],["œufs",4,"pc","CR"]],
+  souppd:[["patate douce",300,"g","FL"],["oignon",0.5,"pc","FL"],["ail",2,"gousse","FL"],["gingembre frais (morceau)",1,"pc","FL"],["lait de coco",160,"ml","EP"],["œufs",4,"pc","CR"]],
+  soupcf:[["chou-fleur",0.75,"pc","FL"],["oignon",0.5,"pc","FL"],["ail",2,"gousse","FL"],["persil",0.25,"botte","FL"],["crème liquide 15 %",75,"ml","CR"],["œufs",4,"pc","CR"]],
+  soupct:[["chou-fleur",0.5,"pc","FL"],["oignon",1,"pc","FL"],["ail",2,"gousse","FL"],["pain de mie complet",120,"g","BO"],["cream cheese",80,"g","CR"],["beurre",20,"g","CR"]],
+  crev:[["crevettes crues décortiquées",360,"g","PO"],["courgette",2,"pc","FL"],["salade",0.5,"pc","FL"],["gingembre frais (morceau)",1,"pc","FL"],["ail",2,"gousse","FL"],["lait de coco",120,"ml","EP"]],
+  salbro:[["œufs",4,"pc","CR"],["pecorino",50,"g","CR"],["brocoli",400,"g","FL"],["salade",0.5,"pc","FL"],["ail",2,"gousse","FL"],["persil",0.25,"botte","FL"]],
+  tmz:[["mozzarella",2,"pc","CR"],["tomates cerises",300,"g","FL"],["persil",0.25,"botte","FL"]],
+  bowl:[["chèvre frais",60,"g","CR"],["avocat",1,"pc","FL"],["épinards frais",80,"g","FL"],["champignons de Paris",240,"g","FL"],["citron vert",1,"pc","FL"],["cerneaux de noix",40,"g","EP"],["beurre",20,"g","CR"]],
+  obc:[["œufs",6,"pc","CR"],["emmental râpé",30,"g","CR"],["champignons de Paris",200,"g","FL"],["ail",2,"gousse","FL"],["coriandre",0.25,"botte","FL"],["lait demi-écrémé",60,"ml","CR"],["beurre",20,"g","CR"]],
+  obt:[["œufs",6,"pc","CR"],["emmental râpé",40,"g","CR"],["tomates cerises",240,"g","FL"],["salade",0.5,"pc","FL"],["beurre",20,"g","CR"]],
+  omdinde:[["œufs",4,"pc","CR"],["jambon de dinde sans nitrite",160,"g","VI"],["emmental râpé",30,"g","CR"],["champignons de Paris",160,"g","FL"],["épinards frais",200,"g","FL"]],
+  galette:[["œufs",4,"pc","CR"],["galettes de sarrasin",2,"pc","FR"],["chèvre frais",60,"g","CR"],["épinards frais",400,"g","FL"],["oignon",0.5,"pc","FL"],["beurre",20,"g","CR"]],
+  thon:[["thon au naturel",200,"g","CO"],["fromage blanc",60,"g","CR"],["tortillas complètes",2,"pc","BO"],["avocat",1,"pc","FL"],["citron vert",2,"pc","FL"],["œufs",2,"pc","CR"]],
+  pasta:[["mozzarella",1,"pc","CR"],["parmesan",20,"g","CR"],["pâtes complètes",140,"g","EP"],["sauce tomate",120,"ml","CO"],["basilic",0.5,"botte","FL"]],
+  carbo:[["jambon",150,"g","VI"],["bacon",50,"g","VI"],["oignon",1,"pc","FL"],["champignons de Paris",100,"g","FL"],["lait de coco",150,"ml","EP"],["pâtes complètes",110,"g","EP"],["fromage de brebis râpé",20,"g","CR"]],
+  risotto:[["jambon de dinde sans nitrite",160,"g","VI"],["coquillettes complètes",140,"g","EP"],["oignon",0.25,"pc","FL"],["ail",2,"gousse","FL"],["champignons de Paris",240,"g","FL"],["carotte",2,"pc","FL"],["emmental râpé",30,"g","CR"],["parmesan",30,"g","CR"],["crème liquide 15 %",120,"ml","CR"]],
+  veau:[["escalopes de veau",360,"g","VI"],["morilles séchées",60,"g","EP"],["champignons de Paris",240,"g","FL"],["oignon",1,"pc","FL"],["ail",2,"gousse","FL"],["beurre",30,"g","CR"],["crème liquide 15 %",60,"ml","CR"]],
+};
+const PLACARD = {
+  mp:["huile d'olive","herbes de Provence","ail en poudre","vinaigre balsamique","miel","moutarde"],
+  thai:["sauce soja ou tamari","chili en poudre"], butter:["thym","noix de muscade"], roul:["origan"],
+  pbc:["concentré de tomate","sauce soja ou tamari"], chili:["cumin","chili en poudre","tabasco"],
+  hachis:["farine","noix de muscade"], boul:["ail en poudre","thym","concentré de tomate"], croq:["ail en poudre","moutarde"],
+  courg:["vinaigre"], souppd:["curry","bouillon de légumes (cube)"], soupcf:["paprika","curcuma","bouillon de légumes (cube)"],
+  crev:["piment en poudre","curcuma","vinaigre"], salbro:["vinaigre"], tmz:["vinaigre balsamique"], bowl:["vinaigre"],
+  galette:["miel"], thon:["graines de chia","moutarde","sauce soja ou tamari","romarin"], carbo:["sauce soja ou tamari"],
+  risotto:["bouillon de légumes (cube)"], obt:["vinaigre"], tabo:[], gratin:["herbes de Provence"],
+};
+// Petits-déjeuners et collations de la semaine (6 jours, 2 personnes)
+const BREAKFAST = [["skyr nature",600,"g","CR"],["yaourts nature",8,"pc","CR"],["poires",12,"pc","FL"],["amandes nature",460,"g","EP"],["saumon fumé",320,"g","FR"],["pain complet",160,"g","BO"],["cream cheese",80,"g","CR"]];
+const BREAKFAST_PL = ["sirop d'érable","huile d'olive","sel, poivre"];
+
+const P = [
+  {k:"dl1",t:"Midis lundi et mardi",slots:[[0,0],[1,0]],f:"r",o:["mp","chili","tabo","bolo"],h:"Cuit dimanche, au frigo."},
+  {k:"dl2",t:"Midis mercredi et jeudi",slots:[[2,0],[3,0]],f:"r",o:["butter","hachis","croq","boul"],h:"Cuit dimanche. La part de jeudi va au congélateur."},
+  {k:"dl3",t:"Midis vendredi et samedi",slots:[[4,0],[5,0]],f:"r",o:["thai","roul","pbc","chili"],h:"Cuit dimanche, congelé, sorti la veille."},
+  {k:"di1",t:"Soirs lundi et mardi",slots:[[0,1],[1,1]],f:"r",o:["souppd","courg","soupcf","crev"],h:"Cuit dimanche, à réchauffer."},
+  {k:"di2",t:"Soirs mercredi et jeudi",slots:[[2,1],[3,1]],f:"r",o:["gratin","soupct","souppd","courg"],h:"Cuit dimanche. La part de jeudi va au congélateur."},
+  {k:"di3",t:"Soir vendredi",slots:[[4,1]],f:"q",o:["salbro","tmz","bowl","obc","omdinde"],h:"Le seul plat cuisiné en semaine, 10 à 25 min."},
+  {k:"ch",t:"Soir samedi · cheat meal",slots:[[5,1]],f:"g",o:["carbo","risotto","boul","veau"],h:"Plat gourmand, plus un petit dessert (pas dans la liste)."},
+];
+const DAYS = ["Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
+const V = {
+  A:{s:"Poulet, patate douce",p:{dl1:"mp",dl2:"butter",dl3:"thai",di1:"souppd",di2:"gratin",di3:"salbro",ch:"carbo"}},
+  B:{s:"Méditerranée",p:{dl1:"chili",dl2:"hachis",dl3:"roul",di1:"courg",di2:"gratin",di3:"tmz",ch:"risotto"}},
+  C:{s:"Légère",p:{dl1:"tabo",dl2:"croq",dl3:"pbc",di1:"soupcf",di2:"courg",di3:"bowl",ch:"carbo"}},
+};
+const RECIPES = {"mp": {"t": "environ 50 min, dont 45 min de four (15 + 30 ; estimation Claude, le livre annonce moins de 30 min)", "ing": [["Patates douces", "800 g"], ["Huile d'olive", "4 c. à soupe (2 pour les frites, 2 pour la sauce)"], ["Herbes de Provence", "—"], ["Brocolis", "800 g"], ["Filets de poulet", "4"], ["Ail en poudre", "1 c. à café"], ["Vinaigre balsamique", "1 c. à soupe"], ["Miel", "2 c. à soupe"], ["Moutarde", "1 c. à soupe"], ["Sel, poivre", "—"], ["Boîtes alimentaires", "4"]], "steps": ["1. Préchauffer le four à 200 °C.", "2. Brosser, laver et découper les patates douces en frites. Les déposer sur une plaque de cuisson, arroser d'huile d'olive, saler, poivrer et saupoudrer d'herbes de Provence. Enfourner 15 minutes.", "3. Pendant ce temps, blanchir les brocolis 5 minutes dans de l'eau bouillante. Saler et poivrer les filets de poulet.", "4. Sortir la plaque du four, regrouper les frites sur un côté, placer les brocolis sur l'autre et ajouter de l'ail en poudre et du poivre. Déposer les filets de poulet sur l'ensemble de la plaque. Arroser généreusement le tout d'huile d'olive. Enfourner 30 minutes.", "5. Pendant ce temps, faire chauffer la sauce sur feu doux : verser 2 c. à soupe d'huile d'olive, le vinaigre balsamique, le miel et la moutarde, saler, poivrer et remuer doucement pendant environ 5 minutes jusqu'à réduction.", "6. Servir immédiatement ou diviser les portions en quatre et les répartir dans des boîtes alimentaires : placer dans le fond un quart des frites de patate douce et des brocolis, déposer un filet de poulet par-dessus et arroser de sauce. Conserver les boîtes bien fermées au réfrigérateur pendant 3 jours.", "Notes Claude :", "- Le livre fait « arroser généreusement » d'huile en plus des 4 c. à soupe de la liste. S'en tenir aux 4 c. à soupe suffit (environ 15 ml par portion).", "- 800 g de patates douces et de brocolis ne tiennent pas sur une seule plaque : prévoir deux plaques."], "keep": ["Conservation : 3 jours au réfrigérateur (selon le livre) ; 2 mois au congélateur. Garder la sauce à part si possible, pour que les frites restent moins détrempées.", "Réchauffage : micro-ondes 2 à 3 min à puissance moyenne, couvercle entrouvert ; ou au four 10 min à 180 °C pour garder les frites un peu croustillantes."]}, "thai": {"t": "environ 45 min, dont 30 min de cuisson à couvert (estimation Claude, le livre n'indique que la cuisson)", "ing": [["Blanc de poulet", "300 g, coupé en dés"], ["Huile d'olive", "un soupçon"], ["Courge (butternut, potimarron…)", "300 g"], ["Patate douce", "200 g"], ["Ail", "1 gousse"], ["Oignon", "½"], ["Lait de coco", "200 ml"], ["Crème de coco", "40 ml"], ["Sauce soja (ou tamari)", "2 c. à soupe"], ["Chili en poudre", "2 c. à café (à doser)"], ["Sauce nuoc-mâm", "facultatif"], ["Eau ou bouillon", "200 ml"], ["Coriandre et/ou basilic", "une poignée"], ["Sel, poivre", "—"]], "steps": ["1. Faire dorer les dés de poulet à feu vif avec du sel et du poivre et un soupçon d'huile d'olive, dans une poêle.", "2. Baisser le feu puis ajouter progressivement la courge et la patate douce lavées, bien frottées et coupées en dés de 1 cm, l'ail épluché et haché, l'oignon épluché et émincé, puis le reste des ingrédients (sauf l'eau et les herbes).", "3. Ajouter un verre d'eau, couvrir et laisser cuire 30 minutes minimum.", "4. Servir avec les herbes.", "Avis de l'auteur : « Un plat délicieux et ultra-simple. N'hésitez pas à en abuser pendant l'automne et l'hiver ! »", "Note Claude : le livre ne fait pas éplucher la courge ni la patate douce (« bien frottées »). Avec une butternut ou un potimarron, la peau cuit bien ; avec une autre courge à peau dure, mieux vaut l'éplucher."], "keep": ["Conservation : 3 jours au réfrigérateur ; se congèle très bien (3 mois). Ajouter les herbes fraîches au moment de servir.", "Réchauffage : casserole à feu doux 5 à 8 min, ou micro-ondes 3 min, avec un peu d'eau si la sauce a épaissi."]}, "butter": {"t": "environ 1 h 10, dont 50 à 55 min de four (estimation Claude d'après les étapes)", "ing": [["Butternut", "2 (1 par personne, choisir des petites, 600 à 800 g)"], ["Huile d'olive", "un filet"], ["Filets de poulet", "2, coupés en dés"], ["Tomates cerises", "quelques-unes, coupées en deux"], ["Oignon rouge", "½, épluché et émincé"], ["Œufs", "4"], ["Fromage blanc 3 %", "2 c. à soupe"], ["Thym", "2 c. à café"], ["Noix de muscade", "2 pincées"], ["Sel, poivre", "—"]], "steps": ["1. Préchauffer le four à 180-200 °C.", "2. Découper la butternut en deux, l'arroser d'huile d'olive puis enfourner 15 minutes.", "3. Après la cuisson, gratter l'intérieur de la courge avec une cuillère solide.", "4. Mélanger tous les ingrédients avec la chair de la butternut pour former une farce. Assaisonner. Placer la farce dans les butternuts. Enfourner de nouveau 35 à 40 minutes.", "Notes Claude :", "- Le livre ne le précise pas, mais il faut retirer les graines avant d'enfourner, et garder 1 cm de chair contre la peau en grattant pour que la coque tienne.", "- Le poulet est mis cru dans la farce : il cuit pendant les 35 à 40 min de four. Vérifier qu'il est bien cuit à cœur.", "- 15 min de première cuisson suffisent rarement à ramollir une butternut : compter 25 à 30 min pour pouvoir gratter la chair facilement."], "keep": ["Conservation : 3 jours au réfrigérateur (poulet et œufs cuits). Congélation possible mais la texture de la farce aux œufs en souffre : déconseillée.", "Réchauffage : au four 20 min à 170 °C, couvert d'une feuille d'aluminium ; ou micro-ondes 3 à 4 min à puissance moyenne."]}, "roul": {"t": "préparation 15 min · cuisson 1 h 05 (20 min aubergines + 45 min plat) · total 1 h 20, dont 15 min actives", "ing": [["Aubergine moyenne", "1"], ["Filet de poulet", "300 g"], ["Pesto rosso", "100 g (½ pot de 200 g)"], ["Pulpe fine de tomate", "200 g"], ["Parmesan râpé", "40 g"], ["Huile d'olive", "1 filet"], ["Origan, sel", "—"]], "steps": ["1. Préchauffer le four à 180 °C (chaleur classique).", "2. Rincer l'aubergine, retirer le pédoncule et la couper dans la longueur en tranches d'environ ½ cm.", "3. Étaler les tranches sur une plaque couverte de papier cuisson. Saler, parsemer d'origan, arroser d'un filet d'huile d'olive. Enfourner 20 min.", "4. Pendant ce temps, mixer le poulet avec le pesto rosso.", "5. Verser la pulpe de tomate dans un plat à four, saler, ajouter un peu d'origan.", "6. Déposer environ 1 c. à soupe de farce au bout de chaque tranche d'aubergine et rouler. Ranger les roulés dans le plat, sur la tomate.", "7. Couvrir de parmesan râpé.", "8. Enfourner 45 min.", "9. Servir avec des pâtes et/ou une salade de roquette."], "keep": ["Conservation :", "Réchauffage : au four 15 à 20 min à 170 °C, couvert d'une feuille d'aluminium (retirer les 5 dernières minutes), ou au micro-ondes 3 à 4 min à puissance moyenne. Ajouter une cuillère d'eau ou de pulpe si la sauce a réduit."]}, "pbc": {"t": "moins de 20 min (selon le livre)", "ing": [["Blanc de poulet", "300 g, coupé en gros dés"], ["Huile d'olive", "2 c. à café"], ["Oignon", "½"], ["Coulis de tomate 100 %", "100 g"], ["Concentré de tomate", "2 c. à café"], ["Eau", "2 verres"], ["Crème de coco", "2 c. à café"], ["Beurre de cacahuète", "2 c. à soupe"], ["Sauce soja (ou tamari)", "2 c. à café"], ["Citrons verts", "2 (le jus)"], ["Sel, poivre", "—"], ["Accompagnement : riz basmati", "90 g cru (45 g par personne)"], ["Accompagnement : tomates cerises", "quelques-unes"]], "steps": ["1. Saisir quelques minutes les dés de poulet dans une poêle sur feu vif, avec l'huile d'olive.", "2. Baisser le feu et ajouter l'oignon épluché et émincé finement, le coulis de tomate, le concentré de tomate et l'eau.", "3. Mélanger puis ajouter la crème de coco, le beurre de cacahuète et la sauce soja. Remuer régulièrement puis saler, poivrer et verser le jus de citron vert.", "4. Servir avec du riz basmati et quelques tomates cerises."], "keep": ["Conservation : 3 jours au réfrigérateur en boîte hermétique (riz à part, refroidi rapidement). Le plat en sauce se congèle bien (2 mois) ; le riz cuit se congèle aussi en portions.", "Réchauffage : casserole à feu doux 5 min avec un peu d'eau (la sauce au beurre de cacahuète épaissit au froid), ou micro-ondes 3 min. Riz : micro-ondes 1 min 30 avec une cuillère d'eau, couvert."]}, "chili": {"t": "moins de 15 min selon le livre (environ 5 min de rissolage et 10 min de mijotage, riz cuit en parallèle)", "ing": [["Oignon", "1"], ["Ail", "2 gousses"], ["Huile d'olive", "2 c. à soupe"], ["Poivron rouge", "1"], ["Viande hachée 5 % (bœuf)", "300 g"], ["Cumin en poudre", "1 c. à café"], ["Chili en poudre", "2 c. à café"], ["Tomates pelées (ou pulpe de tomate)", "200 g"], ["Haricots rouges en bocal", "200 g"], ["Tabasco", "selon le goût"], ["Riz basmati (cru)", "100 g"], ["Persil", "quelques brins"], ["Sel, poivre", "—"]], "steps": ["1. Faire rissoler l'oignon épluché et émincé et l'ail épluché et haché dans l'huile d'olive. Ajouter le poivron coupé en lamelles et laisser cuire quelques minutes.", "2. Ajouter la viande hachée, le cumin, le chili, les tomates et les haricots rouges. Baisser le feu et laisser mijoter 10 minutes en ajoutant un peu de Tabasco selon votre convenance.", "3. Pendant ce temps, faire cuire le riz basmati (selon les instructions données sur le sachet).", "4. Servir le chili avec le riz, assaisonner et parsemer de persil pour la décoration."], "keep": ["Conservation : chili 3 jours au réfrigérateur. Se congèle très bien (3 mois), sans le riz. Pour un repas de fin de semaine, le passer au frigo la veille.", "Réchauffage : à la casserole 5 à 8 min à feu doux avec un peu d'eau, ou micro-ondes 3 min en remuant à mi-parcours."]}, "hachis": {"t": "moins de 30 min selon le livre ; compter plutôt 45 min avec les 20 min de four (estimation Claude)", "ing": [["Huile d'olive", "15 g (environ 1 c. à soupe)"], ["Oignons", "150 g"], ["Poivron vert", "100 g"], ["Poivron rouge", "100 g"], ["Ail", "1 gousse"], ["Bœuf haché 5 %", "380 g"], ["Farine", "un peu (pour enrober la viande)"], ["Pommes de terre", "400 g"], ["Crème fraîche 15 %", "60 g"], ["Noix de muscade en poudre", "2 pincées"], ["Sel, poivre", "—"]], "steps": ["1. Faire revenir dans une poêle huilée les oignons épluchés et émincés et les poivrons émincés. Ajouter l'ail épluché et émincé, le sel et le poivre.", "2. Recouvrir la viande de bœuf de farine. La saisir dans la même poêle et mélanger avec les poivrons une fois que ceux-ci sont devenus tendres. Laisser mijoter 10 minutes environ.", "3. Peler les pommes de terre et les faire cuire à la vapeur 20 à 25 minutes (ou 12 minutes au micro-ondes, sur puissance maximale). Les écraser tout en ajoutant la crème fraîche, du sel, du poivre et de la noix de muscade.", "4. Préchauffer le four à 180 °C. Disposer les poivrons, les oignons et la viande dans un plat allant au four. Couvrir de purée. Enfourner 20 minutes."], "keep": ["Conservation : 3 jours au réfrigérateur. Se congèle très bien, en plat ou en portions (3 mois).", "Réchauffage : au four 20 min à 180 °C, couvert d'aluminium les 10 premières minutes ; ou micro-ondes 3 à 4 min."]}, "boul": {"t": "moins de 20 min selon le livre ; compter plutôt 30 min avec la formation des boulettes (estimation Claude)", "ing": [["Viande hachée de bœuf (5 % de préférence, voir Équilibre)", "230 g"], ["Chapelure", "20 g"], ["Ail en poudre", "2 c. à café"], ["Oignon", "1"], ["Huile d'olive", "2 c. à café"], ["Échalote", "1"], ["Thym", "2 c. à café"], ["Tomates", "6"], ["Concentré de tomate", "2 c. à café"], ["Épinards frais", "2 poignées"], ["Pâtes complètes", "100 g crues (50 g par personne)"], ["Parmesan", "un peu"], ["Sel, poivre", "—"]], "steps": ["1. Former des boulettes en mélangeant la viande hachée avec un peu de chapelure et d'ail en poudre.", "2. Dans une poêle, faire revenir l'oignon épluché et émincé avec l'huile d'olive. Ajouter l'échalote épluchée et émincée, un peu de thym et les tomates coupées en dés. Laisser cuire 5 minutes et ajouter les boulettes avec le concentré de tomate et un peu d'eau pour que ça bouillonne. Baisser le feu, ajouter les épinards frais lavés et laisser cuire à couvert environ 8 à 10 minutes.", "3. Dans une casserole, faire cuire les pâtes al dente. Égoutter et mélanger dans la casserole les pâtes avec la préparation aux boulettes.", "4. Saler, poivrer, saupoudrer légèrement de parmesan et servir."], "keep": ["Conservation : boulettes en sauce 3 jours au réfrigérateur ; 3 mois au congélateur. Pour un repas de fin de semaine, congeler dès refroidissement.", "Réchauffage : casserole à feu doux, couvercle, 8 min avec un peu d'eau ; ou micro-ondes 3 min."]}, "bolo": {"t": "35 min", "ing": [["Viande hachée de bœuf 5 %", "320 g (160 g par personne)"], ["Pâtes complètes au choix (poids cru)", "120 g (60 g par personne)"], ["Tomates cerises", "160 g"], ["Oignon blanc", "20 g (¼ d'oignon)"], ["Sauce tomate cuisinée", "140 ml"], ["Huile d'olive", "1 c. à café"], ["Sel, poivre", "—"]], "steps": ["1. Cuire les pâtes selon les instructions du paquet.", "2. Émincer l'oignon.", "3. Chauffer l'huile dans une poêle antiadhésive et faire revenir l'oignon quelques secondes. Ajouter et cuire la viande à cœur. Ajouter la sauce tomate, les tomates cerises et les pâtes cuites. Bien mélanger.", "4. Agrémenter d'herbes fraîches, d'épices et d'aromates.", "5. Saler, poivrer, dresser."], "keep": ["Conservation : sauce 3 jours au réfrigérateur ; 3 mois au congélateur, en portions. Pour un repas de fin de semaine, congeler dès refroidissement et décongeler au réfrigérateur la veille.", "Réchauffage : casserole à feu doux 5 à 8 min avec un peu d'eau, en remuant ; ou micro-ondes 3 min."]}, "croq": {"t": "environ 30 min (2 × 6-7 min de cuisson par fournée, plus la préparation ; estimation Claude)", "ing": [["Pommes de terre", "80 à 100 g"], ["Poisson blanc (cabillaud, colin, lieu…)", "300 g"], ["Petit pain au blé complet (ou chapelure sans gluten)", "1"], ["Persil", "une poignée"], ["Ciboulette", "une poignée"], ["Oignon", "10 g"], ["Œuf", "1"], ["Huile d'olive", "1 c. à soupe"], ["Ail en poudre", "1 c. à café"], ["Sel, poivre", "—"], ["Accompagnement : légumes variés", "à volonté"], ["Accompagnement : salade", "à volonté"], ["Accompagnement : sauce fromage blanc moutarde", "non dosée par le livre"]], "steps": ["1. Faire cuire les pommes de terre épluchées 7 minutes au micro-ondes, sur puissance maximale.", "2. Mixer la chair des pommes de terre, le poisson blanc, la moitié du petit pain, les herbes, l'oignon épluché et émincé, le sel et du poivre.", "3. Constituer des croquettes de la forme souhaitée, les plonger tour à tour dans l'œuf battu puis dans la chapelure (ou la seconde moitié du pain écrasé avec l'ail en poudre et du sel).", "4. Faire cuire dans une poêle 6 ou 7 minutes sur chaque face, à feu moyen, dans l'huile d'olive.", "5. Servir avec des légumes à volonté, de la salade, et tremper les croquettes dans une sauce fromage blanc moutarde.", "Note Claude : le poisson est mixé cru et cuit dans la croquette. 6 à 7 min par face, à feu moyen, suffisent pour des croquettes de 2 cm d'épaisseur ; plus épaisses, finir 10 min au four à 180 °C."], "keep": ["Conservation : croquettes crues au réfrigérateur 24 h maximum (poisson cru) ; crues congelées 2 mois ; cuites 2 jours au réfrigérateur. Sauce fromage blanc 3 jours.", "Réchauffage : croquettes cuites au four 10 min à 180 °C (elles restent croustillantes). Crues surgelées : poêle à feu doux, 8 à 10 min par face, ou four 20 min à 200 °C."]}, "tabo": {"t": "15 min", "ing": [["Steak végétal au soja", "360 g (180 g par personne), soit environ 3 à 4 steaks selon le format"], ["Semoule (poids cru)", "60 g (30 g par personne)"], ["Pois chiches (poids cuit)", "200 g (100 g par personne), environ 1 petite boîte égouttée"], ["Carotte", "1 (½ par personne)"], ["Oignon rouge", "80 g (1 petit)"], ["Raisins secs", "10 g (5 g par personne)"], ["Citron vert ou jaune", "1 (½ par personne)"], ["Persil frais", "4 g"], ["Menthe fraîche", "4 g"], ["Coriandre fraîche", "4 g"], ["Huile d'olive", "1 c. à café (0,5 par personne)"], ["Sel, poivre", "—"]], "steps": ["1. Cuire la semoule selon les instructions du paquet.", "2. Couper la carotte et l'oignon en brunoise. Égoutter les pois chiches.", "3. Ciseler les herbes.", "4. Chauffer l'huile dans une poêle antiadhésive et cuire le steak végétal sur les deux faces. Le couper en dés.", "5. Mélanger l'ensemble des ingrédients avec les raisins secs et presser le citron.", "6. Agrémenter d'autres herbes fraîches selon l'envie, d'épices et d'aromates.", "7. Saler, poivrer, dresser."], "keep": ["Conservation : 3 jours au réfrigérateur en boîte hermétique. Ne se congèle pas (crudités, herbes).", "Réchauffage : aucun, se mange froid. Bon candidat pour un déjeuner emporté. Sortir du frigo 15 min avant et rajouter un trait de citron si la semoule a tout bu."]}, "gratin": {"t": "environ 45 min (chiffre flou), dont 15 min de four", "ing": [["Boule de mozzarella", "2 (1 par personne)"], ["Feta", "30 g"], ["Emmental râpé", "20 g"], ["Aubergine", "2 (1 par personne)"], ["Tomates cerises", "160 g"], ["Tomates", "4 (2 par personne)"], ["Ail", "6 g (1 à 2 gousses)"], ["Basilic", "2 g (quelques feuilles)"], ["Huile d'olive", "1 c. à café"], ["Sel, poivre", "—"]], "steps": ["1. Couper les tomates en dés et l'aubergine en tranches. Éplucher et écraser l'ail, ciseler le basilic.", "2. Chauffer l'huile dans une poêle antiadhésive à feu moyen et faire fondre les dés de tomate avec l'ail et le basilic.", "3. Ajouter les morceaux d'aubergine et cuire à couvert une vingtaine de minutes.", "4. Pendant ce temps, couper les tomates cerises en deux, la mozzarella en rondelles, et émietter la feta.", "5. Disposer les morceaux d'aubergine dans un plat allant au four en mélangeant avec les tomates cerises. Couvrir de mozzarella, feta et emmental râpé puis enfourner à 200 °C une quinzaine de minutes (surveiller et adapter la cuisson au four).", "6. Agrémenter d'herbes fraîches, d'épices et d'aromates.", "7. Saler, poivrer, dresser."], "keep": ["Conservation : 3 jours au réfrigérateur, fromages ajoutés ou non. Se congèle correctement avant gratinage (la fondue de légumes seule se congèle très bien).", "Réchauffage : au four 15 min à 180 °C ; ou micro-ondes 3 min à puissance moyenne."]}, "courg": {"t": "environ 30 min (chiffre flou), dont 15 min de four", "ing": [["Courgette", "2 (1 par personne)"], ["Champignons de Paris", "160 g (80 g par personne)"], ["Carotte", "2 (1 par personne)"], ["Oignon blanc", "20 g (¼ d'oignon)"], ["Salade verte", "à volonté"], ["Vinaigre", "6 c. à café (3 par personne)"], ["Sauce tomate cuisinée", "60 ml (30 ml par personne)"], ["Noisettes", "40 g (20 g par personne)"], ["Huile d'olive", "4 c. à café (2 par personne)"], ["Sel, poivre", "—"]], "steps": ["1. Préchauffer le four à 200 °C.", "2. Couper la courgette en deux dans le sens de la longueur et la creuser. Concasser les noisettes.", "3. Couper l'oignon et la carotte en brunoise et émincer les champignons.", "4. Chauffer l'huile dans une poêle antiadhésive et faire revenir la carotte et la chair de courgette. Ajouter les champignons et la sauce tomate. Mélanger.", "5. Farcir la courgette, parsemer de noisettes et enfourner une quinzaine de minutes à 200 °C (surveiller et adapter la cuisson au four).", "6. Servir avec de la salade verte assaisonnée de vinaigre.", "7. Agrémenter d'herbes fraîches, d'épices et d'aromates.", "Note Claude : l'oignon est coupé mais la fiche n'indique pas quand le cuire ; le faire revenir avec la carotte."], "keep": ["Conservation : 3 jours au réfrigérateur, crues farcies ou cuites. Congélation déconseillée (la courgette devient spongieuse).", "Réchauffage : au four 15 min à 180 °C, ou micro-ondes 2 à 3 min à puissance moyenne."]}, "souppd": {"t": "45 min", "ing": [["Patate douce", "300 g (150 g par personne), soit 1 grosse"], ["Oignon blanc", "40 g (½ petit oignon)"], ["Ail", "6 g (1 à 2 gousses)"], ["Gingembre frais", "2 g (1 cm)"], ["Curry au choix", "6 g (2 c. à café)"], ["Lait de coco", "160 ml"], ["Cube de bouillon de légumes", "1 (la fiche en indique 1 par personne ; pour 2, 1 seul suffit, à ajuster au goût)"], ["Huile d'olive", "2 c. à café"], ["Poivre", "—"]], "steps": ["1. Éplucher et couper la patate douce en dés et l'oignon en brunoise.", "2. Chauffer de l'eau dans une casserole et diluer le cube de légumes.", "3. Chauffer l'huile d'olive dans une poêle antiadhésive et faire revenir l'oignon, l'ail et le gingembre quelques secondes avec le curry.", "4. Ajouter les cubes de patate douce dans la poêle et les faire saisir 5 minutes.", "5. Verser dans l'eau avec le cube de légumes et laisser cuire 20 minutes environ, en remuant de temps en temps.", "6. Mixer avec le lait de coco.", "7. Agrémenter d'herbes fraîches, d'épices et d'aromates.", "8. Poivrer, dresser (ne pas saler, car le cube de légumes apporte le sel)."], "keep": ["Conservation : 4 jours au réfrigérateur. Se congèle très bien (3 mois) ; le lait de coco peut se séparer légèrement, un coup de fouet au réchauffage suffit.", "Réchauffage : casserole à feu moyen 5 à 7 min en remuant, ou micro-ondes 3 min. Ajouter un peu d'eau si elle a épaissi."]}, "soupcf": {"t": "30 min (lecture probable, peut-être 50 min)", "ing": [["Chou-fleur", "640 g (320 g par personne), soit environ ¾ d'un chou-fleur moyen"], ["Oignon blanc", "60 g (½ oignon)"], ["Ail", "6 g (1 à 2 gousses)"], ["Persil frais", "2 g (quelques brins)"], ["Paprika", "2 g (1 c. à café rase)"], ["Curcuma", "2 g (1 c. à café rase)"], ["Cube de bouillon de légumes", "1"], ["Crème fraîche liquide 15-20 %", "5 c. à soupe (2,5 par personne)"], ["Huile d'olive", "1 c. à café (0,5 par personne)"], ["Sel, poivre", "—"]], "steps": ["1. Couper le chou-fleur, le parsemer de curcuma et de paprika. Enfourner une quinzaine de minutes à 200 °C.", "2. Pendant ce temps, émincer l'oignon, éplucher et écraser l'ail, ciseler le persil.", "3. Chauffer l'huile dans une casserole et faire revenir l'oignon et l'ail quelques secondes.", "4. Ajouter le cube de légumes et diluer dans 1 à 2 verres d'eau (pour 1 personne ; 2 à 4 verres pour 2).", "5. Ajouter les morceaux de chou-fleur et le persil en fin de cuisson. Bien mélanger puis mixer avec la crème fraîche.", "6. Agrémenter d'herbes fraîches, d'épices et d'aromates.", "7. Saler, poivrer, dresser."], "keep": ["Conservation : 4 jours au réfrigérateur. Se congèle très bien, de préférence sans la crème : mixer sans crème, congeler, et ajouter la crème au réchauffage.", "Réchauffage : casserole à feu moyen 5 à 7 min en remuant, ou micro-ondes 3 min. Ajouter un peu d'eau si elle a épaissi, puis la crème si elle n'a pas été mise avant."]}, "soupct": {"t": "40 min", "ing": [["Chou-fleur", "400 g (200 g par personne), environ ½ chou-fleur"], ["Oignon blanc", "80 g (1 petit oignon)"], ["Ail", "6 g (1 à 2 gousses)"], ["Pain de mie complet", "120 g (60 g par personne, environ 2 tranches chacun)"], ["Cream cheese", "80 g"], ["Beurre", "20 g"], ["Sel, poivre", "—"]], "steps": ["1. Émincer l'oignon et couper le chou-fleur en petits bouquets. Éplucher et écraser l'ail s'il est frais.", "2. Faire fondre le beurre dans une casserole et faire revenir l'oignon et l'ail quelques secondes.", "3. Ajouter le chou-fleur, mouiller à hauteur et laisser cuire à couvert une trentaine de minutes.", "4. Mixer la soupe.", "5. Griller le pain au grille-pain ou à la poêle et le tartiner de cream cheese.", "6. Agrémenter d'herbes fraîches, d'épices et d'aromates.", "7. Saler, poivrer, dresser."], "keep": ["Conservation : soupe 4 jours au réfrigérateur ; 3 mois au congélateur (sans crème, elle se congèle sans souci). Pain de mie : se congèle en tranches et se grille directement surgelé.", "Réchauffage : casserole à feu moyen 5 à 7 min en remuant, ou micro-ondes 3 min."]}, "crev": {"t": "25 min", "ing": [["Crevettes (crues, décortiquées)", "360 g (180 g par personne)"], ["Courgette", "2 (1 par personne)"], ["Salade verte", "à volonté"], ["Gingembre frais", "6 g (2 cm environ)"], ["Ail", "6 g (1 à 2 gousses)"], ["Poudre de piment", "4 g (à doser selon le goût)"], ["Curcuma", "4 g (1 c. à café bombée)"], ["Vinaigre", "2 c. à café"], ["Lait de coco", "120 ml"], ["Huile d'olive", "1 c. à café"], ["Sel, poivre", "—"]], "steps": ["1. Couper la courgette en demi-rondelles. Éplucher et écraser l'ail s'il est frais. Râper le gingembre.", "2. Chauffer l'huile à feu moyen dans une poêle antiadhésive et cuire les crevettes avec la courgette et l'ail jusqu'à ce qu'elles soient rosées.", "3. Ajouter le curcuma, la poudre de piment, le gingembre et le lait de coco. Couvrir et laisser mijoter une quinzaine de minutes.", "4. Accompagner de salade verte assaisonnée de vinaigre.", "5. Agrémenter d'herbes fraîches, d'épices et d'aromates.", "6. Saler, poivrer, dresser."], "keep": ["Conservation : plat cuit 2 jours au réfrigérateur maximum (crustacés). Légumes coupés 3 jours. Congélation du plat cuit déconseillée ; en revanche, des crevettes surgelées crues se gardent au congélateur et se décongèlent la veille au réfrigérateur.", "Réchauffage : poêle à feu doux, couvercle, 3 à 4 min juste pour tiédir, sans faire rebouillir."]}, "salbro": {"t": "environ 25 min (chiffre flou)", "ing": [["Œufs", "4 (2 par personne)"], ["Copeaux de pecorino romano", "50 g (25 g par personne)"], ["Brocoli", "400 g (200 g par personne), environ 1 tête"], ["Salade verte", "à volonté"], ["Ail", "6 g (1 à 2 gousses)"], ["Persil frais", "6 g (une petite poignée)"], ["Vinaigre", "6 c. à café (3 par personne)"], ["Huile d'olive", "4 c. à café (2 par personne)"], ["Sel, poivre", "—"]], "steps": ["1. Couper le brocoli en fleurons, éplucher et écraser l'ail s'il est frais, ciseler le persil.", "2. Cuire le brocoli à l'eau ou à la vapeur. Laisser refroidir ou refroidir à l'eau froide.", "3. Faire bouillir de l'eau dans une casserole et cuire les œufs façon œuf mollet (6 minutes).", "4. Préparer une vinaigrette avec l'huile, le vinaigre et l'ail.", "5. Une fois le brocoli cuit et refroidi, le mélanger avec la salade verte et le persil.", "6. Parsemer de copeaux de pecorino romano.", "7. Agrémenter d'herbes fraîches, d'épices et d'aromates.", "8. Saler, poivrer, dresser."], "keep": ["Conservation : brocoli cuit 3 jours au réfrigérateur ; vinaigrette 1 semaine ; œufs mollets 2 jours (dans leur coquille, c'est plus sûr). Salade verte lavée et essorée 3 jours dans une boîte avec un papier absorbant. Ne pas assaisonner à l'avance.", "Réchauffage : aucun, plat froid. Pour un œuf mollet tiède, le passer 1 min dans l'eau chaude du robinet."]}, "tmz": {"t": "10 min", "ing": [["Boule de mozzarella", "2 (1 par personne)"], ["Tomates cerises", "300 g (150 g par personne)"], ["Persil frais", "2 g (quelques brins)"], ["Vinaigre balsamique", "4 c. à café (2 par personne)"], ["Huile d'olive", "3 c. à soupe (1,5 par personne)"], ["Sel, poivre", "—"]], "steps": ["1. Couper les tomates cerises en deux et la mozzarella en tranches. Ciseler le persil.", "2. Assaisonner d'huile et de vinaigre balsamique.", "3. Agrémenter d'herbes fraîches, d'épices et d'aromates.", "4. Saler, poivrer, dresser."], "keep": ["Conservation : tomates cerises entières hors du réfrigérateur ; mozzarella fermée selon la date du paquet. Vinaigrette 1 semaine.", "Réchauffage : sans objet."]}, "bowl": {"t": "20 min", "ing": [["Fromage de chèvre frais", "60 g (30 g par personne)"], ["Avocat", "1 (½ par personne)"], ["Épinards frais (pousses)", "80 g (40 g par personne)"], ["Champignons de Paris", "240 g (120 g par personne)"], ["Citron vert ou jaune", "1 (½ par personne)"], ["Noix (cerneaux)", "40 g (20 g par personne)"], ["Vinaigre", "4 c. à café"], ["Beurre", "20 g"], ["Huile d'olive", "3 c. à café (1,5 par personne)"], ["Sel, poivre", "—"]], "steps": ["1. Émincer les champignons, couper l'avocat en tranches, concasser les noix.", "2. Chauffer le beurre dans une poêle antiadhésive et faire revenir les champignons.", "3. Dresser le tout en bowl avec les épinards crus, les noix et le fromage de chèvre frais.", "4. Assaisonner d'huile d'olive, de vinaigre et de citron pressé.", "5. Agrémenter d'herbes fraîches, d'épices et d'aromates.", "6. Saler, poivrer, dresser."], "keep": ["Conservation : champignons poêlés 3 jours ; pousses d'épinards 3 à 4 jours dans leur sachet ; noix concassées 1 semaine en bocal ; vinaigrette 1 semaine. Un avocat entamé se garde 1 jour avec son noyau et du citron.", "Réchauffage : champignons 1 min à la poêle ou 30 s au micro-ondes, ou froids."]}, "obc": {"t": "20 min", "ing": [["Œufs", "6 (3 par personne)"], ["Emmental râpé", "30 g"], ["Champignons de Paris", "200 g"], ["Ail", "6 g (1 à 2 gousses)"], ["Coriandre fraîche", "2 g (une petite poignée)"], ["Lait demi-écrémé", "60 ml"], ["Beurre", "20 g"], ["Huile d'olive", "2 c. à café"], ["Sel, poivre", "—"]], "steps": ["1. Émincer les champignons, éplucher et écraser l'ail, ciseler la coriandre.", "2. Chauffer l'huile et le beurre dans une casserole. Casser les œufs dans la casserole et brouiller à feu moyen 3 à 5 min en ajoutant le lait.", "3. Ajouter le fromage râpé et les champignons, puis mélanger avec les œufs et la coriandre.", "4. Agrémenter d'herbes fraîches, d'épices et d'aromates.", "5. Saler, poivrer, dresser.", "Note Claude : la fiche n'indique pas de cuisson des champignons. Ils sont meilleurs poêlés 5 min avec l'ail avant les œufs (ou cuits le dimanche, voir ci-dessous)."], "keep": ["Conservation : champignons poêlés 3 jours au réfrigérateur ; coriandre ciselée 2 jours dans un papier absorbant humide. Œufs brouillés déjà cuits : à éviter en batch.", "Réchauffage : les champignons se réchauffent directement dans la casserole avant d'y verser les œufs."]}, "obt": {"t": "20 min", "ing": [["Œufs", "6 (3 par personne)"], ["Emmental râpé", "40 g (20 g par personne)"], ["Tomates cerises", "240 g (120 g par personne)"], ["Salade verte", "à volonté"], ["Vinaigre", "4 c. à café"], ["Beurre", "20 g (10 g par personne)"], ["Sel, poivre", "—"]], "steps": ["1. Couper les tomates cerises en deux.", "2. Chauffer le beurre dans une casserole. Casser les œufs dans la casserole et brouiller à feu moyen 3 à 5 minutes.", "3. Ajouter le fromage râpé et mélanger avec les œufs.", "4. Accompagner de salade et de tomates cerises assaisonnées de vinaigre.", "5. Agrémenter d'herbes fraîches, d'épices et d'aromates.", "6. Saler, poivrer, dresser."], "keep": ["Conservation : salade lavée 3 jours dans une boîte avec un papier absorbant ; tomates cerises entières hors du réfrigérateur, elles gardent leur goût.", "Réchauffage : sans objet."]}, "omdinde": {"t": "20 min", "ing": [["Œufs", "4 (2 par personne)"], ["Jambon de dinde sans nitrite", "160 g"], ["Emmental râpé", "30 g"], ["Champignons de Paris", "160 g"], ["Épinards frais", "200 g"], ["Huile d'olive", "4 c. à café (2 par personne)"], ["Sel, poivre", "—"]], "steps": ["1. Couper les champignons, les épinards et le jambon de dinde en morceaux.", "2. Battre les œufs en omelette et mélanger avec l'emmental râpé. Ajouter les morceaux de champignons, d'épinards et de jambon.", "3. Chauffer l'huile dans une poêle antiadhésive et cuire l'omelette sur les deux faces.", "4. Agrémenter d'herbes fraîches, d'épices et d'aromates.", "5. Saler, poivrer, dresser.", "Note Claude : pour 2, faire deux omelettes l'une après l'autre (ou une grande dans une poêle de 28 cm) : une omelette de 4 œufs chargée en légumes est difficile à retourner."], "keep": ["Conservation : légumes coupés crus 3 jours ; légumes poêlés 3 jours ; jambon ouvert selon l'emballage (2 à 3 jours en général). Omelette cuite 2 jours au réfrigérateur.", "Réchauffage : poêle couverte à feu doux 3 min, ou micro-ondes 1 min. Se mange aussi froide."]}, "galette": {"t": "15 min", "ing": [["Œufs", "4 (2 par personne)"], ["Galette de sarrasin", "2 (1 par personne)"], ["Fromage de chèvre frais", "60 g (30 g par personne)"], ["Épinards frais", "400 g (200 g par personne)"], ["Oignon blanc", "40 g (½ petit oignon)"], ["Miel", "2 c. à café (1 par personne)"], ["Beurre", "20 g (10 g par personne)"], ["Sel, poivre", "—"]], "steps": ["1. Émincer l'oignon.", "2. Chauffer le beurre dans une poêle antiadhésive et cuire l'œuf façon œuf au plat. Réserver.", "3. Ajouter et faire revenir l'oignon et les épinards à feu moyen. Réserver.", "4. Déposer la galette de sarrasin dans la poêle.", "5. Ajouter les épinards, le fromage de chèvre frais, l'oignon et l'œuf.", "6. Agrémenter d'herbes fraîches, d'épices et d'aromates.", "7. Saler, poivrer, mettre le filet de miel sur la crêpe.", "8. Dresser en fermant la crêpe."], "keep": ["Conservation : épinards cuits 2 à 3 jours au réfrigérateur, bien égouttés. Galettes de sarrasin du commerce : voir la date du paquet, elles se congèlent aussi à plat, séparées par du papier cuisson.", "Réchauffage : les épinards se réchauffent directement dans la poêle avant de poser la galette."]}, "thon": {"t": "moins de 10 min (selon le livre)", "ing": [["Thon (au naturel, égoutté)", "200 g"], ["Fromage blanc 0 %", "2 c. à soupe"], ["Graines de chia", "2 c. à café"], ["Basilic", "2 c. à café"], ["Romarin", "1 c. à café"], ["Citrons verts", "2 (le jus)"], ["Tortillas de blé complet", "2"], ["Avocat", "1"], ["Sauce : huile d'olive", "2 c. à café"], ["Sauce : moutarde", "2 c. à café"], ["Sauce : jaunes d'œufs", "2"], ["Sauce : sauce soja (ou tamari)", "2 c. à café"], ["Sel, poivre", "—"]], "steps": ["1. Écraser et mélanger le thon avec le fromage blanc, les graines de chia, les herbes et le jus de citron.", "2. Mélanger l'huile d'olive, la moutarde, le jaune d'œuf, la sauce soja, le sel et le poivre.", "3. Disposer la préparation au thon au centre de la tortilla, arroser de sauce, ajouter par-dessus des lamelles d'avocat. Rouler le wrap et déguster !", "Notes Claude :", "- Le jaune d'œuf est utilisé cru dans la sauce : utiliser des œufs très frais, et ne pas garder la sauce plus de 24 h. Variante sans œuf cru : remplacer le jaune par 1 c. à soupe de fromage blanc.", "- Le jus d'un citron vert entier par personne rend la farce très acide : commencer par la moitié."], "keep": ["Conservation : farce au thon 2 jours au réfrigérateur ; sauce au jaune cru 24 h maximum ; tortillas selon le paquet. Un wrap roulé à l'avance détrempe.", "Réchauffage : sans objet, se mange froid. Bon candidat pour un déjeuner emporté (rouler le matin, garder au frais)."]}, "pasta": {"t": "environ 25 min (lecture probable sur la photo)", "ing": [["Boule de mozzarella", "1 (0,5 par personne)"], ["Copeaux de parmesan", "20 g (10 g par personne)"], ["Pâtes complètes au choix (poids cru)", "140 g (70 g par personne)"], ["Sauce tomate cuisinée", "120 ml (60 ml par personne)"], ["Basilic", "4 g (2 g par personne)"], ["Huile d'olive", "2 c. à café"], ["Sel, poivre", "—"]], "steps": ["1. Cuire les pâtes selon les instructions du paquet.", "2. Couper la mozzarella en tranches.", "3. Chauffer une poêle antiadhésive et y faire chauffer la sauce tomate avec le basilic. Ajouter les pâtes, la mozzarella et les copeaux de parmesan. Passer l'ensemble quelques secondes au four en mode grill, ou bien mélanger pour tout faire fondre.", "4. Agrémenter d'herbes fraîches, d'épices et d'aromates.", "5. Saler, poivrer, dresser."], "keep": ["Conservation : si un reste, 2 jours au réfrigérateur en boîte hermétique. Ne se congèle pas bien (mozzarella et pâtes deviennent caoutchouteuses).", "Réchauffage : poêle à feu doux avec 2 c. à soupe d'eau, couvercle, 4 à 5 min ; ou micro-ondes 2 min à puissance moyenne."]}, "carbo": {"t": "moins de 15 min selon le livre ; compter plutôt 20 min (10 min de mijotage + cuisson des pâtes ; estimation Claude)", "ing": [["Jambon", "150 g (3 tranches)"], ["Bacon", "50 g"], ["Oignon", "100 g (1 petit)"], ["Champignons de Paris", "100 g"], ["Huile d'olive", "1 c. à café"], ["Lait de coco", "150 ml"], ["Sauce soja (ou tamari)", "2 c. à soupe"], ["Pâtes complètes", "110 g crues"], ["Fromage de brebis râpé", "20 g"], ["Coriandre", "1 c. à café"], ["Sel, poivre", "—"]], "steps": ["1. Faire chauffer une casserole d'eau salée remplie aux deux tiers.", "2. Découper le jambon et le bacon en dés. Dans une poêle, faire chauffer le jambon sur feu vif en remuant régulièrement pendant 2-3 minutes, puis ajouter le bacon et faire chauffer 2 minutes supplémentaires. Réserver.", "3. Dans la même poêle, faire revenir l'oignon et les champignons épluchés et émincés dans l'huile d'olive sur feu moyen. Ajouter le lait de coco (avec un peu d'eau selon votre convenance) et la sauce soja. Baisser le feu et laisser mijoter 10 minutes.", "4. Verser les pâtes complètes dans l'eau bouillante et faire cuire environ 10 minutes.", "5. Incorporer les dés de jambon et de bacon dans la poêle contenant les champignons, saler et poivrer généreusement, et laisser réchauffer 2 ou 3 minutes à feu doux.", "6. Égoutter les pâtes. Verser la sauce carbonara healthy dessus. Saupoudrer de fromage de brebis râpé et de coriandre.", "Conseil de l'auteur : repas à accorder avec une collation (avant ou après) en shaker de protéine.", "Note Claude : 2 c. à soupe de sauce soja plus le jambon et le bacon, c'est déjà très salé : saler très peu."], "keep": ["Conservation : sauce 3 jours au réfrigérateur. Congélation possible (2 mois), le lait de coco peut se séparer légèrement, un coup de fouet suffit.", "Réchauffage : sauce en casserole à feu doux 5 min avec un peu d'eau, puis verser sur les pâtes fraîchement cuites."]}, "risotto": {"t": "40 min (lecture probable)", "ing": [["Jambon de dinde sans nitrite", "160 g (80 g par personne)"], ["Coquillettes au blé complet (poids cru)", "140 g (70 g par personne)"], ["Oignon blanc", "20 g (¼ d'oignon)"], ["Ail", "8 g (2 gousses)"], ["Champignons de Paris", "240 g (120 g par personne)"], ["Carotte", "2 (1 par personne)"], ["Emmental râpé", "30 g"], ["Parmesan râpé", "30 g"], ["Cube de bouillon de légumes", "1 (la fiche en indique 1 par personne ; pour 2, 1 seul suffit dans un grand volume d'eau, à ajuster au goût)"], ["Crème fraîche liquide 15-20 %", "8 c. à soupe (4 par personne)"], ["Sel, poivre", "—"]], "steps": ["1. Éplucher et écraser l'ail s'il est frais. Émincer l'oignon et les champignons, couper la carotte en demi-rondelles. Diluer le cube de légumes dans un grand volume d'eau. Couper le jambon en lamelles.", "2. Chauffer la crème fraîche dans une casserole et y faire revenir l'ail et l'oignon quelques secondes.", "3. Ajouter les coquillettes et les légumes et laisser dorer quelques minutes.", "4. Ajouter une louche de bouillon et mélanger. Répéter l'opération jusqu'à absorption, jusqu'à ce que les pâtes soient cuites.", "5. Ajouter les fromages râpés et le jambon en fin de cuisson et bien mélanger.", "6. Agrémenter d'herbes fraîches, d'épices et d'aromates.", "7. Saler, poivrer, dresser."], "keep": ["Conservation : 3 jours au réfrigérateur en boîte hermétique (jambon et crème). À placer en début de semaine. Congélation déconseillée : les pâtes ramollissent et la crème peut trancher.", "Réchauffage : casserole à feu doux avec 3 à 4 c. à soupe d'eau ou de bouillon, en remuant, 5 min ; ou micro-ondes 2 à 3 min à puissance moyenne avec un peu d'eau. Le plat épaissit en refroidissant, il faut toujours ajouter du liquide."]}, "veau": {"t": "40 min", "ing": [["Escalopes de veau", "360 g (180 g par personne)"], ["Morilles lyophilisées (séchées)", "60 g (30 g par personne)"], ["Champignons de Paris", "240 g"], ["Oignon blanc", "100 g (1 oignon moyen)"], ["Ail", "10 g (2 gousses)"], ["Beurre", "30 g"], ["Crème fraîche liquide 15-20 %", "12 c. à café (4 c. à soupe)"], ["Huile d'olive", "3 c. à café"], ["Sel, poivre", "—"]], "steps": ["1. Réhydrater les morilles selon les instructions du paquet.", "2. Émincer l'oignon et les champignons de Paris. Éplucher et écraser l'ail s'il est frais.", "3. Chauffer l'huile dans une poêle antiadhésive et cuire la viande à cœur avec l'ail. Réserver.", "4. Faire fondre le beurre dans cette même poêle et cuire l'oignon avec les champignons une vingtaine de minutes en remuant de temps en temps. Ajouter la crème en fin de cuisson et bien mélanger.", "5. Agrémenter d'herbes fraîches, d'épices et d'aromates.", "6. Saler, poivrer, dresser.", "Note Claude : la fiche ne dit pas quand ajouter les morilles ; les mettre avec les champignons de Paris. Garder un peu de leur eau de trempage (filtrée) pour la sauce, c'est là qu'est le goût. Remettre le veau dans la sauce 2 min avant de servir."], "keep": ["Conservation : sauce 3 jours au réfrigérateur ; se congèle correctement (2 mois), la crème peut légèrement trancher, un coup de fouet suffit.", "Réchauffage : sauce en casserole à feu doux 5 min avec un peu d'eau, puis y passer le veau juste poêlé."]}};
+const MAXV = 7, KEY = "semaine-lasseche-1012-v3", DOC = "semaines/2026-10-12";
+
+// ---- État : la semaine choisie et les articles cochés ----
+let state = {sel: {...V.A.p}, checked: {}};
+function valid(s){ return s && s.sel && P.every(p => R[s.sel[p.k]]) && s.checked && typeof s.checked === "object"; }
+try { const s = JSON.parse(localStorage.getItem(KEY)); if (valid(s)) state = s; } catch (e) {}
+let tab = "semaine";
+try { tab = localStorage.getItem(KEY+"-tab") || "semaine"; } catch (e) {}
+
+let ref = null, dirty = false, writing = false, timer = null;
+const syncEl = () => document.getElementById("sync");
+function persist(){
+  try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+  if (!ref) return;
+  dirty = true; clearTimeout(timer); timer = setTimeout(flush, 500);
+}
+async function flush(){
+  if (writing) return;
+  writing = true;
+  while (dirty) {
+    dirty = false;
+    try { await ref.set({sel: {...state.sel}, checked: {...state.checked}}); syncEl().textContent = "Enregistré, visible sur tous tes appareils."; }
+    catch (e) { syncEl().textContent = "Pas enregistré en ligne (" + (e && e.code || "erreur") + "), gardé sur ce téléphone."; }
+  }
+  writing = false;
+}
+(async () => {
+  const db = window.claude && await window.claude.use("db");
+  if (!db) { syncEl().textContent = "Enregistré sur ce téléphone seulement."; return; }
+  ref = db.doc(DOC);
+  ref.onSnapshot(snap => {
+    if (dirty || writing || snap.metadata.hasPendingWrites || !snap.exists) return;
+    const d = snap.data();
+    if (!valid(d)) return;
+    state = {sel: {...d.sel}, checked: {...d.checked}};
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+    syncEl().textContent = "Synchronisé.";
+    render();
+  }, () => { syncEl().textContent = "Synchronisation coupée : recharge la page."; });
+})();
+
+// ---- Outils ----
+function el(tag, attrs, ...kids){ const e = document.createElement(tag); for (const k in attrs||{}) { if (k === "class") e.className = attrs[k]; else if (k.startsWith("on")) e.addEventListener(k.slice(2), attrs[k]); else if (k === "checked") e.checked = attrs[k]; else e.setAttribute(k, attrs[k]); } kids.flat().forEach(c => c != null && e.append(c)); return e; }
+function pick(k, id){ state.sel[k] = id; persist(); render(); }
+function meals(){ return P.reduce((n,p) => n + (R[state.sel[p.k]].v ? p.slots.length : 0), 0); }
+function mult(p){ const r = R[state.sel[p.k]]; return p.slots.length > 1 && !r.once ? 2 : 1; }
+
+// ---- Liste de courses ----
+function buildList(){
+  const items = {}, pl = {};
+  const add = ([name, q, u, ray], m, src) => {
+    const key = name + "|" + u;
+    if (!items[key]) items[key] = {key, name, u, ray, q: 0, src: new Set()};
+    items[key].q += q * m; items[key].src.add(src);
+  };
+  P.forEach(p => {
+    const id = state.sel[p.k], m = mult(p);
+    Q[id].forEach(x => add(x, m, R[id].n));
+    (PLACARD[id]||[]).concat(["huile d'olive","sel, poivre"]).forEach(x => pl[x] = 1);
+  });
+  BREAKFAST.forEach(x => add(x, 1, "petits-déjeuners"));
+  BREAKFAST_PL.forEach(x => pl[x] = 1);
+  Object.keys(pl).forEach(x => items[x+"|pl"] = {key: x+"|pl", name: x, u: "pl", ray: "PL", q: 0, src: new Set()});
+  return Object.values(items);
+}
+function fmt(it){
+  const q = it.q;
+  if (it.u === "pl") return "";
+  if (it.u === "g") return q >= 1000 ? (Math.round(q/100)/10).toString().replace(".",",") + " kg" : Math.round(q) + " g";
+  if (it.u === "ml") { const v = q >= 1000 ? (Math.round(q/100)/10).toString().replace(".",",") + " L" : Math.round(q/10) + " cl"; return it.name === "lait de coco" ? v + " (" + Math.ceil(q/400) + " boîte" + (q > 400 ? "s" : "") + " de 40 cl)" : v; }
+  const n = Math.ceil(q - 1e-9);
+  if (it.u === "botte") return n + (n > 1 ? " bottes" : " botte");
+  if (it.u === "gousse") return n + (n > 1 ? " gousses" : " gousse");
+  return "× " + n;
+}
+function renderList(){
+  const items = buildList(), box = document.getElementById("list"); box.innerHTML = "";
+  let done = 0;
+  Object.keys(RAYONS).forEach(r => {
+    const rows = items.filter(i => i.ray === r).sort((a,b) => a.name.localeCompare(b.name,"fr"));
+    if (!rows.length) return;
+    const left = rows.filter(i => !state.checked[i.key]).length;
+    const sec = el("section",{class:"rayon","aria-label":RAYONS[r]}, el("h2",{}, RAYONS[r], el("small",{}, left ? left + " à prendre" : "fait")));
+    rows.forEach(it => {
+      const on = !!state.checked[it.key]; if (on) done++;
+      const id = "c-" + it.key.replace(/[^a-z0-9]/gi, "_");
+      sec.append(el("label",{class:"item"+(on?" done":""),for:id},
+        el("input",{type:"checkbox",id,checked:on,onchange:(e)=>{ if (e.target.checked) state.checked[it.key] = true; else delete state.checked[it.key]; persist(); renderList(); }}),
+        el("span",{class:"what"}, it.name, it.src.size ? el("small",{}, [...it.src].join(", ")) : null),
+        el("span",{class:"qty"}, fmt(it))));
+    });
+    box.append(sec);
+  });
+  document.getElementById("prog").textContent = done + "/" + items.length;
+  document.getElementById("bar").style.width = (items.length ? 100*done/items.length : 0) + "%";
+}
+function listText(){
+  const items = buildList();
+  let t = "Courses semaine du 12 octobre\n";
+  Object.keys(RAYONS).forEach(r => {
+    const rows = items.filter(i => i.ray === r && !state.checked[i.key]).sort((a,b) => a.name.localeCompare(b.name,"fr"));
+    if (!rows.length) return;
+    t += "\n" + RAYONS[r] + "\n" + rows.map(i => "- " + i.name + (fmt(i) ? " : " + fmt(i).replace("× ","") : "")).join("\n") + "\n";
+  });
+  return t;
+}
+
+// ---- Vue semaine ----
+function tags(r, p){
+  return el("span",{class:"tags"},
+    r.v ? el("span",{class:"tag v"}, p.slots.length > 1 ? "viande ×2" : "viande") : null,
+    r.c ? el("span",{class:"tag c"},"cher") : null);
+}
+function renderVariants(){
+  const box = document.getElementById("variants"); box.innerHTML = "";
+  for (const k in V) {
+    const same = P.every(p => V[k].p[p.k] === state.sel[p.k]);
+    box.append(el("button",{type:"button","aria-pressed":String(same),onclick:()=>{ state.sel = {...V[k].p}; persist(); render(); }},
+      el("b",{},"Proposition "+k), el("span",{},V[k].s)));
+  }
+}
+function renderGrid(){
+  const cells = DAYS.map(() => ["",""]);
+  P.forEach(p => p.slots.forEach(([d,m]) => cells[d][m] = R[state.sel[p.k]].n));
+  const tb = document.getElementById("grid"); tb.innerHTML = "";
+  DAYS.forEach((day,d) => tb.append(el("tr",{}, el("td",{class:"d"},day.slice(0,3)+"."), el("td",{},cells[d][0]), el("td",{},cells[d][1]))));
+}
+function renderPostes(){
+  const box = document.getElementById("postes"); box.innerHTML = "";
+  P.forEach(p => {
+    const dbl = p.slots.length > 1;
+    const card = el("section",{class:"day","aria-label":p.t},
+      el("div",{class:"slot-head"}, el("h2",{},p.t), dbl ? el("span",{class:"x2"},"1 plat · 2 repas") : null),
+      el("div",{class:"note"},p.h));
+    const opts = el("div",{class:"opts"});
+    const ids = p.o.slice(); if (!ids.includes(state.sel[p.k])) ids.push(state.sel[p.k]);
+    ids.forEach(id => {
+      const r = R[id];
+      opts.append(el("button",{type:"button",class:"opt","aria-pressed":String(state.sel[p.k]===id),onclick:()=>pick(p.k,id)},
+        el("span",{class:"name"}, r.n), el("span",{class:"ing"}, r.i.join(" · ")), r.d ? el("span",{class:"ing"},"→ "+r.d) : null, tags(r,p)));
+    });
+    const selId = "autre-"+p.k;
+    const pool = Object.keys(R).filter(id => R[id][p.f]).sort((a,b)=>R[a].n.localeCompare(R[b].n,"fr"));
+    const s = el("select",{id:selId,onchange:(e)=>{ if (e.target.value) pick(p.k, e.target.value); }},
+      el("option",{value:""}, dbl ? "Autre plat qui se réchauffe…" : "Autre plat…"),
+      pool.map(id => el("option",{value:id}, R[id].n + (R[id].v?" (viande)":""))));
+    card.append(opts, el("label",{class:"other",for:selId}, s));
+    box.append(card);
+  });
+}
+function renderStats(){
+  const meat = meals();
+  const dishes = [...new Set(P.map(p => state.sel[p.k]))];
+  const uses = {};
+  dishes.forEach(id => R[id].i.forEach(x => { uses[x] = (uses[x]||0)+1; }));
+  document.getElementById("n-meat").textContent = meat + "/" + MAXV;
+  document.getElementById("st-meat").classList.toggle("bad", meat > MAXV);
+  document.getElementById("n-cook").textContent = dishes.length;
+  document.getElementById("n-shared").textContent = Object.keys(uses).filter(k => uses[k] > 1).length;
+  const al = document.getElementById("alerts"); al.innerHTML = "";
+  if (meat > MAXV) al.append(el("div",{class:"alert meat"}, `${meat} repas avec viande : il en faut ${meat-MAXV} de moins pour rester à ${MAXV}.`));
+  const cher = {};
+  P.forEach(p => (R[state.sel[p.k]].c||[]).forEach(x => { cher[x] = (cher[x]||0) + p.slots.length; }));
+  for (const x in cher) if (cher[x] < 2) al.append(el("div",{class:"alert"}, `${x[0].toUpperCase()+x.slice(1)} : aliment cher qui ne sert qu'un repas. Mets ce plat sur un poste double, ou change-le.`));
+  const count = {}; P.forEach(p => count[state.sel[p.k]] = (count[state.sel[p.k]]||0) + p.slots.length);
+  for (const id in count) if (count[id] > 2) al.append(el("div",{class:"alert"}, `${R[id].n} revient ${count[id]} fois dans la semaine.`));
+}
+
+function showTab(t){
+  tab = t;
+  try { localStorage.setItem(KEY+"-tab", t); } catch (e) {}
+  document.getElementById("tab-semaine").setAttribute("aria-selected", String(t === "semaine"));
+  document.getElementById("tab-courses").setAttribute("aria-selected", String(t === "courses"));
+  document.getElementById("view-semaine").hidden = t !== "semaine";
+  document.getElementById("view-courses").hidden = t !== "courses";
+  document.getElementById("tab-recettes").setAttribute("aria-selected", String(t === "recettes"));
+  document.getElementById("view-recettes").hidden = t !== "recettes";
+}
+// ---- Recettes ajustées ----
+function scaleNum(txt, f){
+  return txt.replace(/(\d+(?:[.,]\d+)?|½|¼|¾)/g, m => {
+    const v = m === "½" ? 0.5 : m === "¼" ? 0.25 : m === "¾" ? 0.75 : parseFloat(m.replace(",", "."));
+    const r = Math.round(v * f * 100) / 100;
+    return String(r).replace(".", ",");
+  });
+}
+function scaleQty(q, f){
+  if (f === 1) return q;
+  let out = "", depth = 0, buf = "";
+  const flush = (inside) => {
+    if (!buf) return;
+    if (inside) { if (!/par personne|1 par|pour 1/.test(buf)) out += scaleNum(buf, f); }
+    else out += scaleNum(buf, f);
+    buf = "";
+  };
+  for (const ch of q) {
+    if (ch === "(") { if (depth === 0) flush(false); depth++; buf += ch; }
+    else if (ch === ")") { buf += ch; depth--; if (depth === 0) flush(true); }
+    else buf += ch;
+  }
+  flush(depth > 0);
+  out = out.replace(/\s+/g, " ").replace(/ ,/g, ",").trim();
+  if (!/\d|½|¼|¾/.test(out)) out = (out === "—" ? "—" : out + " (×" + f + ")");
+  return out;
+}
+function renderRecipes(){
+  const box = document.getElementById("recettes"); box.innerHTML = "";
+  const seen = {};
+  P.forEach(p => {
+    const id = state.sel[p.k], r = R[id], rc = RECIPES[id], f = mult(p);
+    if (!rc) return;
+    const key = id + "-" + f;
+    const card = el("details",{class:"recipe"},
+      el("summary",{}, el("span",{class:"when"}, p.t + (f === 2 ? " · recette ×2" : r.once && p.slots.length > 1 ? " · la recette fait 2 repas" : "")), el("h2",{}, r.n), rc.t ? el("span",{class:"note"}, "Temps (une fois la recette) : " + rc.t) : null));
+    card.append(el("h3",{},"Ingrédients pour 2 personnes" + (f === 2 ? ", 2 repas" : "")));
+    card.append(el("table",{}, el("tbody",{}, rc.ing.map(([n,q]) => el("tr",{}, el("td",{},n), el("td",{class:"q"}, scaleQty(q,f)))))));
+    if (r.d && /œufs durs/.test(r.d)) card.append(el("p",{class:"extra"}, "En plus : " + (f === 2 ? 8 : 4) + " œufs durs à servir à côté (2 par personne et par repas)."));
+    card.append(el("h3",{},"Étapes"));
+    const ol = el("ol",{}); const rest = [];
+    rc.steps.forEach(s => { const m = s.match(/^\d+\.\s*(.*)$/); if (m && !rest.length) ol.append(el("li",{}, m[1])); else rest.push(s.replace(/^-\s*/, "")); });
+    card.append(ol);
+    rest.forEach(s => card.append(el("p",{class:"extra"}, s)));
+    if (rc.keep.length) { card.append(el("h3",{},"Conservation")); rc.keep.forEach(s => card.append(el("p",{class:"extra"}, s))); }
+    box.append(card);
+  });
+}
+function render(){ renderVariants(); renderGrid(); renderPostes(); renderStats(); renderList(); renderRecipes(); }
+
+document.getElementById("tab-semaine").addEventListener("click", () => showTab("semaine"));
+document.getElementById("tab-courses").addEventListener("click", () => { showTab("courses"); window.scrollTo(0,0); });
+document.getElementById("tab-recettes").addEventListener("click", () => { showTab("recettes"); window.scrollTo(0,0); });
+document.getElementById("go-courses").addEventListener("click", () => { showTab("courses"); window.scrollTo(0,0); });
+document.getElementById("reset").addEventListener("click", () => { state.sel = {...V.A.p}; persist(); render(); });
+document.getElementById("uncheck").addEventListener("click", () => { state.checked = {}; persist(); renderList(); });
+document.getElementById("copy-list").addEventListener("click", () => {
+  const txt = listText(), toast = document.getElementById("toast"), fb = document.getElementById("fallback");
+  const fallback = () => { fb.value = txt; fb.hidden = false; fb.focus(); fb.select(); toast.textContent = "Copie automatique impossible : sélectionne le texte et copie-le."; };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(txt).then(() => { fb.hidden = true; toast.textContent = "Liste copiée (articles non cochés)."; }, fallback);
+  } else fallback();
+});
+
+showTab(tab);
+render();
+</script>
+
+</body></html>
