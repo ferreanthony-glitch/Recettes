@@ -160,10 +160,14 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--accent); o
 .meal select { font: inherit; font-weight: 700; font-size: 0.98rem; width: 100%; min-width: 0; padding: 9px 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
 .cell { cursor: grab; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; border-radius: 0; }
 .cell.picked { background: var(--accent-soft); }
-.cell .cname { display: block; padding-right: 14px; position: relative; }
-.cell .cname::after { content: "▾"; position: absolute; right: 0; top: 0; color: var(--muted); font-size: 0.75rem; }
+.grid table { font-size: 0.95rem !important; }
+.grid td { vertical-align: middle !important; }
+.grid td.cell { position: relative; padding: 12px 10px !important; height: 52px; cursor: pointer; }
+.grid td.cell:hover { background: var(--accent-soft); }
+.cell .cname { display: block; padding-right: 18px; position: relative; pointer-events: none; }
+.cell .cname::after { content: "▾"; position: absolute; right: 0; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 0.85rem; }
 .cell.late .cname { color: var(--meat); }
-.cell-sel { font: inherit; font-size: 0.85rem; width: 100%; min-width: 0; padding: 6px; border: 1px solid var(--accent); border-radius: 8px; background: var(--surface); color: var(--ink); }
+.cell-sel { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; font-size: 16px; border: 0; }
 .dishes { display: grid; gap: 0; }
 .dish { display: grid; gap: 6px; padding: 14px 0; border-top: 1px solid var(--line); }
 .dish:first-child { border-top: 0; padding-top: 4px; }
@@ -761,8 +765,8 @@ function renderGrid(){
   SLOTS.forEach(sl => cells[sl.d][sl.m] = R[state.sel[sl.k]].n);
   const tb = document.getElementById("grid"); tb.innerHTML = "";
   const cell = (d, m) => { const sl = SLOTS[d * 2 + m], k = keepInfo(sl);
-    return el("td",{class:"cell" + (picked === sl.k ? " picked" : "") + (k && k.bad ? " late" : ""),"data-k":sl.k},
-      picked === sl.k ? mealSelect(sl) : el("span",{class:"cname"}, cells[d][m])); };
+    return el("td",{class:"cell" + (k && k.bad ? " late" : ""),"data-k":sl.k},
+      el("span",{class:"cname"}, cells[d][m]), mealSelect(sl)); };   // menu invisible posé sur toute la case : la case ne change pas de taille
   DAYS.forEach((day,d) => tb.append(el("tr",{}, el("td",{class:"d"},day.slice(0,3)+"."), cell(d,0), cell(d,1))));
 }
 // Menu de choix d'un repas : plats groupés, ceux qui ne tiennent pas jusqu'à ce jour sont grisés
@@ -771,7 +775,7 @@ function mealSelect(sl){
   const GROUPS = [["r", "Se prépare le dimanche"], ["q", "Rapide, à faire le jour même"], ["g", "Gourmand"]];
   const group = x => GROUPS.find(([f]) => R[x][f])?.[0] || "g";
   const sel = el("select",{class:"cell-sel","aria-label":DAYS[sl.d] + " " + MEALN[sl.m],
-      onchange:(e)=>{ picked = null; pick(sl.k, e.target.value); }, onblur:()=>{ setTimeout(() => { if (picked === sl.k) { picked = null; renderGrid(); } }, 150); }},
+      onchange:(e)=>pick(sl.k, e.target.value)},
     GROUPS.map(([f, label]) => el("optgroup",{label},
       Object.keys(R).filter(x => group(x) === f).sort((a,b) => R[a].n.localeCompare(R[b].n,"fr"))
         .map(x => { const late = tooLong(x, sl.d) && x !== id;
@@ -897,25 +901,26 @@ function dragEnd(x, y){
   if (drag && drag.on) { drag.ghost.remove(); noClick = true; setTimeout(() => noClick = false, 50);
     const t = cellAt(x, y); const k = drag.k; drag = null;
     if (t) swap(k, t.dataset.k); else render(); return; }
+  if (drag && !drag.touch) openMenu(drag.td);   // clic souris sans glisser
   drag = null;
 }
 const grid = document.getElementById("grid");
-grid.addEventListener("mousedown", e => { const td = e.target.closest(".cell"); if (!td || e.button || e.target.closest("select")) return; drag = {k: td.dataset.k, td, x: e.clientX, y: e.clientY}; });
+let lastTouch = 0;   // les navigateurs tactiles simulent aussi la souris après un toucher : on l'ignore
+grid.addEventListener("mousedown", e => { const td = e.target.closest(".cell"); if (!td || e.button || Date.now() - lastTouch < 800) return; e.preventDefault(); drag = {k: td.dataset.k, td, x: e.clientX, y: e.clientY}; });
 document.addEventListener("mousemove", e => { if (!drag) return;
   if (!drag.on && Math.hypot(e.clientX - drag.x, e.clientY - drag.y) > 6) dragStart(drag.td, e.clientX, e.clientY);
   if (drag.on) dragMove(e.clientX, e.clientY); });
 document.addEventListener("mouseup", e => { if (drag) dragEnd(e.clientX, e.clientY); });
-grid.addEventListener("touchstart", e => { const td = e.target.closest(".cell"); if (!td || e.target.closest("select")) return; const t = e.touches[0];
-  drag = {k: td.dataset.k, td, x: t.clientX, y: t.clientY};
+grid.addEventListener("touchstart", e => { lastTouch = Date.now(); const td = e.target.closest(".cell"); if (!td) return; const t = e.touches[0];
+  drag = {k: td.dataset.k, td, x: t.clientX, y: t.clientY, touch: true};
   drag.timer = setTimeout(() => { if (drag) dragStart(td, drag.x, drag.y); }, 250); }, {passive: true});
 document.addEventListener("touchmove", e => { if (!drag) return; const t = e.touches[0];
   if (drag.on) { e.preventDefault(); dragMove(t.clientX, t.clientY); }
   else if (Math.hypot(t.clientX - drag.x, t.clientY - drag.y) > 8) { clearTimeout(drag.timer); drag = null; } }, {passive: false});
 document.addEventListener("touchend", e => { if (!drag) return; const t = e.changedTouches[0]; if (drag.on) e.preventDefault(); dragEnd(t.clientX, t.clientY); });
 document.addEventListener("touchcancel", () => { if (drag) { clearTimeout(drag.timer); if (drag.ghost) drag.ghost.remove(); drag = null; render(); } });
-grid.addEventListener("click", e => { const td = e.target.closest(".cell"); if (!td || noClick || e.target.closest("select")) return;
-  picked = td.dataset.k; renderGrid();
-  const sel = grid.querySelector(".cell-sel"); if (sel) { sel.focus(); try { sel.showPicker(); } catch (err) {} } });
+// Souris : on retient l'ouverture du menu pour pouvoir glisser ; un simple clic l'ouvre au relâchement
+function openMenu(td){ const sel = td.querySelector(".cell-sel"); if (!sel) return; sel.focus(); try { sel.showPicker(); } catch (err) {} }
 grid.addEventListener("contextmenu", e => { if (e.target.closest(".cell")) e.preventDefault(); });
 
 function render(){ renderGen(); renderVariants(); renderGrid(); renderPostes(); renderStats(); renderList(); renderRecipes(); }
