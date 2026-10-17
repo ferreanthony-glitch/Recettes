@@ -1,9 +1,7 @@
 
 /* Épuré : fond blanc, encre presque noire, un seul vert profond, filets fins, titres en serif. */
-:root{--bg:#ffffff;--ink:#1c1d1d;--muted:#6f6f6b;--line:#e6e4df;--soft:#f6f5f1;--accent:#003301;
+:root{--bg:#f7f3ec;--ink:#1c1d1d;--muted:#6b675f;--line:#e2dccf;--soft:#efe9dd;--accent:#003301;
 --font-display:"Fraunces",Georgia,"Times New Roman",serif;--font-body:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;color-scheme:light}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121312;--ink:#ecebe6;--muted:#a3a29c;--line:#2a2b29;--soft:#1a1b1a;--accent:#9fd1a1;color-scheme:dark}}
-:root[data-theme="dark"]{--bg:#121312;--ink:#ecebe6;--muted:#a3a29c;--line:#2a2b29;--soft:#1a1b1a;--accent:#9fd1a1;color-scheme:dark}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
 a{color:inherit}
