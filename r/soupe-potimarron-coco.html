@@ -1,0 +1,105 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#f7f3ec"><meta name="color-scheme" content="light"><title>Soupe de potimarron au lait de coco</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,600;9..40,700&display=swap"><link rel="stylesheet" href="../style.css"></head><body><header class="site"><div class="in"><a class="brand" href="../index.html">Recettes</a><nav class="nav"><a href="../index.html">Recueil</a><a href="../semaine.html">Ma semaine</a><a href="../aliments.html">Aliments</a></nav></div></header><main class="wrap"><div class="recipe"><aside class="r-side"><a class="back" href="../index.html">← Toutes les recettes</a><div class="r-head"><span class="label">Plat</span><h1>Soupe de potimarron au lait de coco</h1><p class="alg">Saison : automne, hiver</p></div><div class="facts"><div><span class="label">Temps</span><b>35 min</b></div><div><span class="label">Portions</span><b>2 personnes</b></div><div><span class="label">Difficulté</span><b>Facile</b></div></div><div class="rate"><div id="stars"></div><small id="rate-t">Noter cette recette</small></div>
+<script>
+(() => {
+  const slug = "soupe-potimarron-coco", box = document.getElementById("stars"), t = document.getElementById("rate-t");
+  const get = () => { try { return JSON.parse(localStorage.getItem("recettes-notes")) || {}; } catch (e) { return {}; } };
+  function draw() {
+    const n = get()[slug] || 0; box.innerHTML = "";
+    for (let i = 1; i <= 5; i++) {
+      const b = document.createElement("button"); b.type = "button"; b.textContent = "★";
+      b.className = i <= n ? "on" : ""; b.setAttribute("aria-label", i + " étoile" + (i > 1 ? "s" : ""));
+      b.onclick = () => { const all = get(); if (all[slug] === i) delete all[slug]; else all[slug] = i;
+        try { localStorage.setItem("recettes-notes", JSON.stringify(all)); } catch (e) {} draw(); };
+      box.append(b);
+    }
+    t.textContent = n ? "Ta note : " + n + "/5 · touche à nouveau pour l'effacer" : "Noter cette recette";
+  }
+  draw();
+})();
+</script><section class="nut"><span class="label">Par portion</span><div class="nut-v"><div><b>325</b><span>kcal</span></div><div><b>5 g</b><span>protéines</span></div><div><b>27 g</b><span>glucides</span></div><div><b>21 g</b><span>lipides</span></div><div><b>8 g</b><span>fibres</span></div></div><details><summary>Détail du calcul</summary><div class="tw"><table><thead><tr><th>Ingrédient</th><th>Aliment de la base</th><th>Recette</th><th>kcal</th></tr></thead><tbody><tr><td>Potimarron</td><td>Potimarron</td><td>500 g</td><td>200</td></tr><tr><td>Oignon blanc</td><td>Oignon</td><td>40 g</td><td>15</td></tr><tr><td>Ail</td><td>Ail</td><td>6 g</td><td>8</td></tr><tr><td>Gingembre frais</td><td>Gingembre frais</td><td>2 g</td><td>2</td></tr><tr><td>Curry au choix</td><td>Épices et herbes séchées</td><td>6 g</td><td>18</td></tr><tr><td>Lait de coco</td><td>Lait de coco</td><td>160 g</td><td>304</td></tr><tr><td>Cube de bouillon de légumes</td><td>Cube de bouillon</td><td>10 g</td><td>23</td></tr><tr><td>Huile d&#x27;olive</td><td>Huile (olive, coco)</td><td>9 g</td><td>81</td></tr></tbody></table></div><p>Calcul fait sur la recette entière puis divisé par 2 portions.</p><p><a href="../aliments.html">Voir la base des aliments</a></p></details></section></aside><article><details class="intro"><summary>Source, allergènes et préparation</summary><ul>
+<li><strong>Source</strong> : variante de la <a href="soupe-patate-douce-coco.md">soupe de patate douce au lait de coco</a> (appli LaSèche), le potimarron remplace la patate douce (adaptation Claude, demandée par Antho le 17/10/2026)</li>
+<li><strong>Portions</strong> : 2 personnes, 1 repas</li>
+<li><strong>Temps</strong> : 35 min</li>
+<li><strong>Catégorie</strong> : dîner, soupe mixée (légume)</li>
+<li><strong>Allergènes courants</strong> : céleri possible dans le cube de légumes (vérifier l'étiquette)</li>
+</ul></details>
+<h2>Ingrédients (2 personnes)</h2>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Ingrédient</th>
+<th>Quantité</th>
+<th>Rayon</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Potimarron</td>
+<td>500 g (½ potimarron moyen, avec la peau, épépiné)</td>
+<td>Fruits et légumes</td>
+</tr>
+<tr>
+<td>Oignon blanc</td>
+<td>40 g (½ petit oignon)</td>
+<td>Fruits et légumes</td>
+</tr>
+<tr>
+<td>Ail</td>
+<td>6 g (1 à 2 gousses)</td>
+<td>Fruits et légumes</td>
+</tr>
+<tr>
+<td>Gingembre frais</td>
+<td>2 g (1 cm)</td>
+<td>Fruits et légumes</td>
+</tr>
+<tr>
+<td>Curry au choix</td>
+<td>6 g (2 c. à café)</td>
+<td>Placard</td>
+</tr>
+<tr>
+<td>Lait de coco</td>
+<td>160 ml</td>
+<td>Épicerie</td>
+</tr>
+<tr>
+<td>Cube de bouillon de légumes</td>
+<td>1</td>
+<td>Épicerie</td>
+</tr>
+<tr>
+<td>Huile d'olive</td>
+<td>2 c. à café</td>
+<td>Placard</td>
+</tr>
+<tr>
+<td>Poivre</td>
+<td>—</td>
+<td>Placard</td>
+</tr>
+</tbody>
+</table></div>
+<p>La peau du potimarron se mange une fois cuite et mixée : pas besoin d'éplucher, il suffit de bien le laver.</p>
+<h2>Étapes</h2>
+<ol>
+<li>Laver le potimarron, le couper en deux, retirer les graines à la cuillère et le couper en dés avec la peau. Émincer l'oignon.</li>
+<li>Chauffer de l'eau dans une casserole (environ 50 cl) et y diluer le cube de légumes.</li>
+<li>Chauffer l'huile d'olive dans une poêle et faire revenir l'oignon, l'ail et le gingembre quelques secondes avec le curry.</li>
+<li>Ajouter les dés de potimarron et les faire saisir 5 minutes.</li>
+<li>Verser dans le bouillon et cuire 15 à 20 minutes, jusqu'à ce que la pointe d'un couteau entre sans résistance (le potimarron cuit plus vite que la patate douce).</li>
+<li>Mixer avec le lait de coco, en ajoutant un peu de bouillon si la soupe est trop épaisse.</li>
+<li>Poivrer, ajouter herbes fraîches (coriandre, persil) ou une pincée de paprika. Ne pas saler : le cube apporte le sel.</li>
+</ol>
+<h2>Préparation du dimanche (ajout Claude)</h2>
+<ul>
+<li><strong>Ce qui se fait le dimanche</strong> : toute la soupe, environ 15 min actives. Se double sans effort pour couvrir deux dîners.</li>
+<li><strong>Conservation</strong> : 4 jours au réfrigérateur. Se congèle très bien (3 mois) ; le lait de coco peut se séparer légèrement, un coup de fouet au réchauffage suffit.</li>
+<li><strong>Réchauffage</strong> : casserole à feu moyen 5 à 7 min en remuant, ou micro-ondes 3 min.</li>
+</ul>
+<h2>Équilibre (remarques Claude)</h2>
+<ul>
+<li>Le potimarron compte comme légume, pas comme féculent (contrairement à la patate douce). Pour respecter l'assiette du livret, ajouter une tranche de pain complet, ou 40 g de lentilles corail crues cuites dans la soupe.</li>
+<li>Pas de protéine : ajouter 2 œufs durs par personne (déjà prévus dans la liste de courses de Ma semaine), 250 g de tofu ferme poêlé, ou les lentilles corail.</li>
+<li>De saison de septembre à février.</li>
+</ul></article></div></main><footer>2 personnes · batch cooking du dimanche</footer></body></html>
