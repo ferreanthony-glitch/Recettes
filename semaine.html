@@ -92,6 +92,10 @@ h2 { font-family: var(--font-display); font-weight: 600; font-size: 1.15rem; mar
 .send-box { display: grid; gap: 8px; }
 a.ghost.hop { text-decoration: none; justify-self: start; }
 .valid-msg { margin: 0; }
+.done-badge { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; background: var(--accent-soft); color: var(--accent); }
+.done-badge span { flex: 1; min-width: 0; display: grid; color: var(--ink); }
+.done-badge small { color: var(--muted); font-size: 0.78rem; }
+.done-badge .ghost { padding: 6px 10px; font-size: 0.8rem; }
 .gh summary { cursor: pointer; font-size: 0.85rem; color: var(--muted); }
 .gh summary span { color: var(--accent); }
 .gh-body { display: grid; gap: 8px; padding-top: 8px; }
@@ -322,6 +326,11 @@ header .label{text-align:center}
       <p class="note">Touche un repas pour choisir un autre plat. Fais-le glisser sur une autre case pour les échanger (sur téléphone, appuie un instant puis glisse).</p>
       <div class="grid"><table><thead><tr><th>Jour</th><th>Midi</th><th>Soir</th></tr></thead><tbody id="grid"></tbody></table></div>
       <button class="copy" id="validate" type="button">Valider la semaine</button>
+      <div class="done-badge" id="done" hidden>
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="currentColor"/><path d="M7 12.5l3.2 3.2L17 9" fill="none" stroke="#fbfaf6" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span><b>Semaine validée</b><small id="done-when"></small></span>
+        <button type="button" class="ghost" id="revalidate">Mettre à jour</button>
+      </div>
       <p class="note valid-msg" id="valid-msg"></p>
       <p class="note" id="gh-line"></p>
       <a class="ghost hop" href="#" target="_blank" rel="noopener"></a>
@@ -1123,9 +1132,15 @@ function renderValid(){
     : todo ? "Validée " + when(v.at) + ". Tu as changé des plats depuis : valide à nouveau pour mettre la liste de courses à jour."
     : "Semaine validée " + when(v.at) + ". La liste de courses est à jour.";
   ["valid-msg", "list-msg"].forEach(id => { const e = document.getElementById(id); e.textContent = txt; e.classList.toggle("todo", !!todo); });
-  document.getElementById("validate").textContent = todo ? "Valider les changements" : v ? "Semaine validée" : "Valider la semaine";
+  const ok = v && !todo;   // validée et inchangée : une coche remplace le bouton
+  document.getElementById("validate").hidden = !!ok;
+  document.getElementById("done").hidden = !ok;
+  if (ok) document.getElementById("done-when").textContent = when(v.at);
+  document.getElementById("valid-msg").hidden = !!ok;
+  document.getElementById("validate").textContent = todo ? "Valider les changements" : "Valider la semaine";
   document.querySelectorAll(".hop").forEach(a => { a.textContent = IS_SITE ? "Ouvrir dans Claude" : "Ouvrir dans le site"; a.href = HOP_URL + "#" + pack(); });
 }
+document.getElementById("revalidate").addEventListener("click", () => document.getElementById("validate").click());
 document.getElementById("validate").addEventListener("click", () => {
   state.valid = {sel: {...state.sel}, at: Date.now()}; persist(); render();
   if (ghTok()) { clearTimeout(ghTimer); ghState("envoi…"); ghSend(); }   // une validation part tout de suite vers les autres appareils
