@@ -1,0 +1,97 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#f7f3ec"><meta name="color-scheme" content="light"><title>Cabillaud sur fondue de poireaux et riz complet</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,600;9..40,700&display=swap"><link rel="stylesheet" href="../style.css"></head><body><header class="site"><div class="in"><a class="brand" href="../index.html">Recettes</a><nav class="nav"><a href="../index.html">Recueil</a><a href="../semaine.html">Ma semaine</a><a href="../aliments.html">Aliments</a></nav></div></header><main class="wrap"><div class="recipe"><a class="back" href="../index.html">← Toutes les recettes</a><div class="r-head"><span class="label">Plat</span><h1>Cabillaud sur fondue de poireaux et riz complet</h1><p class="alg">Contient : poisson</p></div><div class="facts"><div><span class="label">Temps</span><b>50 min</b></div><div><span class="label">Portions</span><b>2 personnes</b></div><div><span class="label">Difficulté</span><b>Facile</b></div></div><div class="rate"><div id="stars"></div><small id="rate-t">Noter cette recette</small></div>
+<script>
+(() => {
+  const slug = "cabillaud-fondue-poireaux", box = document.getElementById("stars"), t = document.getElementById("rate-t");
+  const get = () => { try { return JSON.parse(localStorage.getItem("recettes-notes")) || {}; } catch (e) { return {}; } };
+  function draw() {
+    const n = get()[slug] || 0; box.innerHTML = "";
+    for (let i = 1; i <= 5; i++) {
+      const b = document.createElement("button"); b.type = "button"; b.textContent = "★";
+      b.className = i <= n ? "on" : ""; b.setAttribute("aria-label", i + " étoile" + (i > 1 ? "s" : ""));
+      b.onclick = () => { const all = get(); if (all[slug] === i) delete all[slug]; else all[slug] = i;
+        try { localStorage.setItem("recettes-notes", JSON.stringify(all)); } catch (e) {} draw(); };
+      box.append(b);
+    }
+    t.textContent = n ? "Ta note : " + n + "/5 · touche à nouveau pour l'effacer" : "Noter cette recette";
+  }
+  draw();
+})();
+</script><section class="nut"><span class="label">Par portion</span><div class="nut-v"><div><b>433</b><span>kcal</span></div><div><b>44 g</b><span>protéines</span></div><div><b>42 g</b><span>glucides</span></div><div><b>8 g</b><span>lipides</span></div><div><b>9 g</b><span>fibres</span></div></div><details><summary>Détail du calcul</summary><div class="tw"><table><thead><tr><th>Ingrédient</th><th>Aliment de la base</th><th>Recette</th><th>kcal</th></tr></thead><tbody><tr><td>Poireaux</td><td>Poireau</td><td>500 g</td><td>135</td></tr><tr><td>Filets de cabillaud (frais ou surgelés)</td><td>Poisson blanc (cabillaud, colin)</td><td>400 g</td><td>320</td></tr><tr><td>Échalotes</td><td>Échalote</td><td>60 g</td><td>45</td></tr><tr><td>Huile d&#x27;olive</td><td>Huile (olive, coco)</td><td>9 g</td><td>81</td></tr><tr><td>Vinaigre de vin</td><td>Vinaigre</td><td>15 g</td><td>3</td></tr><tr><td>Persil frais</td><td>Herbes fraîches</td><td>6 g</td><td>2</td></tr><tr><td>Riz complet (cru), pour servir</td><td>Riz complet cru</td><td>80 g</td><td>280</td></tr></tbody></table></div><p>Calcul fait sur la recette entière puis divisé par 2 portions.</p><p><a href="../aliments.html">Voir la base des aliments</a></p></details></section><article><details class="intro"><summary>Source, allergènes et préparation</summary><ul>
+<li><strong>Source</strong> : <a href="https://www.weightwatchers.com/fr/recette/fondue-de-poireau-au-cabillaud/5625ad0ff0f24911346746ca">WeightWatchers, « Fondue de poireau au cabillaud »</a>, recette pour 4 personnes (1 kg de poireaux, 400 g de cabillaud). Ramenée à 2 personnes par Claude, portion de poisson relevée vers le livret, riz complet ajouté pour le féculent.</li>
+<li><strong>Portions</strong> : 2 personnes, 1 repas (à doubler pour deux repas)</li>
+<li><strong>Temps</strong> : 50 min, dont 15 min actives (30 min de fondue à couvert)</li>
+<li><strong>Catégorie</strong> : dîner ou déjeuner complet (poisson + légume + féculent)</li>
+<li><strong>Allergènes courants</strong> : poisson</li>
+</ul></details>
+<h2>Ingrédients (2 personnes, 1 repas)</h2>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Ingrédient</th>
+<th>Quantité</th>
+<th>Rayon</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Poireaux</td>
+<td>500 g (environ 3 poireaux)</td>
+<td>Fruits et légumes</td>
+</tr>
+<tr>
+<td>Filets de cabillaud (frais ou surgelés)</td>
+<td>400 g (200 g par personne)</td>
+<td>Poissonnerie / surgelés</td>
+</tr>
+<tr>
+<td>Échalotes</td>
+<td>2, émincées</td>
+<td>Fruits et légumes</td>
+</tr>
+<tr>
+<td>Huile d'olive</td>
+<td>2 c. à café</td>
+<td>Placard</td>
+</tr>
+<tr>
+<td>Vinaigre de vin</td>
+<td>1 c. à soupe</td>
+<td>Placard</td>
+</tr>
+<tr>
+<td>Persil frais</td>
+<td>2 c. à soupe, haché</td>
+<td>Fruits et légumes</td>
+</tr>
+<tr>
+<td>Riz complet (cru), pour servir</td>
+<td>80 g (40 g par personne)</td>
+<td>Épicerie</td>
+</tr>
+<tr>
+<td>Sel, poivre</td>
+<td>—</td>
+<td>Placard</td>
+</tr>
+</tbody>
+</table></div>
+<h2>Étapes (adaptées de la source)</h2>
+<ol>
+<li>Retirer le vert dur des poireaux, les fendre, bien les rincer et les couper en tronçons fins.</li>
+<li>Les mettre dans une sauteuse antiadhésive, couvrir et laisser fondre 30 minutes à feu doux, en remuant de temps en temps (ajouter un fond d'eau s'ils attachent).</li>
+<li>Pendant ce temps, cuire le riz complet.</li>
+<li>Dans une poêle, chauffer l'huile et faire dorer les échalotes 3 minutes. Ajouter le cabillaud et le cuire 2 à 3 minutes de chaque côté.</li>
+<li>Dresser le poisson sur la fondue, saler, poivrer. Déglacer la poêle avec le vinaigre, verser sur le poisson et parsemer de persil.</li>
+</ol>
+<h2>Préparation du dimanche (ajout Claude)</h2>
+<ul>
+<li><strong>Ce qui se fait le dimanche</strong> : La fondue de poireaux et le riz se font le dimanche. Le cabillaud se cuit le jour même en 6 minutes : du poisson réchauffé devient sec. Garder le poisson surgelé et le sortir la veille au frigo.</li>
+<li><strong>Conservation</strong> : Fondue de poireaux : 3 jours au réfrigérateur, se congèle bien. Poisson cuit : à manger le jour même.</li>
+<li><strong>Réchauffage</strong> : Fondue : casserole à couvert 5 min ou micro-ondes 2 min. Riz : micro-ondes 1 min avec une cuillère d'eau.</li>
+</ul>
+<h2>Équilibre (remarques Claude)</h2>
+<ul>
+<li>200 g de cabillaud par personne : le livret compte 350 g de poisson blanc pour une portion de protéines. Monter à 300 g par personne pour suivre le livret à la lettre.</li>
+<li>250 g de poireaux par personne : la moitié de l'assiette en légumes est largement atteinte.</li>
+<li>40 g de riz complet cru par personne, la portion de féculent du livret.</li>
+</ul></article></div></main><footer>2 personnes · batch cooking du dimanche</footer></body></html>

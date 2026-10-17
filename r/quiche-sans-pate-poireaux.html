@@ -1,0 +1,102 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#f7f3ec"><meta name="color-scheme" content="light"><title>Quiche sans pâte aux poireaux</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,600;9..40,700&display=swap"><link rel="stylesheet" href="../style.css"></head><body><header class="site"><div class="in"><a class="brand" href="../index.html">Recettes</a><nav class="nav"><a href="../index.html">Recueil</a><a href="../semaine.html">Ma semaine</a><a href="../aliments.html">Aliments</a></nav></div></header><main class="wrap"><div class="recipe"><a class="back" href="../index.html">← Toutes les recettes</a><div class="r-head"><span class="label">Plat</span><h1>Quiche sans pâte aux poireaux</h1><p class="alg">Contient : gluten, lait, œuf</p></div><div class="facts"><div><span class="label">Temps</span><b>45 min</b></div><div><span class="label">Portions</span><b>2 personnes</b></div><div><span class="label">Difficulté</span><b>Facile</b></div></div><div class="rate"><div id="stars"></div><small id="rate-t">Noter cette recette</small></div>
+<script>
+(() => {
+  const slug = "quiche-sans-pate-poireaux", box = document.getElementById("stars"), t = document.getElementById("rate-t");
+  const get = () => { try { return JSON.parse(localStorage.getItem("recettes-notes")) || {}; } catch (e) { return {}; } };
+  function draw() {
+    const n = get()[slug] || 0; box.innerHTML = "";
+    for (let i = 1; i <= 5; i++) {
+      const b = document.createElement("button"); b.type = "button"; b.textContent = "★";
+      b.className = i <= n ? "on" : ""; b.setAttribute("aria-label", i + " étoile" + (i > 1 ? "s" : ""));
+      b.onclick = () => { const all = get(); if (all[slug] === i) delete all[slug]; else all[slug] = i;
+        try { localStorage.setItem("recettes-notes", JSON.stringify(all)); } catch (e) {} draw(); };
+      box.append(b);
+    }
+    t.textContent = n ? "Ta note : " + n + "/5 · touche à nouveau pour l'effacer" : "Noter cette recette";
+  }
+  draw();
+})();
+</script><section class="nut"><span class="label">Par portion</span><div class="nut-v"><div><b>508</b><span>kcal</span></div><div><b>36 g</b><span>protéines</span></div><div><b>31 g</b><span>glucides</span></div><div><b>25 g</b><span>lipides</span></div><div><b>8 g</b><span>fibres</span></div></div><details><summary>Détail du calcul</summary><div class="tw"><table><thead><tr><th>Ingrédient</th><th>Aliment de la base</th><th>Recette</th><th>kcal</th></tr></thead><tbody><tr><td>Blancs de poireaux</td><td>Poireau</td><td>400 g</td><td>108</td></tr><tr><td>Échalote</td><td>Échalote</td><td>30 g</td><td>22</td></tr><tr><td>Œufs</td><td>Œuf entier</td><td>250 g</td><td>350</td></tr><tr><td>Fromage blanc 3 %</td><td>Fromage blanc 3 %</td><td>200 g</td><td>150</td></tr><tr><td>Emmental râpé</td><td>Emmental</td><td>40 g</td><td>152</td></tr><tr><td>Noix de muscade</td><td>Épices et herbes séchées</td><td>0 g</td><td>1</td></tr><tr><td>Huile d&#x27;olive</td><td>Huile (olive, coco)</td><td>4 g</td><td>40</td></tr><tr><td>Pain complet, pour servir</td><td>Pain complet</td><td>80 g</td><td>192</td></tr></tbody></table></div><p>Calcul fait sur la recette entière puis divisé par 2 portions.</p><p><a href="../aliments.html">Voir la base des aliments</a></p></details></section><article><details class="intro"><summary>Source, allergènes et préparation</summary><ul>
+<li><strong>Source</strong> : <a href="https://www.croq-kilos.com/actus/recette-de-quiche-sans-pate-aux-poireaux">Croq'Kilos, « Quiche sans pâte aux poireaux »</a>, recette pour 1 personne (1 œuf, 100 g de poireau, 100 g de fromage blanc). Passée à 2 personnes par Claude, œufs relevés pour la protéine, pain complet ajouté pour le féculent.</li>
+<li><strong>Portions</strong> : 2 personnes, 1 repas (à doubler pour deux repas)</li>
+<li><strong>Temps</strong> : 45 min, dont 15 min actives (30 min de four)</li>
+<li><strong>Catégorie</strong> : déjeuner ou dîner végétarien (œufs + légume), féculent à côté</li>
+<li><strong>Allergènes courants</strong> : œuf, lait, gluten (pain)</li>
+</ul></details>
+<h2>Ingrédients (2 personnes, 1 repas)</h2>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Ingrédient</th>
+<th>Quantité</th>
+<th>Rayon</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Blancs de poireaux</td>
+<td>400 g (200 g par personne)</td>
+<td>Fruits et légumes</td>
+</tr>
+<tr>
+<td>Échalote</td>
+<td>1 (40 g)</td>
+<td>Fruits et légumes</td>
+</tr>
+<tr>
+<td>Œufs</td>
+<td>5</td>
+<td>Crèmerie</td>
+</tr>
+<tr>
+<td>Fromage blanc 3 %</td>
+<td>200 g</td>
+<td>Crèmerie</td>
+</tr>
+<tr>
+<td>Emmental râpé</td>
+<td>40 g</td>
+<td>Crèmerie</td>
+</tr>
+<tr>
+<td>Noix de muscade</td>
+<td>1 pincée</td>
+<td>Placard</td>
+</tr>
+<tr>
+<td>Huile d'olive</td>
+<td>1 c. à café</td>
+<td>Placard</td>
+</tr>
+<tr>
+<td>Pain complet, pour servir</td>
+<td>80 g (40 g par personne)</td>
+<td>Boulangerie</td>
+</tr>
+<tr>
+<td>Sel, poivre</td>
+<td>—</td>
+<td>Placard</td>
+</tr>
+</tbody>
+</table></div>
+<h2>Étapes (adaptées de la source)</h2>
+<ol>
+<li>Préchauffer le four à 160 °C. Huiler légèrement un plat à gratin moyen (ou 2 plats individuels).</li>
+<li>Faire suer l'échalote émincée dans l'huile à feu moyen, puis ajouter les poireaux émincés. Cuire 10 minutes, saler, poivrer.</li>
+<li>Dans un saladier, battre les œufs avec le fromage blanc et l'emmental. Ajouter la muscade, saler, poivrer.</li>
+<li>Mélanger avec les poireaux, verser dans le plat et cuire environ 30 minutes, jusqu'à ce que la quiche soit prise.</li>
+<li>Servir tiède ou froide, avec le pain complet et une salade.</li>
+</ol>
+<h2>Préparation du dimanche (ajout Claude)</h2>
+<ul>
+<li><strong>Ce qui se fait le dimanche</strong> : Se fait entièrement le dimanche et se mange aussi froide : pratique pour un déjeuner emporté. Couper en parts avant de mettre au frigo.</li>
+<li><strong>Conservation</strong> : 3 jours au réfrigérateur ; se congèle en parts (2 mois), la texture devient un peu plus humide.</li>
+<li><strong>Réchauffage</strong> : Four 10 min à 160 °C ou micro-ondes 1 min 30 par part. Bonne aussi froide.</li>
+</ul>
+<h2>Équilibre (remarques Claude)</h2>
+<ul>
+<li>2,5 œufs par personne plus le fromage blanc : la portion de protéines du livret (3 œufs) est couverte.</li>
+<li>200 g de poireaux par personne ; ajouter une salade verte pour atteindre la moitié de l'assiette.</li>
+<li>40 g de pain complet par personne. On peut le remplacer par 150 g de pommes de terre vapeur.</li>
+</ul></article></div></main><footer>2 personnes · batch cooking du dimanche</footer></body></html>
