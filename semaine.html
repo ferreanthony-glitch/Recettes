@@ -46,7 +46,7 @@ h2 { font-family: var(--font-display); font-weight: 600; font-size: 1.15rem; mar
 .variants button { font: inherit; font-size: 0.8rem; font-weight: 600; padding: 4px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--muted); cursor: pointer; }
 .variants button:hover { color: var(--ink); border-color: var(--accent); }
 .variants button[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--ink); }
-#gh-line a, #gh-line button { color: var(--accent); background: none; border: 0; padding: 0; font: inherit; cursor: pointer; text-decoration: underline; }
+.prof-line a, #gh-line a, #gh-line button { color: var(--accent); background: none; border: 0; padding: 0; font: inherit; cursor: pointer; text-decoration: underline; }
 
 .board { background: var(--bg); padding-block: 8px; display: grid; gap: 8px; }
 .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
@@ -311,6 +311,7 @@ header .label{text-align:center}
         <input type="range" id="sais" min="0" max="100" step="10" value="0" aria-describedby="sais-n">
         <small class="note" id="sais-n">Part des repas dont les fruits et légumes sont de saison ce mois-ci. Les plats sans produit saisonnier (viande, carottes, champignons…) comptent comme de saison.</small></label>
       <button class="go" id="gen" type="button">Générer ma semaine</button>
+      <p class="note prof-line" id="prof-line"></p>
       <p class="msg" id="gen-msg">Le générateur respecte tes règles : le nombre de repas avec viande choisi ci-dessus, aliments chers sur deux repas, plats en double le dimanche. Il favorise tes recettes les mieux notées et celles qui partagent des ingrédients. Clique à nouveau pour un autre tirage.</p>
     </section>
 
@@ -607,18 +608,73 @@ function addStock(){
   nIn.value = ""; qIn.value = 1; uIn.value = "pc"; document.getElementById("st-e").value = ""; nIn.focus();
   persist(); renderGen(); renderList();
 }
+// ---- Profil (page Compte) : allergies, régime et aliments refusés de chaque personne valent pour toute la table ; objectifs = préférences ----
+let PROF = [];
+const profLoad = () => { try { const p = JSON.parse(localStorage.getItem("recettes-profil")); PROF = p && Array.isArray(p.p) ? p.p.filter(x => x && Object.keys(x).length) : []; } catch (e) { PROF = []; } };
+profLoad();
+const who = x => x.prenom || "";
+const profHas = (k, v) => PROF.some(x => Array.isArray(x[k]) ? x[k].includes(v) : x[k] === v);
+const dishNames = id => [...(Q[id] || []).map(x => x[0]), ...(PLACARD[id] || []), ...R[id].i, ...((RECIPES[id] || {}).ing || []).map(x => x[0])];
+const dishCache = {};
+function dishTags(id){
+  if (!dishCache[id]) {
+    const t = dishNames(id).join(" ").toLowerCase().replace(/œ/g, "oe"), rx = typeof ALG_RX === "undefined" ? {} : ALG_RX, pt = typeof PT_RX === "undefined" ? {} : PT_RX;
+    dishCache[id] = {alg: Object.keys(rx).filter(a => new RegExp(rx[a]).test(t)), pt: Object.keys(pt).filter(a => new RegExp(pt[a]).test(t))};
+  }
+  return dishCache[id];
+}
+function profBan(id){
+  const t = dishTags(id);
+  for (const x of PROF) {
+    const n = who(x) ? " (" + who(x) + ")" : "";
+    const a = (x.alg || []).find(a => t.alg.includes(a)); if (a) return a + n;
+    if ((x.reg === "vege" || x.reg === "pesce") && R[id].v) return "viande" + n;
+    if (x.reg === "vege" && t.pt.some(p => p === "poisson" || p === "crevettes")) return "poisson" + n;
+    if ((x.sans || []).includes("porc") && t.pt.includes("porc")) return "porc" + n;
+    if ((x.sans || []).includes("rouge") && t.pt.some(p => p === "bœuf" || p === "agneau")) return "viande rouge" + n;
+    const ev = (x.evite || "").split(/[,;\n]/).map(v => v.trim()).filter(Boolean).find(b => dishNames(id).some(nm => same(nm, b)));
+    if (ev) return ev + n;
+  }
+  return "";
+}
+const profMaxV = () => profHas("reg", "vege") || profHas("reg", "pesce") ? 0 : profHas("reg", "flexi") ? 4 : 99;
+const profKey = () => JSON.stringify(PROF.map(x => [x.alg, x.reg, x.sans, x.evite]));
+// Besoin estimé (Mifflin-St Jeor × activité), même calcul que la page Compte
+function besoin(x){
+  const a = +x.age, t = +x.taille, w = +x.poids;
+  if (!a || !t || !w || !x.sexe) return 0;
+  let b = (10 * w + 6.25 * t - 5 * a + (x.sexe === "h" ? 5 : -161)) * (+x.act || 1.375);
+  if (x.obj === "perdre") b *= 0.85; else if (x.obj === "muscle") b *= 1.1;
+  return Math.round(b / 50) * 50;
+}
+const kcalOf = id => (typeof KCAL !== "undefined" && KCAL[SLUG[id]]) || 0;
+const protOf = id => (typeof PROT !== "undefined" && PROT[SLUG[id]]) || 0;
+function profSummary(){
+  if (!PROF.length) return "";
+  const out = [], add = v => { if (v && !out.includes(v)) out.push(v); };
+  PROF.forEach(x => {
+    (x.alg || []).forEach(a => add("sans " + a));
+    add({flexi: "peu de viande", pesce: "pescétarien", vege: "végétarien"}[x.reg]);
+    (x.sans || []).forEach(v => add({porc: "sans porc", rouge: "sans viande rouge"}[v]));
+    (x.evite || "").split(/[,;\n]/).map(v => v.trim()).filter(Boolean).forEach(v => add("sans " + v));
+    add({perdre: "objectif perdre du poids", muscle: "objectif prendre du muscle"}[x.obj]);
+    (x.plus || []).forEach(v => add({vegetal: "plus végétal", poisson: "plus de poisson", saison: "plus de saison", proteines: "plus de protéines"}[v]));
+  });
+  return out.join(", ");
+}
+window.addEventListener("storage", e => { if (e.key === "recettes-profil") { profLoad(); renderGen(); renderGrid(); } });
 // Aliments à éviter : un plat est écarté s'il en contient un (« viande » écarte tous les plats avec viande)
 const bans = () => state.ban || [];
 let banCache = {key: "", m: {}};
 function banned(id){   // mémorisé : le générateur l'appelle des milliers de fois
-  const key = bans().join("|");
+  const key = bans().join("|") + profKey();
   if (banCache.key !== key) banCache = {key, m: {}};
   if (!(id in banCache.m)) banCache.m[id] = bannedRaw(id);
   return banCache.m[id];
 }
 function bannedRaw(id){
   const names = [...Q[id].map(x => x[0]), ...(PLACARD[id] || []), ...R[id].i, ...((RECIPES[id] || {}).ing || []).map(x => x[0])];
-  return bans().find(b => norm(b) === "viande" ? R[id].v : names.some(n => same(n, b)));
+  return bans().find(b => norm(b) === "viande" ? R[id].v : names.some(n => same(n, b))) || profBan(id);
 }
 function addBan(){
   const inp = document.getElementById("ban-n"), v = inp.value.trim();
@@ -639,6 +695,9 @@ function generate(){
     if (ok.length) { sel[ok[0].k] = id; used.add(id); }
     else warn.push(R[id].n);
   });
+  // Poste sans aucun plat compatible (aliments à éviter, profil) : on garde le plat actuel et on le signale
+  const stuck = P.filter(p => !sel[p.k] && !POOL(p).length);
+  stuck.forEach(p => { sel[p.k] = state.sel[p.slots[0][0] + "-" + p.slots[0][1]]; used.add(sel[p.k]); });
   // 2. Le reste : on tire beaucoup de semaines au hasard et on garde la mieux notée
   const free = P.filter(p => !sel[p.k]);
   const outMax = SLOTS.length - minSais();   // repas hors saison tolérés
@@ -650,6 +709,7 @@ function generate(){
     let out = P.filter(p => s[p.k] && !inSeason(s[p.k])).reduce((a, p) => a + p.slots.length, 0);
     for (const p of free) {
       let c = POOL(p).filter(id => !u.has(id));
+      if (!c.length) c = POOL(p);   // trop peu de plats compatibles : un plat peut revenir sur deux postes
       if (meat + p.slots.length > maxV()) { const veg = c.filter(id => !R[id].v); if (veg.length) c = veg; }   // limite de viande atteinte
       if (out + p.slots.length > outMax) { const sai = c.filter(inSeason); if (sai.length) c = sai; }   // part de saison atteinte
       const pick = c[Math.floor(Math.random() * c.length)];
@@ -665,7 +725,7 @@ function generate(){
   }
   if (!best) {
     const empty = free.filter(p => !POOL(p).length).map(p => p.t.toLowerCase());
-    document.getElementById("gen-msg").textContent = "Aucune semaine possible avec ces aliments à éviter" + (empty.length ? " : plus aucun plat pour " + empty.join(", ") : "") + ". Retire un aliment de la liste.";
+    document.getElementById("gen-msg").textContent = "Aucune semaine possible avec ces aliments à éviter" + (empty.length ? " : plus aucun plat pour " + empty.join(", ") : "") + ". " + (PROF.length ? "Retire un aliment de la liste ou assouplis ton profil dans Compte." : "Retire un aliment de la liste.");
     return;
   }
   state.sel = toSlots(best); state.checked = {};
@@ -678,12 +738,15 @@ function generate(){
   const msg = document.getElementById("gen-msg"); msg.innerHTML = "";
   const nS = SLOTS.filter(sl => inSeason(state.sel[sl.k])).length;
   msg.append("Semaine générée : " + meals() + " repas avec viande, " + Math.round(100 * nS / SLOTS.length) + " % de repas de saison. ");
+  const kk = SLOTS.map(sl => kcalOf(state.sel[sl.k])).filter(Boolean);
+  if (kk.length && PROF.some(besoin)) msg.append("En moyenne " + Math.round(kk.reduce((a, b) => a + b, 0) / kk.length) + " kcal par repas (repère du profil : " + PROF.filter(besoin).map(x => (who(x) ? who(x) + " " : "") + Math.round(besoin(x) * 0.35 / 10) * 10).join(", ") + "). ");
   if (nS < minSais()) msg.append(el("b",{}, "Pas assez de plats de saison pour atteindre " + state.sais + " % avec tes choix. "));
   if (hit.length) msg.append("Restes utilisés : ", el("b",{}, hit.join(", ")), ". ");
   if (miss.length) msg.append("Aucun plat n'utilise : " + miss.join(", ") + ". ");
   if (warn.length) msg.append("Pas de place pour : " + warn.join(", ") + ". ");
+  if (stuck.length) msg.append(el("b",{}, "Aucun plat compatible avec tes critères pour " + stuck.map(p => p.t.toLowerCase()).join(", ") + " : le plat actuel est gardé, change-le à la main. "));
   const pinBan = pins.filter(banned).map(id => R[id].n + " (" + banned(id) + ")");
-  if (meals() > maxV()) {
+  if (meals() > maxV() && !stuck.length) {
     const meatOnly = P.filter(p => POOL(p).every(id => R[id].v)).map(p => p.t.toLowerCase());
     msg.append(el("b",{}, "Impossible de rester à " + maxV() + " repas avec viande" + (meatOnly.length ? " : aucun plat sans viande pour " + meatOnly.join(", ") : " avec tes plats imposés") + ". "));
   }
@@ -697,7 +760,14 @@ function score(s, left, n){
   if (meat > maxV()) sc -= 1000 * (meat - maxV());   // limite choisie par Antho : quasi impérative
   const sai = P.reduce((a,p) => a + (inSeason(s[p.k]) ? p.slots.length : 0), 0);
   if (sai < minSais()) sc -= 1000 * (minSais() - sai);   // part de saison choisie : quasi impérative
-  sc -= 2 * Math.abs(meat - Math.min(5.5, maxV()));
+  sc -= 2 * Math.abs(meat - Math.min(profHas("plus", "vegetal") ? 3 : 5.5, maxV()));
+  // Objectifs du profil : de simples préférences, jamais des exclusions
+  const perdre = profHas("obj", "perdre"), prot = profHas("obj", "muscle") || profHas("plus", "proteines"), fish = profHas("plus", "poisson"), sais = profHas("plus", "saison");
+  if (perdre || prot || fish || sais) P.forEach(p => { const id = s[p.k], L = p.slots.length;
+    if (perdre && kcalOf(id)) sc -= Math.max(0, kcalOf(id) - 450) * 0.04 * L;
+    if (prot && protOf(id)) sc += (Math.min(protOf(id), 45) - 25) * 0.3 * L;
+    if (fish && dishTags(id).pt.some(x => x === "poisson" || x === "crevettes")) sc += 3 * L;
+    if (sais && inSeason(id)) sc += 1.5 * L; });
   P.forEach(p => {
     const id = s[p.k], r = n[SLUG[id]] || 3;
     sc += (r - 3) * 2 * p.slots.length;          // notes : 5 étoiles fortement favorisé, 1 étoile presque exclu
@@ -709,12 +779,15 @@ function score(s, left, n){
   left.forEach(it => { const c = consumed(s, it);   // un reste bien utilisé rapporte plus qu'un reste effleuré
     const w = it.exp ? (daysTo(it.exp) <= 4 ? 2.5 : 1.5) : 1;   // ce qui périme bientôt passe en priorité
     if (c.q > 0) sc += w * (4 + 8 * Math.min(c.q, it.q) / it.q); else if (c.partial) sc += 6 * w; });
+  sc -= 15 * (P.length - new Set(P.map(p => s[p.k])).size);   // même plat sur deux postes : en dernier recours
   const cnt = {};
   new Set(P.map(p => s[p.k])).forEach(id => R[id].i.forEach(x => cnt[x] = (cnt[x]||0) + 1));
   sc += 0.8 * Object.values(cnt).filter(v => v > 1).length;   // ingrédients partagés = économies
   return sc;
 }
 function renderGen(){
+  const pl = document.getElementById("prof-line"), sum = profSummary(); pl.innerHTML = "";
+  pl.append(sum ? "Ton profil est pris en compte : " + sum + ". " : "Aucun profil renseigné. ", el("a",{href:"compte.html"}, sum ? "Modifier dans Compte" : "Le remplir dans Compte"));
   const add = document.getElementById("pin-add");
   if (add.options.length === 1) Object.keys(R).sort((a,b) => R[a].n.localeCompare(R[b].n,"fr"))
     .forEach(id => add.append(el("option",{value:id}, R[id].n + (note(id) ? "  " + starTxt(note(id)) : ""))));
@@ -753,9 +826,12 @@ Object.assign(RECIPES, {"soupoti": {"t": "35 min, dont 15 min actives", "ing": [
 Object.assign(KEEP, {"soupoti": [4, 1]});
 
 const KCAL = {"aubergine-tomates-gratinees-3-fromages": 541, "blanquette-poulet-poireaux": 518, "boeuf-carottes-mijote": 629, "bowl-chevre-avocat": 534, "butternut-grillee-farcie": 668, "cabillaud-fondue-poireaux": 433, "chili-con-carne-facile": 667, "chili-sin-carne-patate-douce": 336, "courgette-farcie-legumes": 320, "crevettes-coco-courgette": 314, "croquettes-poisson": 325, "dahl-lentilles-corail-epinards": 563, "galette-sarrasin-chevre-epinards": 472, "gratin-poireaux-pommes-de-terre-jambon": 391, "hachis-pomme-de-terre-boeuf-poivron": 598, "meal-prep-poulet-miel-moutarde": 561, "nems-legumes": 439, "nid-oeuf-patate-douce": 514, "nuggets-healthy": 331, "oeufs-brouilles-fromage-champignons": 422, "oeufs-brouilles-fromage-tomates": 388, "omelette-dinde-emmental-champignons": 403, "omelette-jambon-champignons": 241, "pasta-italienne": 516, "pates-bolognaise": 487, "pates-boulettes-boeuf-sauce": 544, "pates-carbonara-healthy": 560, "avocado-toast": 576, "bol-canadien-yaourt-poire": 311, "chocolat-chaud-intense": 190, "morning-champion": 615, "oeuf-bacon-epinards": 459, "petits-pains-suedois-cream-cheese": 404, "skyr-amandes-poire": 271, "toast-beurre-confiture-orange": 212, "toast-beurre-fromage": 228, "toast-saumon-cream-cheese-pomelo": 334, "poulet-basquaise": 482, "poulet-beurre-cacahuete-tomate": 536, "poulet-thai-courge-patate-douce": 637, "quiche-sans-pate-poireaux": 508, "risotto-coquillettes-jambon": 637, "roules-aubergine-poulet": 524, "salade-brocoli-pecorino-oeuf-mollet": 391, "soupe-chou-fleur-roti": 201, "soupe-chou-fleur-tartine-cream-cheese": 395, "soupe-patate-douce-coco": 354, "soupe-poireaux-pommes-de-terre": 406, "soupe-potimarron-coco": 325, "taboule-vegetarien": 455, "taboule-veggie-orientale": 660, "tajine-poulet-legumes": 582, "tomates-mozza-balsamique": 544, "veau-champignons-creme": 560, "wrap-falafels": 523, "wrap-thon-avocat": 599, "semaine-12-octobre-butternut-farcie-x2": 1303};
+const PROT = {"aubergine-tomates-gratinees-3-fromages": 33, "blanquette-poulet-poireaux": 44, "boeuf-carottes-mijote": 49, "bowl-chevre-avocat": 12, "butternut-grillee-farcie": 51, "cabillaud-fondue-poireaux": 44, "chili-con-carne-facile": 46, "chili-sin-carne-patate-douce": 18, "courgette-farcie-legumes": 9, "crevettes-coco-courgette": 33, "croquettes-poisson": 34, "dahl-lentilles-corail-epinards": 28, "galette-sarrasin-chevre-epinards": 26, "gratin-poireaux-pommes-de-terre-jambon": 31, "hachis-pomme-de-terre-boeuf-poivron": 47, "meal-prep-poulet-miel-moutarde": 40, "nems-legumes": 20, "nid-oeuf-patate-douce": 24, "nuggets-healthy": 40, "oeufs-brouilles-fromage-champignons": 27, "oeufs-brouilles-fromage-tomates": 26, "omelette-dinde-emmental-champignons": 37, "omelette-jambon-champignons": 21, "pasta-italienne": 25, "pates-bolognaise": 43, "pates-boulettes-boeuf-sauce": 39, "pates-carbonara-healthy": 35, "avocado-toast": 35, "bol-canadien-yaourt-poire": 14, "chocolat-chaud-intense": 10, "morning-champion": 42, "oeuf-bacon-epinards": 37, "petits-pains-suedois-cream-cheese": 13, "skyr-amandes-poire": 19, "toast-beurre-confiture-orange": 5, "toast-beurre-fromage": 8, "toast-saumon-cream-cheese-pomelo": 23, "poulet-basquaise": 35, "poulet-beurre-cacahuete-tomate": 44, "poulet-thai-courge-patate-douce": 43, "quiche-sans-pate-poireaux": 36, "risotto-coquillettes-jambon": 40, "roules-aubergine-poulet": 46, "salade-brocoli-pecorino-oeuf-mollet": 26, "soupe-chou-fleur-roti": 9, "soupe-chou-fleur-tartine-cream-cheese": 12, "soupe-patate-douce-coco": 5, "soupe-poireaux-pommes-de-terre": 21, "soupe-potimarron-coco": 5, "taboule-vegetarien": 15, "taboule-veggie-orientale": 42, "tajine-poulet-legumes": 39, "tomates-mozza-balsamique": 24, "veau-champignons-creme": 51, "wrap-falafels": 21, "wrap-thon-avocat": 38, "semaine-12-octobre-butternut-farcie-x2": 102};
+const ALG_RX = {"gluten": "pâtes|spaghetti|tagliatelle|lasagne|farine|pain|semoule|boulgour|\\bblé|chapelure|couscous|tortilla|wrap|galette de blé|orge|seigle|épeautre|sauce soja|nouille|panko|biscotte|flocons d'avoine|avoine", "lait": "\\blait\\b(?! de coco| d'amande| d'avoine| de soja)|crème(?! de coco)|creme(?! de coco)|beurre(?! de cacahu)|fromage|comté|parmesan|feta|féta|mozzarella|yaourt|skyr|ricotta|chèvre|emmental|gruyère|mascarpone|cottage|béchamel|pecorino|burrata|cheddar|reblochon|raclette|cream cheese|kiri|boursin|st moret|saint-moret", "œuf": "\\boeuf|\\boeufs", "fruits à coque": "amande|\\bnoix\\b|noisette|cajou|pistache|pécan|macadamia", "arachide": "cacahuète|arachide|beurre de cacahuète", "poisson": "saumon|cabillaud|thon|poisson|colin|merlu|sardine|maquereau|\\blieu|truite|dorade|anchois", "crustacés": "crevette|gambas|crabe|homard|langoustine", "soja": "tofu|tamari|soja|edamame|miso|tempeh", "moutarde": "moutarde", "sésame": "sésame|tahin"};
+const PT_RX = {"volaille": "poulet|dinde|volaille|canard", "bœuf": "\\bboeuf|veau|steak", "porc": "porc|jambon(?! de dinde)|lardon|chorizo|bacon|saucisse", "agneau": "agneau", "poisson": "saumon|cabillaud|thon|poisson|colin|merlu|sardine|maquereau|\\blieu|truite|dorade|anchois", "crevettes": "crevette|gambas|crabe|homard|langoustine"};
 const SAISON = {"aubergine-tomates-gratinees-3-fromages": [6, 7, 8, 9], "blanquette-poulet-poireaux": [1, 2, 3, 4, 9, 10, 11, 12], "boeuf-carottes-mijote": null, "bowl-chevre-avocat": [3, 4, 11], "butternut-grillee-farcie": [1, 2, 9, 10, 11, 12], "cabillaud-fondue-poireaux": [1, 2, 3, 4, 9, 10, 11, 12], "chili-con-carne-facile": [7, 8, 9, 10], "chili-sin-carne-patate-douce": [9, 10], "courgette-farcie-legumes": [6, 7, 8, 9], "crevettes-coco-courgette": [6, 7, 8, 9], "croquettes-poisson": null, "dahl-lentilles-corail-epinards": [3, 4, 5, 6, 9, 10, 11], "galette-sarrasin-chevre-epinards": [3, 4, 5, 6, 9, 10, 11], "gratin-poireaux-pommes-de-terre-jambon": [1, 2, 3, 4, 9, 10, 11, 12], "hachis-pomme-de-terre-boeuf-poivron": [7, 8, 9, 10], "meal-prep-poulet-miel-moutarde": [9, 10, 11], "nems-legumes": null, "nid-oeuf-patate-douce": [1, 9, 10, 11, 12], "nuggets-healthy": [6, 7, 8, 9], "oeufs-brouilles-fromage-champignons": null, "oeufs-brouilles-fromage-tomates": [6, 7, 8, 9], "omelette-dinde-emmental-champignons": [3, 4, 5, 6, 9, 10, 11], "omelette-jambon-champignons": [6, 7, 8, 9], "pasta-italienne": null, "pates-bolognaise": [6, 7, 8, 9], "pates-boulettes-boeuf-sauce": [6, 7, 8, 9], "pates-carbonara-healthy": null, "avocado-toast": [1, 2, 3, 4, 11, 12], "bol-canadien-yaourt-poire": [1, 8, 9, 10, 11, 12], "chocolat-chaud-intense": null, "morning-champion": [1, 2, 11, 12], "oeuf-bacon-epinards": [11], "petits-pains-suedois-cream-cheese": null, "skyr-amandes-poire": [1, 8, 9, 10, 11, 12], "toast-beurre-confiture-orange": [1, 2, 3, 4, 11, 12], "toast-beurre-fromage": null, "toast-saumon-cream-cheese-pomelo": [1, 2, 3, 4, 11, 12], "poulet-basquaise": [7, 8, 9, 10], "poulet-beurre-cacahuete-tomate": [6, 7, 8, 9], "poulet-thai-courge-patate-douce": [1, 9, 10, 11, 12], "quiche-sans-pate-poireaux": [1, 2, 3, 4, 9, 10, 11, 12], "risotto-coquillettes-jambon": null, "roules-aubergine-poulet": [6, 7, 8, 9], "salade-brocoli-pecorino-oeuf-mollet": [6, 7, 8, 9, 10, 11], "soupe-chou-fleur-roti": [1, 2, 3, 4, 9, 10, 11, 12], "soupe-chou-fleur-tartine-cream-cheese": [1, 2, 3, 4, 9, 10, 11, 12], "soupe-patate-douce-coco": [1, 9, 10, 11, 12], "soupe-poireaux-pommes-de-terre": [1, 2, 3, 4, 9, 10, 11, 12], "soupe-potimarron-coco": [1, 2, 9, 10, 11, 12], "taboule-vegetarien": [6, 7, 8, 9], "taboule-veggie-orientale": null, "tajine-poulet-legumes": [6, 7, 8, 9], "tomates-mozza-balsamique": [6, 7, 8, 9], "veau-champignons-creme": null, "wrap-falafels": [6, 7, 8, 9], "wrap-thon-avocat": [1, 2, 3, 4, 11, 12], "semaine-12-octobre-butternut-farcie-x2": [1, 2, 9, 10, 11, 12]};
 const MAXV = 7, KEY = "semaine-lasseche-1012-v3", DOC = "semaines/2026-10-12";
-const maxV = () => state.maxv ?? MAXV;
+const maxV = () => Math.min(state.maxv ?? MAXV, profMaxV());   // le régime du profil peut abaisser la limite
 // Saison : mois en cours ; SAISON[slug] = mois de saison, null = sans produit saisonnier
 const MOIS = new Date().getMonth() + 1;
 const inSeason = id => { const m = typeof SAISON === "undefined" ? undefined : SAISON[SLUG[id]]; return !Array.isArray(m) || m.includes(MOIS); };
@@ -1246,4 +1322,4 @@ render();
 ghInit();
 </script>
 
-<p class="ver" style="text-align:center;font-size:.72rem;color:var(--muted);margin:8px 0 24px">Version du 17/10 19:39</p></body></html>
+<p class="ver" style="text-align:center;font-size:.72rem;color:var(--muted);margin:8px 0 24px">Version du 17/10 19:48</p></body></html>
