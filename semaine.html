@@ -159,7 +159,20 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--accent); o
 .meal-head span { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.14em; color: var(--muted); }
 .meal select { font: inherit; font-weight: 700; font-size: 0.98rem; width: 100%; min-width: 0; padding: 9px 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
 .cell { cursor: grab; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; border-radius: 0; }
-.cell.picked { background: var(--accent-soft); outline: 2px solid var(--accent); outline-offset: -2px; }
+.cell.picked { background: var(--accent-soft); }
+.cell .cname { display: block; padding-right: 14px; position: relative; }
+.cell .cname::after { content: "▾"; position: absolute; right: 0; top: 0; color: var(--muted); font-size: 0.75rem; }
+.cell.late .cname { color: var(--meat); }
+.cell-sel { font: inherit; font-size: 0.85rem; width: 100%; min-width: 0; padding: 6px; border: 1px solid var(--accent); border-radius: 8px; background: var(--surface); color: var(--ink); }
+.dishes { display: grid; gap: 0; }
+.dish { display: grid; gap: 6px; padding: 14px 0; border-top: 1px solid var(--line); }
+.dish:first-child { border-top: 0; padding-top: 4px; }
+.dish h3 { margin: 0; font-size: 1.05rem; }
+.dish .when { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); }
+.dish table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+.dish td { padding: 5px 8px 5px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+.dish td.q { color: var(--muted); width: 42%; }
+.dish p { margin: 0; }
 .cell.over { background: var(--accent-soft); outline: 2px dashed var(--accent); outline-offset: -2px; }
 .cell.from { opacity: 0.35; }
 .ghost-cell { position: fixed; z-index: 50; pointer-events: none; max-width: 180px; padding: 8px 10px; background: var(--accent); color: #fff; font-weight: 700; font-size: 0.85rem; box-shadow: 0 6px 18px rgba(0,0,0,.25); transform: translate(-50%, -120%); }
@@ -251,11 +264,11 @@ header .label{text-align:center}
 
     <section class="panel" aria-label="Vue de la semaine">
       <h2>La semaine</h2>
-      <p class="note">Fais glisser un repas sur une autre case pour les échanger (sur téléphone, appuie un instant puis glisse). Tu peux aussi toucher un repas, puis celui avec lequel l'échanger.</p>
+      <p class="note">Touche un repas pour choisir un autre plat. Fais-le glisser sur une autre case pour les échanger (sur téléphone, appuie un instant puis glisse).</p>
       <div class="grid"><table><thead><tr><th>Jour</th><th>Midi</th><th>Soir</th></tr></thead><tbody id="grid"></tbody></table></div>
     </section>
 
-    <main id="postes" style="display:grid;gap:12px"></main>
+    <section class="panel" aria-label="Les plats de la semaine"><h2>Les plats de la semaine</h2><p class="note">Dans l'ordre de la semaine, avec les aliments pour tous les repas où le plat revient.</p><div id="postes" class="dishes"></div></section>
 
     <section class="panel" aria-label="Petits-déjeuners">
       <h2>Petits-déjeuners et collation</h2>
@@ -747,34 +760,41 @@ function renderGrid(){
   const cells = DAYS.map(() => ["",""]);
   SLOTS.forEach(sl => cells[sl.d][sl.m] = R[state.sel[sl.k]].n);
   const tb = document.getElementById("grid"); tb.innerHTML = "";
-  const cell = (d, m) => el("td",{class:"cell" + (picked === d+"-"+m ? " picked" : ""),"data-k":d+"-"+m}, cells[d][m]);
+  const cell = (d, m) => { const sl = SLOTS[d * 2 + m], k = keepInfo(sl);
+    return el("td",{class:"cell" + (picked === sl.k ? " picked" : "") + (k && k.bad ? " late" : ""),"data-k":sl.k},
+      picked === sl.k ? mealSelect(sl) : el("span",{class:"cname"}, cells[d][m])); };
   DAYS.forEach((day,d) => tb.append(el("tr",{}, el("td",{class:"d"},day.slice(0,3)+"."), cell(d,0), cell(d,1))));
+}
+// Menu de choix d'un repas : plats groupés, ceux qui ne tiennent pas jusqu'à ce jour sont grisés
+function mealSelect(sl){
+  const id = state.sel[sl.k];
+  const GROUPS = [["r", "Se prépare le dimanche"], ["q", "Rapide, à faire le jour même"], ["g", "Gourmand"]];
+  const group = x => GROUPS.find(([f]) => R[x][f])?.[0] || "g";
+  const sel = el("select",{class:"cell-sel","aria-label":DAYS[sl.d] + " " + MEALN[sl.m],
+      onchange:(e)=>{ picked = null; pick(sl.k, e.target.value); }, onblur:()=>{ setTimeout(() => { if (picked === sl.k) { picked = null; renderGrid(); } }, 150); }},
+    GROUPS.map(([f, label]) => el("optgroup",{label},
+      Object.keys(R).filter(x => group(x) === f).sort((a,b) => R[a].n.localeCompare(R[b].n,"fr"))
+        .map(x => { const late = tooLong(x, sl.d) && x !== id;
+          const o = el("option",{value:x}, R[x].n + (note(x) ? "  " + starTxt(note(x)) : "") + (R[x].v ? " · viande" : "") + (late ? " · ne tient pas jusque-là" : ""));
+          if (late) o.disabled = true; if (x === id) o.selected = true; return o; }))));
+  return sel;
 }
 function renderPostes(){
   const box = document.getElementById("postes"); box.innerHTML = "";
-  const c = counts();
-  const GROUPS = [["r", "Se prépare le dimanche"], ["q", "Rapide, à faire le jour même"], ["g", "Gourmand"]];
-  const group = id => GROUPS.find(([f]) => R[id][f])?.[0] || "g";
-  DAYS.forEach((day, d) => {
-    const card = el("section",{class:"day","aria-label":day}, el("h2",{}, day));
-    [0, 1].forEach(m => {
-      const sl = SLOTS[d * 2 + m], id = state.sel[sl.k], r = R[id], n = c[id];
-      const others = SLOTS.filter(x => x !== sl && state.sel[x.k] === id).map(slotName);
-      const sel = el("select",{id:"s-"+sl.k,"aria-label":day+" "+MEALN[m],onchange:(e)=>pick(sl.k, e.target.value)},
-        GROUPS.map(([f, label]) => el("optgroup",{label},
-          Object.keys(R).filter(x => group(x) === f).sort((a,b) => R[a].n.localeCompare(R[b].n,"fr"))
-            .map(x => { const late = tooLong(x, d) && x !== id;   // se garde mal jusqu'à ce jour : grisé
-              const o = el("option",{value:x}, R[x].n + (note(x) ? "  " + starTxt(note(x)) : "") + (R[x].v ? " · viande" : "") + (late ? " · ne tient pas jusque-là" : ""));
-              if (late) o.disabled = true; if (x === id) o.selected = true; return o; }))));
-      const hint = d === 5 && m === 1 ? "cheat meal" : d === 4 && m === 1 ? "soir rapide" : "";
-      card.append(el("div",{class:"meal"},
-        el("div",{class:"meal-head"}, el("span",{}, MEALN[m] + (hint ? " · " + hint : "")), others.length ? el("span",{class:"x2"}, "aussi " + others.join(", ")) : null),
-        sel,
-        el("span",{class:"ing"}, r.i.join(" · ")),
-        r.d ? el("span",{class:"ing"}, "→ " + r.d) : null,
-        (k => k ? el("span",{class:"keep" + (k.bad ? " bad" : "")}, k.txt) : null)(keepInfo(sl)),
-        el("span",{class:"tags"}, r.v ? el("span",{class:"tag v"},"viande") : null, r.c ? el("span",{class:"tag c"},"cher") : null, r.g ? el("span",{class:"tag"},"gourmand") : null)));
-    });
+  const c = counts(), seen = [];
+  SLOTS.forEach(sl => { const id = state.sel[sl.k]; if (!seen.includes(id)) seen.push(id); });
+  seen.forEach(id => {
+    const r = R[id], rc = RECIPES[id], n = c[id], f = factor(id, n);
+    const mine = SLOTS.filter(sl => state.sel[sl.k] === id);
+    const bad = mine.map(keepInfo).find(k => k && k.bad), frz = mine.map(keepInfo).find(k => k && k.freeze);
+    const card = el("div",{class:"dish"},
+      el("span",{class:"when"}, mine.map(slotName).join(", ") + (f !== 1 ? " · recette ×" + String(f).replace(".", ",") : "")),
+      el("h3",{}, r.n),
+      el("span",{class:"tags"}, r.v ? el("span",{class:"tag v"},"viande") : null, r.c ? el("span",{class:"tag c"},"cher") : null, r.g ? el("span",{class:"tag"},"gourmand") : null));
+    if (rc) card.append(el("table",{}, el("tbody",{}, rc.ing.map(([nm,q]) => el("tr",{}, el("td",{},nm), el("td",{class:"q"}, scaleQty(q,f)))))));
+    else card.append(el("p",{class:"ing"}, r.i.join(" · ")));
+    if (r.d) card.append(el("p",{class:"ing"}, r.d));
+    if (bad) card.append(el("p",{class:"keep bad"}, bad.txt)); else if (frz) card.append(el("p",{class:"keep"}, frz.txt));
     box.append(card);
   });
 }
@@ -880,12 +900,12 @@ function dragEnd(x, y){
   drag = null;
 }
 const grid = document.getElementById("grid");
-grid.addEventListener("mousedown", e => { const td = e.target.closest(".cell"); if (!td || e.button) return; drag = {k: td.dataset.k, td, x: e.clientX, y: e.clientY}; });
+grid.addEventListener("mousedown", e => { const td = e.target.closest(".cell"); if (!td || e.button || e.target.closest("select")) return; drag = {k: td.dataset.k, td, x: e.clientX, y: e.clientY}; });
 document.addEventListener("mousemove", e => { if (!drag) return;
   if (!drag.on && Math.hypot(e.clientX - drag.x, e.clientY - drag.y) > 6) dragStart(drag.td, e.clientX, e.clientY);
   if (drag.on) dragMove(e.clientX, e.clientY); });
 document.addEventListener("mouseup", e => { if (drag) dragEnd(e.clientX, e.clientY); });
-grid.addEventListener("touchstart", e => { const td = e.target.closest(".cell"); if (!td) return; const t = e.touches[0];
+grid.addEventListener("touchstart", e => { const td = e.target.closest(".cell"); if (!td || e.target.closest("select")) return; const t = e.touches[0];
   drag = {k: td.dataset.k, td, x: t.clientX, y: t.clientY};
   drag.timer = setTimeout(() => { if (drag) dragStart(td, drag.x, drag.y); }, 250); }, {passive: true});
 document.addEventListener("touchmove", e => { if (!drag) return; const t = e.touches[0];
@@ -893,10 +913,9 @@ document.addEventListener("touchmove", e => { if (!drag) return; const t = e.tou
   else if (Math.hypot(t.clientX - drag.x, t.clientY - drag.y) > 8) { clearTimeout(drag.timer); drag = null; } }, {passive: false});
 document.addEventListener("touchend", e => { if (!drag) return; const t = e.changedTouches[0]; if (drag.on) e.preventDefault(); dragEnd(t.clientX, t.clientY); });
 document.addEventListener("touchcancel", () => { if (drag) { clearTimeout(drag.timer); if (drag.ghost) drag.ghost.remove(); drag = null; render(); } });
-grid.addEventListener("click", e => { const td = e.target.closest(".cell"); if (!td || noClick) return;
-  if (!picked) { picked = td.dataset.k; renderGrid(); }
-  else if (picked === td.dataset.k) { picked = null; renderGrid(); }
-  else swap(picked, td.dataset.k); });
+grid.addEventListener("click", e => { const td = e.target.closest(".cell"); if (!td || noClick || e.target.closest("select")) return;
+  picked = td.dataset.k; renderGrid();
+  const sel = grid.querySelector(".cell-sel"); if (sel) { sel.focus(); try { sel.showPicker(); } catch (err) {} } });
 grid.addEventListener("contextmenu", e => { if (e.target.closest(".cell")) e.preventDefault(); });
 
 function render(){ renderGen(); renderVariants(); renderGrid(); renderPostes(); renderStats(); renderList(); renderRecipes(); }

@@ -5,7 +5,7 @@
 <div class="filters" id="chips"><button type="button" data-s="" aria-pressed="true">Tout</button><button type="button" data-s="plats" aria-pressed="false">Plats</button><button type="button" data-s="mijotes" aria-pressed="false">Mijotés</button><button type="button" data-s="petit-dejeuner" aria-pressed="false">Petits-déjeuners</button><button type="button" data-s="autres" aria-pressed="false">Collations et repères</button><button type="button" data-s="plans" aria-pressed="false">Plans de semaine</button></div>
 <div class="tools">
 <label><span class="label">Trier</span><select id="order"><option value="az">A à Z</option><option value="note">Mes préférées</option><option value="time">Les plus rapides</option><option value="diff">Les plus faciles</option><option value="kcal">Les moins caloriques</option></select></label>
-<label><span class="label">Aliment</span><select id="prot"><option value="">Tous</option><option value="viande">🥩 Viande</option><option value="volaille">Volaille</option><option value="bœuf">Bœuf, veau</option><option value="porc">Porc, jambon</option><option value="poisson">🐟 Poisson</option><option value="crevettes">Crevettes</option><option value="végétarien">🌱 Végétarien</option><option value="pimenté">🌶️ Pimenté</option></select></label>
+<label><span class="label">Aliment</span><select id="prot"><option value="">Tous</option><option value="viande">Viande</option><option value="volaille">Volaille</option><option value="bœuf">Bœuf, veau</option><option value="porc">Porc, jambon</option><option value="poisson">Poisson</option><option value="crevettes">Crevettes</option><option value="végétarien">Végétarien</option><option value="pimenté">Pimenté</option></select></label>
 <details class="sans"><summary><span class="label">Sans</span> <b id="sans-n">aucun allergène exclu</b></summary><div id="sans"><label><input type="checkbox" value="gluten"> gluten</label><label><input type="checkbox" value="lait"> lait</label><label><input type="checkbox" value="œuf"> œuf</label><label><input type="checkbox" value="fruits à coque"> fruits à coque</label><label><input type="checkbox" value="arachide"> arachide</label><label><input type="checkbox" value="poisson"> poisson</label><label><input type="checkbox" value="crustacés"> crustacés</label><label><input type="checkbox" value="soja"> soja</label><label><input type="checkbox" value="moutarde"> moutarde</label><label><input type="checkbox" value="sésame"> sésame</label></div></details>
 </div>
 <div id="out"></div>
@@ -49,7 +49,6 @@ function render() {
       if (nt(d)) { const st = document.createElement("span"); st.className = "stars"; st.textContent = "★".repeat(nt(d)) + "☆".repeat(5 - nt(d)); a.append(st); }
       const info = [d.i, DIFFS[d.d], d.c && d.c + " kcal"].filter(Boolean).join(" · ");
       if (info) { const s = document.createElement("span"); s.className = "t"; s.textContent = info; a.append(s); }
-      if (d.e) { const s = document.createElement("span"); s.className = "e"; s.textContent = d.e; a.append(s); }
       if (d.a.length) { const s = document.createElement("span"); s.className = "t"; s.textContent = "Contient : " + d.a.join(", "); a.append(s); }
       list.append(a);
     }
