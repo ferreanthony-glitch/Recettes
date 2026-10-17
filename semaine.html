@@ -1270,7 +1270,9 @@ const ghState = t => { const e = document.getElementById("gh-state"); if (e) e.t
   v.textContent = "Synchro des appareils : " + t + ". ";
   v.append(el("button",{type:"button",onclick:()=>{ ghState("synchronisation…"); ghPull(); }},"Synchroniser maintenant")); };
 const ghHead = () => ({Authorization: "Bearer " + ghTok(), Accept: "application/vnd.github+json"});
-const ghData = () => ({sel: state.sel, checked: state.checked, valid: state.valid || null, ppl: state.ppl || 2, favs: state.favs || [], u: state.u || 0});
+// Plats aimés (cœur du recueil) : synchronisés avec la semaine, la version la plus récente (lu) gagne
+const likesNow = () => { try { return {likes: JSON.parse(localStorage.getItem("recettes-likes")) || [], lu: +localStorage.getItem("recettes-likes-u") || 0}; } catch (e) { return {likes: [], lu: 0}; } };
+const ghData = () => ({sel: state.sel, checked: state.checked, valid: state.valid || null, ppl: state.ppl || 2, favs: state.favs || [], u: state.u || 0, ...likesNow()});
 const hhmm = () => new Date().toLocaleTimeString("fr-FR", {hour: "2-digit", minute: "2-digit"});
 async function ghPull(){
   if (!ghOk || !ghTok()) return;
@@ -1289,6 +1291,11 @@ async function ghPull(){
       try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
       render();
     } else if ((state.u || 0) > ((d && d.u) || 0)) { ghPush(); return; }
+    const lk = likesNow();
+    if (d && Array.isArray(d.likes) && (d.lu || 0) > lk.lu) {
+      try { localStorage.setItem("recettes-likes", JSON.stringify(d.likes)); localStorage.setItem("recettes-likes-u", d.lu); } catch (e) {}
+      renderGen();
+    } else if (lk.lu > ((d && d.lu) || 0)) { ghPush(); return; }
     ghState("à jour " + hhmm());
   } catch (e) { ghState("hors ligne"); }
 }
@@ -1379,4 +1386,4 @@ render();
 ghInit();
 </script>
 
-<p class="ver" style="text-align:center;font-size:.72rem;color:var(--muted);margin:8px 0 24px">Version du 17/10 23:43</p></body></html>
+<p class="ver" style="text-align:center;font-size:.72rem;color:var(--muted);margin:8px 0 24px">Version du 17/10 23:46</p></body></html>
