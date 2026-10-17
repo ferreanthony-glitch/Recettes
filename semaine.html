@@ -146,6 +146,11 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--accent); o
 .stock-add #st-n { grid-column: 1 / -1; }
 .stock-add input, .stock-add select { font: inherit; font-size: 0.95rem; min-width: 0; padding: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
 .stock-add button { font: inherit; font-weight: 700; padding: 10px 14px; border: 1px solid var(--accent); background: var(--surface); color: var(--accent); cursor: pointer; }
+.meal { display: grid; gap: 4px; padding-top: 10px; border-top: 1px solid var(--line); }
+.meal:first-of-type { border-top: 0; padding-top: 0; }
+.meal-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.meal-head span { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.14em; color: var(--muted); }
+.meal select { font: inherit; font-weight: 700; font-size: 0.98rem; width: 100%; min-width: 0; padding: 9px 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
 .have { display: block; font-size: 0.72rem; color: var(--accent); font-weight: 700; }
 </style>
 
@@ -188,7 +193,7 @@ header .label{text-align:center}
   <div class="sync" id="sync"></div>
 
   <div id="view-semaine" role="tabpanel" aria-labelledby="tab-semaine" style="display:grid;gap:18px">
-    <p class="sub" style="margin:0">Chaque plat cuisiné le dimanche est fait en double et sert deux repas. Choisis 7 plats : la semaine et la liste de courses se remplissent toutes seules.</p>
+    <p class="sub" style="margin:0">Choisis un plat pour chaque repas. Un plat choisi pour deux repas est cuisiné une seule fois, en double, le dimanche. La liste de courses et les recettes suivent toutes seules.</p>
 
     <section class="gen" aria-label="Générer une semaine">
       <h2>Générer une semaine</h2>
@@ -488,7 +493,7 @@ function generate(){
     if (sc > bestScore) { bestScore = sc; best = s; }
   }
   if (!best) return;
-  state.sel = best; state.checked = {};
+  state.sel = toSlots(best); state.checked = {};
   persist(); render();
   const hit = [], miss = [];
   left.forEach(it => { const c = consumed(best, it);
@@ -534,8 +539,15 @@ function renderGen(){
 const MAXV = 7, KEY = "semaine-lasseche-1012-v3", DOC = "semaines/2026-10-12";
 
 // ---- État : la semaine choisie et les articles cochés ----
-let state = {sel: {...V.A.p}, checked: {}};
-function valid(s){ return s && s.sel && P.every(p => R[s.sel[p.k]]) && s.checked && typeof s.checked === "object"; }
+// Un plat par repas : clé « jour-repas » (0-0 = lundi midi, 0-1 = lundi soir…)
+const SLOTS = DAYS.flatMap((d, i) => [0, 1].map(m => ({k: i + "-" + m, d: i, m})));
+const MEALN = ["midi", "soir"];
+function toSlots(ps){ const o = {}; P.forEach(p => p.slots.forEach(([d, m]) => o[d + "-" + m] = ps[p.k])); return o; }
+let state = {sel: toSlots(V.A.p), checked: {}};
+function valid(s){
+  if (s && s.sel && s.sel.dl1) s.sel = toSlots(s.sel);   // ancien format par paires de repas
+  return s && s.sel && SLOTS.every(sl => R[s.sel[sl.k]]) && s.checked && typeof s.checked === "object";
+}
 try { const s = JSON.parse(localStorage.getItem(KEY)); if (valid(s)) state = s; } catch (e) {}
 let tab = "semaine";
 try { tab = localStorage.getItem(KEY+"-tab") || "semaine"; } catch (e) {}
@@ -575,8 +587,11 @@ async function flush(){
 // ---- Outils ----
 function el(tag, attrs, ...kids){ const e = document.createElement(tag); for (const k in attrs||{}) { if (k === "class") e.className = attrs[k]; else if (k.startsWith("on")) e.addEventListener(k.slice(2), attrs[k]); else if (k === "checked") e.checked = attrs[k]; else e.setAttribute(k, attrs[k]); } kids.flat().forEach(c => c != null && e.append(c)); return e; }
 function pick(k, id){ state.sel[k] = id; persist(); render(); }
-function meals(){ return P.reduce((n,p) => n + (R[state.sel[p.k]].v ? p.slots.length : 0), 0); }
-function mult(p){ const r = R[state.sel[p.k]]; return p.slots.length > 1 && !r.once ? 2 : 1; }
+function meals(){ return SLOTS.filter(sl => R[state.sel[sl.k]].v).length; }
+// Nombre de repas par plat, et multiplicateur de recette (« once » : la recette fait déjà 2 repas)
+function counts(){ const c = {}; SLOTS.forEach(sl => { const id = state.sel[sl.k]; c[id] = (c[id] || 0) + 1; }); return c; }
+const factor = (id, n) => R[id].once ? n / 2 : n;
+const slotName = sl => DAYS[sl.d].slice(0, 3) + ". " + MEALN[sl.m];
 
 // ---- Liste de courses ----
 function buildList(){
@@ -586,9 +601,8 @@ function buildList(){
     if (!items[key]) items[key] = {key, name, u, ray, q: 0, src: new Set()};
     items[key].q += q * m; items[key].src.add(src);
   };
-  P.forEach(p => {
-    const id = state.sel[p.k], m = mult(p);
-    Q[id].forEach(x => add(x, m, R[id].n));
+  Object.entries(counts()).forEach(([id, n]) => {
+    Q[id].forEach(x => add(x, factor(id, n), R[id].n));
     (PLACARD[id]||[]).concat(["huile d'olive","sel, poivre"]).forEach(x => pl[x] = 1);
   });
   BREAKFAST.forEach(x => add(x, 1, "petits-déjeuners"));
@@ -659,43 +673,45 @@ function tags(r, p){
 function renderVariants(){
   const box = document.getElementById("variants"); box.innerHTML = "";
   for (const k in V) {
-    const same = P.every(p => V[k].p[p.k] === state.sel[p.k]);
-    box.append(el("button",{type:"button","aria-pressed":String(same),onclick:()=>{ state.sel = {...V[k].p}; persist(); render(); }},
+    const vs = toSlots(V[k].p), same = SLOTS.every(sl => vs[sl.k] === state.sel[sl.k]);
+    box.append(el("button",{type:"button","aria-pressed":String(same),onclick:()=>{ state.sel = toSlots(V[k].p); persist(); render(); }},
       el("b",{},"Proposition "+k), el("span",{},V[k].s)));
   }
 }
 function renderGrid(){
   const cells = DAYS.map(() => ["",""]);
-  P.forEach(p => p.slots.forEach(([d,m]) => cells[d][m] = R[state.sel[p.k]].n));
+  SLOTS.forEach(sl => cells[sl.d][sl.m] = R[state.sel[sl.k]].n);
   const tb = document.getElementById("grid"); tb.innerHTML = "";
   DAYS.forEach((day,d) => tb.append(el("tr",{}, el("td",{class:"d"},day.slice(0,3)+"."), el("td",{},cells[d][0]), el("td",{},cells[d][1]))));
 }
 function renderPostes(){
   const box = document.getElementById("postes"); box.innerHTML = "";
-  P.forEach(p => {
-    const dbl = p.slots.length > 1;
-    const card = el("section",{class:"day","aria-label":p.t},
-      el("div",{class:"slot-head"}, el("h2",{},p.t), dbl ? el("span",{class:"x2"},"1 plat · 2 repas") : null),
-      el("div",{class:"note"},p.h));
-    const opts = el("div",{class:"opts"});
-    const ids = p.o.slice(); if (!ids.includes(state.sel[p.k])) ids.push(state.sel[p.k]);
-    ids.forEach(id => {
-      const r = R[id];
-      opts.append(el("button",{type:"button",class:"opt","aria-pressed":String(state.sel[p.k]===id),onclick:()=>pick(p.k,id)},
-        el("span",{class:"name"}, r.n, note(id) ? el("span",{class:"stars"}, "  " + starTxt(note(id))) : null), el("span",{class:"ing"}, r.i.join(" · ")), r.d ? el("span",{class:"ing"},"→ "+r.d) : null, tags(r,p)));
+  const c = counts();
+  const GROUPS = [["r", "Se prépare le dimanche"], ["q", "Rapide, à faire le jour même"], ["g", "Gourmand"]];
+  const group = id => GROUPS.find(([f]) => R[id][f])?.[0] || "g";
+  DAYS.forEach((day, d) => {
+    const card = el("section",{class:"day","aria-label":day}, el("h2",{}, day));
+    [0, 1].forEach(m => {
+      const sl = SLOTS[d * 2 + m], id = state.sel[sl.k], r = R[id], n = c[id];
+      const others = SLOTS.filter(x => x !== sl && state.sel[x.k] === id).map(slotName);
+      const sel = el("select",{id:"s-"+sl.k,"aria-label":day+" "+MEALN[m],onchange:(e)=>pick(sl.k, e.target.value)},
+        GROUPS.map(([f, label]) => el("optgroup",{label},
+          Object.keys(R).filter(x => group(x) === f).sort((a,b) => R[a].n.localeCompare(R[b].n,"fr"))
+            .map(x => { const o = el("option",{value:x}, R[x].n + (note(x) ? "  " + starTxt(note(x)) : "") + (R[x].v ? " · viande" : "")); if (x === id) o.selected = true; return o; }))));
+      const hint = d === 5 && m === 1 ? "cheat meal" : d === 4 && m === 1 ? "soir rapide" : "";
+      card.append(el("div",{class:"meal"},
+        el("div",{class:"meal-head"}, el("span",{}, MEALN[m] + (hint ? " · " + hint : "")), others.length ? el("span",{class:"x2"}, "aussi " + others.join(", ")) : null),
+        sel,
+        el("span",{class:"ing"}, r.i.join(" · ")),
+        r.d ? el("span",{class:"ing"}, "→ " + r.d) : null,
+        el("span",{class:"tags"}, r.v ? el("span",{class:"tag v"},"viande") : null, r.c ? el("span",{class:"tag c"},"cher") : null, r.g ? el("span",{class:"tag"},"gourmand") : null)));
     });
-    const selId = "autre-"+p.k;
-    const pool = Object.keys(R).filter(id => R[id][p.f]).sort((a,b)=>R[a].n.localeCompare(R[b].n,"fr"));
-    const s = el("select",{id:selId,onchange:(e)=>{ if (e.target.value) pick(p.k, e.target.value); }},
-      el("option",{value:""}, dbl ? "Autre plat qui se réchauffe…" : "Autre plat…"),
-      pool.map(id => el("option",{value:id}, R[id].n + (R[id].v?" (viande)":""))));
-    card.append(opts, el("label",{class:"other",for:selId}, s));
     box.append(card);
   });
 }
 function renderStats(){
   const meat = meals();
-  const dishes = [...new Set(P.map(p => state.sel[p.k]))];
+  const c = counts(), dishes = Object.keys(c);
   const uses = {};
   dishes.forEach(id => R[id].i.forEach(x => { uses[x] = (uses[x]||0)+1; }));
   document.getElementById("n-meat").textContent = meat + "/" + MAXV;
@@ -705,9 +721,9 @@ function renderStats(){
   const al = document.getElementById("alerts"); al.innerHTML = "";
   if (meat > MAXV) al.append(el("div",{class:"alert meat"}, `${meat} repas avec viande : il en faut ${meat-MAXV} de moins pour rester à ${MAXV}.`));
   const cher = {};
-  P.forEach(p => (R[state.sel[p.k]].c||[]).forEach(x => { cher[x] = (cher[x]||0) + p.slots.length; }));
-  for (const x in cher) if (cher[x] < 2) al.append(el("div",{class:"alert"}, `${x[0].toUpperCase()+x.slice(1)} : aliment cher qui ne sert qu'un repas. Mets ce plat sur un poste double, ou change-le.`));
-  const count = {}; P.forEach(p => count[state.sel[p.k]] = (count[state.sel[p.k]]||0) + p.slots.length);
+  dishes.forEach(id => (R[id].c||[]).forEach(x => { cher[x] = (cher[x]||0) + c[id]; }));
+  for (const x in cher) if (cher[x] < 2) al.append(el("div",{class:"alert"}, `${x[0].toUpperCase()+x.slice(1)} : aliment cher qui ne sert qu'un repas. Choisis ce plat pour un deuxième repas, ou change-le.`));
+  const count = c;
   for (const id in count) if (count[id] > 2) al.append(el("div",{class:"alert"}, `${R[id].n} revient ${count[id]} fois dans la semaine.`));
 }
 
@@ -750,16 +766,16 @@ function scaleQty(q, f){
 }
 function renderRecipes(){
   const box = document.getElementById("recettes"); box.innerHTML = "";
-  const seen = {};
-  P.forEach(p => {
-    const id = state.sel[p.k], r = R[id], rc = RECIPES[id], f = mult(p);
+  const c = counts();
+  Object.keys(c).forEach(id => {
+    const r = R[id], rc = RECIPES[id], n = c[id], f = factor(id, n);
     if (!rc) return;
-    const key = id + "-" + f;
+    const when = SLOTS.filter(sl => state.sel[sl.k] === id).map(slotName).join(", ");
     const card = el("details",{class:"recipe"},
-      el("summary",{}, el("span",{class:"when"}, p.t + (f === 2 ? " · recette ×2" : r.once && p.slots.length > 1 ? " · la recette fait 2 repas" : "")), el("h2",{}, r.n), rc.t ? el("span",{class:"note"}, "Temps (une fois la recette) : " + rc.t) : null));
-    card.append(el("h3",{},"Ingrédients pour 2 personnes" + (f === 2 ? ", 2 repas" : "")));
+      el("summary",{}, el("span",{class:"when"}, when + (f !== 1 ? " · recette ×" + String(f).replace(".", ",") : r.once && n === 2 ? " · la recette fait 2 repas" : "")), el("h2",{}, r.n), rc.t ? el("span",{class:"note"}, "Temps (une fois la recette) : " + rc.t) : null));
+    card.append(el("h3",{},"Ingrédients pour 2 personnes" + (n > 1 ? ", " + n + " repas" : "")));
     card.append(el("table",{}, el("tbody",{}, rc.ing.map(([n,q]) => el("tr",{}, el("td",{},n), el("td",{class:"q"}, scaleQty(q,f)))))));
-    if (r.d && /œufs durs/.test(r.d)) card.append(el("p",{class:"extra"}, "En plus : " + (f === 2 ? 8 : 4) + " œufs durs à servir à côté (2 par personne et par repas)."));
+    if (r.d && /œufs durs/.test(r.d)) card.append(el("p",{class:"extra"}, "En plus : " + 4 * n + " œufs durs à servir à côté (2 par personne et par repas)."));
     card.append(el("h3",{},"Étapes"));
     const ol = el("ol",{}); const rest = [];
     rc.steps.forEach(s => { const m = s.match(/^\d+\.\s*(.*)$/); if (m && !rest.length) ol.append(el("li",{}, m[1])); else rest.push(s.replace(/^-\s*/, "")); });
@@ -775,7 +791,7 @@ document.getElementById("tab-semaine").addEventListener("click", () => showTab("
 document.getElementById("tab-courses").addEventListener("click", () => { showTab("courses"); window.scrollTo(0,0); });
 document.getElementById("tab-recettes").addEventListener("click", () => { showTab("recettes"); window.scrollTo(0,0); });
 document.getElementById("go-courses").addEventListener("click", () => { showTab("courses"); window.scrollTo(0,0); });
-document.getElementById("reset").addEventListener("click", () => { state.sel = {...V.A.p}; persist(); render(); });
+document.getElementById("reset").addEventListener("click", () => { state.sel = toSlots(V.A.p); persist(); render(); });
 document.getElementById("uncheck").addEventListener("click", () => { state.checked = {}; persist(); renderList(); });
 document.getElementById("copy-list").addEventListener("click", () => {
   const txt = listText(), toast = document.getElementById("toast"), fb = document.getElementById("fallback");
