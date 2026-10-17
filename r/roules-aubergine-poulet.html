@@ -1,4 +1,22 @@
-<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#f7f3ec"><meta name="color-scheme" content="light"><title>Roulés d&#x27;aubergine au poulet et pesto rosso</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,600;9..40,700&display=swap"><link rel="stylesheet" href="../style.css"></head><body><header class="site"><div class="in"><a class="brand" href="../index.html">Recettes</a><nav class="nav"><a href="../index.html">Recueil</a><a href="../semaine.html">Ma semaine</a></nav></div></header><main class="wrap"><div class="recipe"><a class="back" href="../index.html">← Toutes les recettes</a><div class="r-head"><span class="label">Plat</span><h1>Roulés d&#x27;aubergine au poulet et pesto rosso</h1></div><div class="facts"><div><span class="label">Temps</span><b>15 min</b></div><div><span class="label">Portions</span><b>2 personnes</b></div></div><article><details class="intro"><summary>Source, allergènes et préparation</summary><ul>
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#f7f3ec"><meta name="color-scheme" content="light"><title>Roulés d&#x27;aubergine au poulet et pesto rosso</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,600;9..40,700&display=swap"><link rel="stylesheet" href="../style.css"></head><body><header class="site"><div class="in"><a class="brand" href="../index.html">Recettes</a><nav class="nav"><a href="../index.html">Recueil</a><a href="../semaine.html">Ma semaine</a></nav></div></header><main class="wrap"><div class="recipe"><a class="back" href="../index.html">← Toutes les recettes</a><div class="r-head"><span class="label">Plat</span><h1>Roulés d&#x27;aubergine au poulet et pesto rosso</h1></div><div class="facts"><div><span class="label">Temps</span><b>15 min</b></div><div><span class="label">Portions</span><b>2 personnes</b></div></div><div class="rate"><div id="stars"></div><small id="rate-t">Noter cette recette</small></div>
+<script>
+(() => {
+  const slug = "roules-aubergine-poulet", box = document.getElementById("stars"), t = document.getElementById("rate-t");
+  const get = () => { try { return JSON.parse(localStorage.getItem("recettes-notes")) || {}; } catch (e) { return {}; } };
+  function draw() {
+    const n = get()[slug] || 0; box.innerHTML = "";
+    for (let i = 1; i <= 5; i++) {
+      const b = document.createElement("button"); b.type = "button"; b.textContent = "★";
+      b.className = i <= n ? "on" : ""; b.setAttribute("aria-label", i + " étoile" + (i > 1 ? "s" : ""));
+      b.onclick = () => { const all = get(); if (all[slug] === i) delete all[slug]; else all[slug] = i;
+        try { localStorage.setItem("recettes-notes", JSON.stringify(all)); } catch (e) {} draw(); };
+      box.append(b);
+    }
+    t.textContent = n ? "Ta note : " + n + "/5 · touche à nouveau pour l'effacer" : "Noter cette recette";
+  }
+  draw();
+})();
+</script><article><details class="intro"><summary>Source, allergènes et préparation</summary><ul>
 <li><strong>Source</strong> : <a href="https://lacerisesurlemaillot.fr/roules-aubergine-poulet/">La cerise sur le maillot</a> (recette d'origine pour 4 personnes)</li>
 <li><strong>Portions</strong> : 2 personnes, 1 repas</li>
 <li><strong>Temps</strong> : préparation 15 min · cuisson 1 h 05 (20 min aubergines + 45 min plat) · total 1 h 20, dont 15 min actives</li>

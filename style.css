@@ -35,6 +35,15 @@ input[type=search]:focus{outline:none;border-bottom-width:2px}
 .card span.t{font-size:.85rem;color:var(--muted)}
 .card:hover b{text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:4px}
 .empty{color:var(--muted);text-align:center}
+.card .stars{font-size:.85rem;color:var(--accent);letter-spacing:.08em}
+.sort{display:flex;justify-content:center;gap:18px;margin:-32px 0 44px;font-size:.72rem;text-transform:uppercase;letter-spacing:.14em;color:var(--muted)}
+.sort button{font:inherit;text-transform:inherit;letter-spacing:inherit;border:0;background:none;color:var(--muted);padding:2px 0;border-bottom:1px solid transparent;cursor:pointer}
+.sort button[aria-pressed="true"]{color:var(--ink);border-bottom-color:var(--ink)}
+.rate{display:grid;justify-items:center;gap:4px;margin:-12px 0 32px}
+.rate div{display:flex;gap:2px}
+.rate button{font-size:1.9rem;line-height:1;border:0;background:none;color:var(--line);cursor:pointer;padding:4px}
+.rate button.on{color:var(--accent)}
+.rate small{text-align:center;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
 .recipe{max-width:720px;margin:0 auto}
 .back{display:inline-block;margin:28px 0 0;font-size:.72rem;text-transform:uppercase;letter-spacing:.14em;color:var(--muted);text-decoration:none}
 .r-head{text-align:center;padding:36px 0 28px;display:grid;gap:14px;justify-items:center}
