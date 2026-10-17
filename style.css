@@ -52,6 +52,7 @@ input[type=search]:focus{outline:none;border-bottom-width:2px}
 @media (max-width:1023px){.card.has-ph{grid-template-columns:96px 1fr;column-gap:14px;align-content:start}
 .card.has-ph>*{grid-column:2}.card.has-ph .ph{grid-column:1;grid-row:1/span 6;aspect-ratio:1;margin:0;align-self:start}
 .item .cr{top:calc(22px + 96px - 17px);left:0;right:auto;width:96px;text-align:center;box-sizing:border-box;padding:2px 0;border-radius:0 0 12px 12px}}
+.card .sai.now{color:var(--accent)}
 .card .e{font-size:1rem;letter-spacing:.2em}
 .pics{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
 .pic{display:inline-flex;gap:6px;align-items:center;font-size:.72rem;text-transform:uppercase;letter-spacing:.12em;border:1px solid var(--line);border-radius:999px;padding:5px 12px}
