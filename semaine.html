@@ -381,6 +381,7 @@ header .label{text-align:center}
         <button type="button" class="ghost" id="revalidate">Mettre à jour</button>
       </div>
       <p class="note valid-msg" id="valid-msg"></p>
+      <p class="note stock-upd" id="stock-upd" hidden></p>
       <div class="board" id="board"><div class="alerts" id="alerts"></div></div>
     </section>
 
@@ -1098,7 +1099,7 @@ function buildList(){
   BREAKFAST.forEach(x => add(x, pf(), "petits-déjeuners"));
   BREAKFAST_PL.forEach(x => pl[x] = 1);
   // Déduit les restes : chaque reste est consommé article par article, dans l'unité de l'article
-  stock().forEach(st => { let left = st.q;
+  listStock().forEach(st => { let left = st.q;
     Object.values(items).forEach(it => {
       if (left <= 0 || !same(it.name, st.n)) return;
       const have = conv(left, st.u, it.u, st.n);
@@ -1364,6 +1365,37 @@ document.addEventListener("touchcancel", () => { if (drag) { clearTimeout(drag.t
 function openMenu(td){ const sel = td.querySelector(".cell-sel"); if (!sel) return; sel.focus(); try { sel.showPicker(); } catch (err) {} }
 grid.addEventListener("contextmenu", e => { if (e.target.closest(".cell")) e.preventDefault(); });
 
+// ---- Restes : à la validation, ce que la semaine utilise est retiré de « Ce qu'il me reste » ----
+// La liste de courses de la semaine validée continue de déduire les restes d'avant la validation (valid.stock)
+const listStock = () => (state.valid && state.valid.stock) || stock();
+const skey = it => stem(it.n) + "|" + it.u;
+// Quantité d'un reste utilisée par une grille de repas (dans l'unité du reste) ; « partiel » si l'unité ne se convertit pas
+function consumedSel(sel, it){
+  let q = 0, partial = false;
+  SLOTS.forEach(sl => { const id = sel[sl.k]; if (!R[id]) return;
+    const cook = iso(dayDate(R[id].r && POSTE_OF[sl.k].f === "r" ? 0 : sl.d));   // plats du dimanche : cuisinés dimanche
+    if (it.exp && cook > it.exp) return;                                         // périmé avant d'être cuisiné
+    const per = (R[id].once ? 0.5 : 1) * pf();
+    Q[id].forEach(([n, qq, u]) => { if (u === "pl" || !same(n, it.n)) return;
+      const c = conv(qq * per, u, it.u, it.n); if (c === null) partial = true; else q += c; }); });
+  return {q, partial};
+}
+function applyStock(sel, prev){
+  // Revalidation : on repart des restes d'avant la première validation, corrigés de ce que tu as ajouté ou retiré depuis
+  let base = stock().map(x => ({...x}));
+  if (prev && Array.isArray(prev.stock) && Array.isArray(prev.left)) {
+    const m = {}, put = (x, dq) => { const k = skey(x); m[k] = m[k] || {...x, q: 0}; m[k].q += dq; if (x.exp) m[k].exp = x.exp; };
+    prev.stock.forEach(x => put(x, x.q)); stock().forEach(x => put(x, x.q)); prev.left.forEach(x => put(x, -x.q));
+    base = Object.values(m).filter(x => x.q > 1e-9);
+  }
+  const used = [], partial = [];
+  const left = base.map(it => { const c = consumedSel(sel, it);
+    if (c.q > 0) { const nq = Math.max(0, it.q - c.q); used.push(fmtStock({...it, exp: null}).trim() + " → " + (nq > 1e-9 ? fmtStock({...it, q: nq, exp: null}).replace(" " + it.n, "").trim() || "reste" : "plus rien")); return {...it, q: nq}; }
+    if (c.partial) partial.push(it.n);
+    return {...it}; }).filter(x => x.q > 1e-9);
+  return {base, left, note: (used.length ? "Restes mis à jour : " + used.join(", ") + "." : "Aucun de tes restes n'est utilisé par cette semaine.") + (partial.length ? " Pas pu calculer pour : " + partial.join(", ") + " (unités différentes), à retirer à la main." : "")};
+}
+
 // ---- Semaine validée : son dimanche de départ ----
 // Le dimanche qui suit (ou qui est) le jour de la validation ; « start » le fixe à la main (vue Aujourd'hui)
 function sundayOf(t){ const d = new Date(t); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() + ((8 - d.getDay()) % 7 || 7) - 1); return d; }
@@ -1602,12 +1634,15 @@ function renderValid(){
   document.getElementById("done").hidden = !ok;
   if (ok) document.getElementById("done-when").textContent = when(v.at);
   document.getElementById("valid-msg").hidden = !!ok;
+  const su = document.getElementById("stock-upd"); su.hidden = !(v && v.note); su.textContent = v && v.note || "";
   document.getElementById("validate").textContent = todo ? "Valider les changements" : "Valider la semaine";
   document.querySelectorAll(".hop").forEach(a => { a.textContent = IS_SITE ? "Ouvrir dans Claude" : "Ouvrir dans le site"; a.href = HOP_URL + "#" + pack(); });
 }
 document.getElementById("revalidate").addEventListener("click", () => document.getElementById("validate").click());
 document.getElementById("validate").addEventListener("click", () => {
-  state.valid = {sel: {...state.sel}, at: Date.now(), start: iso(dayDate(0))}; persist(); render();
+  const st = applyStock(state.sel, state.valid);
+  state.valid = {sel: {...state.sel}, at: Date.now(), start: iso(dayDate(0)), stock: st.base, left: st.left, note: st.note};
+  state.stock = st.left.map(x => ({...x})); persist(); render();
   if (ghTok()) { clearTimeout(ghTimer); ghState("envoi…"); ghSend(); }   // une validation part tout de suite vers les autres appareils
 });
 document.querySelectorAll(".hop").forEach(a => a.addEventListener("click", () => { a.href = HOP_URL + "#" + pack(); }));
@@ -1741,4 +1776,4 @@ render();
 ghInit();
 </script>
 
-<p class="ver" style="text-align:center;font-size:.72rem;color:var(--muted);margin:8px 0 24px">Version du 18/10 01:14</p></body></html>
+<p class="ver" style="text-align:center;font-size:.72rem;color:var(--muted);margin:8px 0 24px">Version du 18/10 03:20</p></body></html>
