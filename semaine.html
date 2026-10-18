@@ -234,6 +234,10 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--accent); o
 .cell.locked .cname::before { content: ""; display: inline-block; width: 11px; height: 12px; margin-right: 5px; vertical-align: -1px; background: var(--accent);
   -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 11 12'%3E%3Crect x='0' y='5' width='11' height='7' rx='1.5'/%3E%3Cpath d='M2.5 5V3.5a3 3 0 0 1 6 0V5' fill='none' stroke='black' stroke-width='1.6'/%3E%3C/svg%3E") center/contain no-repeat;
   mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 11 12'%3E%3Crect x='0' y='5' width='11' height='7' rx='1.5'/%3E%3Cpath d='M2.5 5V3.5a3 3 0 0 1 6 0V5' fill='none' stroke='black' stroke-width='1.6'/%3E%3C/svg%3E") center/contain no-repeat; }
+.why { margin-top: 12px; font-size: .88rem; }
+.why summary { cursor: pointer; font-weight: 700; color: var(--accent); }
+.why ul { margin: 8px 0 0; padding-left: 18px; display: grid; gap: 4px; }
+.why .hand { color: var(--muted); }
 .swap-msg { margin-top: 10px; padding: 10px 12px; border-radius: 12px; background: var(--accent-soft); font-size: .9rem; display: grid; gap: 6px; }
 .swap-msg.bad { background: #fbe9e4; color: var(--meat); }
 .swap-msg button { justify-self: start; }
@@ -390,6 +394,7 @@ header .label{text-align:center}
       <p class="note valid-msg" id="valid-msg"></p>
       <p class="note stock-upd" id="stock-upd" hidden></p>
       <div class="board" id="board"><div class="alerts" id="alerts"></div></div>
+      <details class="why" id="why" hidden><summary>Pourquoi ces plats ?</summary><ul id="why-list"></ul></details>
     </section>
 
     <section class="panel" aria-label="Les plats de la semaine" style="display:none">   <!-- retiré à la demande d'Antho ; gardé caché car le script y écrit --><h2>Les plats de la semaine</h2><p class="note">Touche un plat pour voir ses ingrédients et sa recette.</p><div id="postes" class="dishes"></div></section>
@@ -812,6 +817,7 @@ function generate(){
     document.getElementById("gen-msg").textContent = "Aucune semaine possible avec ces aliments à éviter" + (empty.length ? " : plus aucun plat pour " + empty.join(", ") : "") + ". " + (PROF.length ? "Retire un aliment de la liste ou assouplis ton profil dans Profil." : "Retire un aliment de la liste.");
     return;
   }
+  state.why = explain(best, pins, locked, left, n);
   state.sel = toSlots(best); state.checked = {};
   locked.forEach(p => p.slots.forEach(([d, m]) => state.sel[d + "-" + m] = before[d + "-" + m]));
   persist(); render();
@@ -1648,7 +1654,46 @@ grid.addEventListener("click", e => {
   persist(); markLocks();
 });
 
-function render(){ document.getElementById("ppl").value = ppl(); document.querySelectorAll(".ppl-n").forEach(x => x.textContent = ppl() + " personne" + (ppl() > 1 ? "s" : "")); renderGen(); renderVariants(); renderFavs(); renderGrid(); renderPostes(); renderStats(); renderList(); renderRecipes(); renderValid(); renderToday(); renderSeance(); if (swapMode) markSwap(); markLocks(); }
+// ---- Pourquoi ce placement : une ligne courte par plat, d'après les règles qui ont vraiment joué ----
+const daysTxt = ds => { const n = ds.map(d => DAYS[d].toLowerCase()); return n.length > 1 ? n.slice(0, -1).join(", ") + " et " + n[n.length - 1] : n[0]; };
+const posteWhen = p => { const ds = [...new Set(p.slots.map(([d]) => d))], ms = [...new Set(p.slots.map(([, m]) => m))];
+  return daysTxt(ds) + " " + (ms.length > 1 ? "midi et soir" : MEALN[ms[0]]); };
+function explain(best, pins, locked, left, n){
+  const why = {}, meat = P.reduce((a, p) => a + (R[best[p.k]].v ? p.slots.length : 0), 0);
+  P.forEach(p => {
+    const id = best[p.k], r = R[id], out = [];
+    if (locked.includes(p)) { why[p.k] = {id, t: "verrouillé par toi"}; return; }
+    if (pins.includes(id)) out.push("tu l'as demandé");
+    // Quand et comment il est cuisiné
+    if (p.f === "r") { const [fr, fz] = KEEP[id] || [3, 0], late = p.slots.filter(([d]) => d > fr).map(([d, m]) => DAYS[d].toLowerCase() + " " + MEALN[m]);
+      if (late.length && fz) out.push("placé " + late.join(" et ") + " : il se congèle");
+      else if (p.k === "dim") out.push("cuisiné et mangé dimanche");
+      else out.push("tient " + fr + " jours au frigo"); }
+    else out.push(p.f === "q" ? "rapide, cuisiné le jour même" : "plat gourmand de la semaine");
+    if (eveningOnly(id)) out.push("une soupe, donc le soir");
+    if ((r.c || []).length) out.push(r.c[0] + " : aliment cher, sur deux repas");
+    // Ce qui l'a fait préférer
+    const uses = left.filter(it => Q[id].some(([nm]) => same(nm, it.n))).map(it => it.n);
+    if (uses.length) out.push("utilise ton reste de " + uses.join(", "));
+    const st = n[SLUG[id]]; if (st >= 4) out.push("noté " + st + " étoiles");
+    if (!r.v && meat >= maxV() && maxV() < 14) out.push("sans viande, pour rester à " + maxV() + " repas avec viande");
+    if ((state.sais || 0) > 0 && inSeason(id) && Array.isArray((typeof SAISON !== "undefined" ? SAISON : {})[SLUG[id]])) out.push("de saison");
+    const shared = r.i.filter(x => P.some(q => q !== p && best[q.k] !== id && R[best[q.k]].i.includes(x)));
+    if (shared.length) out.push("partage " + shared.slice(0, 2).join(" et ") + " avec d'autres plats");
+    why[p.k] = {id, t: out.slice(0, 3).join(" ; ")};
+  });
+  return why;
+}
+function renderWhy(){
+  const box = document.getElementById("why"), ul = document.getElementById("why-list"); ul.innerHTML = "";
+  if (!state.why) { box.hidden = true; return; }
+  box.hidden = false;
+  P.forEach(p => { const ids = [...new Set(p.slots.map(([d, m]) => state.sel[d + "-" + m]))], w = state.why[p.k];
+    const t = ids.length === 1 && w && w.id === ids[0] ? w.t : "choisi à la main";
+    ul.append(el("li",{class: t === "choisi à la main" ? "hand" : ""}, el("b",{}, posteWhen(p)), " · " + ids.map(id => R[id].n).join(" / ") + " : " + t)); });
+}
+
+function render(){ document.getElementById("ppl").value = ppl(); document.querySelectorAll(".ppl-n").forEach(x => x.textContent = ppl() + " personne" + (ppl() > 1 ? "s" : "")); renderGen(); renderVariants(); renderFavs(); renderGrid(); renderPostes(); renderStats(); renderList(); renderRecipes(); renderValid(); renderToday(); renderSeance(); if (swapMode) markSwap(); markLocks(); renderWhy(); }
 
 document.getElementById("tab-semaine").addEventListener("click", () => showTab("semaine"));
 document.getElementById("tab-courses").addEventListener("click", () => { showTab("courses"); window.scrollTo(0,0); });
@@ -1812,4 +1857,4 @@ render();
 ghInit();
 </script>
 
-<p class="ver" style="text-align:center;font-size:.72rem;color:var(--muted);margin:8px 0 24px">Version du 18/10 03:23</p></body></html>
+<p class="ver" style="text-align:center;font-size:.72rem;color:var(--muted);margin:8px 0 24px">Version du 18/10 03:24</p></body></html>

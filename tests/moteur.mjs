@@ -81,6 +81,11 @@ const res = await page.evaluate(async (N) => {
     P.forEach(p => { const id = of(p); (R[id].c || []).forEach(c => cher[c] = (cher[c] || 0) + p.slots.length);
       if ((R[id].c || []).length && p.slots.length < 2 && !mine(p)) fail("aliments chers", R[id].n + " sur un seul repas (" + p.t + ")"); });
     if (!lockedP.size) Object.entries(cher).forEach(([c, n]) => n > 2 ? fail("aliments chers", c + " sur " + n + " repas") : ok("aliments chers"));
+    // Explication : une ligne par plat, qui dit « il se congèle » quand une part va au congélateur
+    if (!stuck) P.forEach(p => { const w = (state.why || {})[p.k], id = of(p);
+      if (!w || w.id !== id || !w.t) fail("explication de chaque placement", p.t + " : pas d'explication");
+      else if (!lockedP.has(p.k) && p.f === "r" && p.slots.some(([d]) => d > (KEEP[id] || [3])[0]) && !/congèle/.test(w.t)) fail("explication de chaque placement", R[id].n + " (" + p.t + ") : congélation non expliquée : " + w.t);
+      else ok("explication de chaque placement"); });
     // Règle 4 : soupes le soir seulement
     SLOTS.forEach(sl => { if (sl.m === 0 && /^soupe/i.test(R[sel[sl.k]].n)) fail("soupes le soir", R[sel[sl.k]].n + " " + DAYS[sl.d] + " midi"); else ok("soupes le soir"); });
     // Règle 5 : allergènes du profil et aliments à éviter (les plats imposés à la main sont signalés, pas retirés)
@@ -165,6 +170,17 @@ const p1 = await page.evaluate((N) => {
   check("aujourd'hui : dimanche choisi à la main", iso(weekStart({at: at(2026, 10, 19, 9), start: "2026-10-18"})) === "2026-10-18", "start ignoré");
   return out;
 }, Math.max(20, Math.round(N / 5)));
+// Restes : retirés à la validation, sans double déduction, liste de courses inchangée
+const st = await page.evaluate(() => {
+  state.sel = toSlots(V.B.p); state.locks = {}; delete state.valid; state.stock = [{n: "aubergine", q: 3, u: "pc"}, {n: "riz", q: 500, u: "g"}, {n: "céleri", q: 1, u: "pc"}]; render();
+  const list = () => JSON.stringify(buildList().map(x => [x.key, Math.round(x.q)]));
+  const l0 = list(); document.getElementById("validate").click();
+  const s1 = JSON.stringify(state.stock), l1 = list(); document.getElementById("revalidate").click();
+  return {l0, l1, s1, s2: JSON.stringify(state.stock), keep: state.stock.some(x => x.n === "céleri" && x.q === 1), used: !state.stock.some(x => x.n === "aubergine")};
+});
+p1.push({rule: "restes mis à jour à la validation", ok: st.used && st.keep, why: "restes après validation : " + st.s1});
+p1.push({rule: "restes mis à jour à la validation", ok: st.s1 === st.s2, why: "revalider déduit une seconde fois : " + st.s1 + " puis " + st.s2});
+p1.push({rule: "restes mis à jour à la validation", ok: st.l0 === st.l1, why: "la liste de courses a changé après la validation"});
 // Échange en deux touchers, sur la vraie page
 await page.evaluate(() => { state.sel = toSlots(V.A.p); render(); });
 await page.click("#swap-btn"); await page.click('#grid .cell[data-k="1-0"]');
