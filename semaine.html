@@ -254,16 +254,21 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--accent); o
 .se-tools { align-items: center; }
 .se-start input { font: inherit; padding: 4px 6px; border: 1px solid var(--line); border-radius: 8px; }
 .se-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
-.se-steps li { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 10px 12px; display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; align-items: start; }
+.se-steps > li { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 10px 12px; display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; align-items: start; }
 .se-steps li.done { opacity: .5; }
 .se-steps li.done .se-t { text-decoration: line-through; }
 .se-steps input[type=checkbox] { width: 22px; height: 22px; margin: 2px 0 0; accent-color: var(--accent); grid-row: span 4; }
 .se-steps .se-h { font-weight: 700; color: var(--accent); margin-right: 6px; }
-.se-steps .se-ing { grid-column: 2; list-style: none; margin: 4px 0 0; padding: 6px 10px; background: var(--bg); border-radius: 10px; display: grid; gap: 2px; font-size: .9rem; }
+.se-steps .se-fold { grid-column: 2; }
+.se-steps .se-fold > summary { -webkit-tap-highlight-color: transparent; outline: none; cursor: pointer; font-size: .9rem; font-weight: 600; color: var(--accent); padding: 4px 0; list-style: none; }
+.se-steps .se-fold > summary::-webkit-details-marker { display: none; }
+.se-steps .se-fold > summary::before { content: "+"; display: inline-block; width: 1.1em; }
+.se-steps .se-fold[open] > summary::before { content: "−"; }
+.se-steps .se-dishes { display: grid; gap: 2px; padding-left: 10px; }
+.se-steps .se-dishes .se-fold > summary { color: var(--ink); font-weight: 500; }
+.se-steps .se-ing { grid-column: 2; list-style: none; margin: 2px 0 4px; padding: 6px 10px; background: var(--bg); border-radius: 10px; display: grid; gap: 2px; font-size: .9rem; }
 .se-steps .se-ing li { display: flex; justify-content: space-between; gap: 10px; }
 .se-steps .se-ing b { white-space: nowrap; text-align: right; }
-.se-steps .se-ing li.se-ingh { font-weight: 600; margin-top: 4px; color: var(--accent); }
-.se-steps .se-ing li.se-ingh:first-child { margin-top: 0; }
 .se-steps .se-d { grid-column: 2; font-size: .88rem; }
 .se-steps .se-sub { grid-column: 2; font-size: .82rem; color: var(--muted); }
 .se-steps li.passive { background: var(--accent-soft); }
@@ -1515,7 +1520,7 @@ function planSeance(sel){
   // 1. Laver et éplucher tous les légumes ensemble
   const veg = [], vid = []; let lm = 0;
   const lIng = [];
-  ids.forEach(id => task(id).filter(t => t[0] === "L").forEach(t => { ingOf(id, t).forEach(x => lIng.push([x[0], x[1], dishShort(id)])); t[1].split(",").map(s => s.trim()).filter(Boolean).forEach(x => { if (!veg.some(y => same(y, x))) veg.push(x); }); lm += work(id, t[2]); if (!vid.includes(id)) vid.push(id); }));
+  ids.forEach(id => task(id).filter(t => t[0] === "L").forEach(t => { ingOf(id, t).forEach(x => lIng.push([x[0], x[1], dishShort(id), id])); t[1].split(",").map(s => s.trim()).filter(Boolean).forEach(x => { if (!veg.some(y => same(y, x))) veg.push(x); }); lm += work(id, t[2]); if (!vid.includes(id)) vid.push(id); }));
   const L = lm ? add({k: "L", t: "Laver et éplucher tous les légumes : " + veg.join(", "), m: Math.round(lm * 0.85), a: Math.round(lm * 0.85), ids: vid, ing: lIng, d: "Range-les par plat sur le plan de travail : la découpe vient plat par plat."}) : null;
   // 2. Un féculent = une casserole pour tous les plats
   const F = {};
@@ -1525,7 +1530,7 @@ function planSeance(sel){
     const f = F[t[1]] || (F[t[1]] = add({k: "F", type: t[1], m: 0, a: 3, res: "feu", dep: L ? [L.i] : [], parts: [], ids: [], ing: [], ds: []}));
     let ig = ingOf(id, t);
     if (!ig.length && t[1] === "les œufs durs") ig = Q[id].filter(x => /œuf/i.test(x[0])).map(x => [x[0], String(Math.round(x[1] * factor(id, por[id])))]);   // œufs présents dans les courses mais pas dans la fiche
-    f.ing.push(...ig.map(x => [x[0], x[1], dishShort(id)]));
+    f.ing.push(...ig.map(x => [x[0], x[1], dishShort(id), id]));
     if (xt(t).d && !f.ds.includes(dOf(id, t))) f.ds.push(dOf(id, t));
     f.m = Math.max(f.m, t[2]); f.parts.push(ig.length ? ig.map(x => x[0] + " " + x[1]).join(", ") : (typeof t[3] === "string" ? t[3] : t[1])); f.ids.push(id); }));
   Object.values(F).forEach(f => f.d = f.ds.join(" "));
@@ -1583,6 +1588,19 @@ function planSeance(sel){
   const lunchEnd = lunch.size ? Math.max(...[...lunch].map(i => nodes[i].s + nodes[i].m)) : null;
   return {ids, por, steps, nodes, pre, total, lunchEnd, active: nodes.reduce((a, n) => a + n.a, 0), maxFeu: Math.max(0, ...nodes.filter(n => n.res === "feu").map(n => runs("feu", n.s).length)), estimated: ids.filter(id => SEANCE[id]).length};
 }
+// Déplier une étape : ses plats ; déplier un plat : ses ingrédients (l'état ouvert survit aux coches)
+const seOpen = new Set();
+function seFold(n, sig){
+  if (!n.ing || !n.ing.length) return [];
+  const det = (k, sum, ...kids) => { const d = el("details",{class:"se-fold", ontoggle:e => { if (e.target !== d) return; d.open ? seOpen.add(k) : seOpen.delete(k); }}, el("summary",{}, sum), ...kids); d.open = seOpen.has(k); return d; };
+  const list = items => el("ul",{class:"se-ing"}, items.map(([nm, q]) => el("li",{}, el("span",{}, nm.charAt(0).toUpperCase() + nm.slice(1)), el("b",{}, q))));
+  const nIng = k => k + (k > 1 ? " ingrédients" : " ingrédient");
+  if (n.end) return [det(sig, "Voir les " + n.ing.length + " plats", list(n.ing))];
+  const g = new Map();
+  n.ing.forEach(([nm, q, , id]) => { const k = id || n.id || ""; if (!g.has(k)) g.set(k, []); g.get(k).push([nm, q]); });
+  const dish = ([id, items]) => det(sig + "|" + id, (R[id] ? R[id].n : "Ingrédients") + " · " + nIng(items.length), list(items));
+  return g.size > 1 ? [det(sig, "Voir les " + g.size + " plats", el("div",{class:"se-dishes"}, [...g].map(dish)))] : [...g].map(dish);
+}
 function renderSeance(){
   const v = state.valid, sel = v && v.sel || state.sel, plan = planSeance(sel), store = seLoad();
   const key = (v ? weekStart(v).getTime() : "brouillon") + "|" + plan.ids.join(",");
@@ -1613,9 +1631,9 @@ function renderSeance(){
     box.checked = ok;
     list.append(el("li",{class:(ok ? "done " : "") + (passive ? "passive " : "") + (n.k === "P" ? "pre" : "")}, box,
       el("div",{class:"se-t"}, el("span",{class:"se-h"}, clock(n.s)), n.t),
-      ...(n.ing && n.ing.length ? [el("ul",{class:"se-ing"}, n.ing.flatMap(([nm, q, who], j) => n.k === "L" ? [...(who !== (n.ing[j - 1] || [])[2] ? [el("li",{class:"se-ingh"}, who)] : []), el("li",{}, el("span",{}, nm), el("b",{}, q))] : [el("li",{}, el("span",{}, nm + (who && plan.ids.length > 1 && n.k !== "M" ? " (" + who + ")" : "")), el("b",{}, q))]))] : []),
+      ...seFold(n, sig),
       ...(n.d ? [el("div",{class:"se-d"}, n.d)] : []),
-      el("div",{class:"se-sub"}, [what + (passive && n.k !== "R" ? ", jusqu'à " + clock(n.s + n.m) : "")].concat(names(n).length && n.k !== "L" && !n.end ? [" · " + names(n).join(", ")] : []).join(""))));
+      el("div",{class:"se-sub"}, [what + (passive && n.k !== "R" ? ", jusqu'à " + clock(n.s + n.m) : "")].concat(names(n).length && n.k !== "L" && !n.end && !(n.ing && n.ing.length) ? [" · " + names(n).join(", ")] : []).join(""))));
   });
   document.getElementById("se-prog").textContent = nDone + "/" + plan.steps.length;
   document.getElementById("se-bar").style.width = (100 * nDone / plan.steps.length) + "%";
@@ -1881,4 +1899,4 @@ render();
 ghInit();
 </script>
 
-<p class="ver" style="text-align:center;font-size:.72rem;color:var(--muted);margin:8px 0 24px">Version du 18/10 12:00</p></body></html>
+<p class="ver" style="text-align:center;font-size:.72rem;color:var(--muted);margin:8px 0 24px">Version du 18/10 12:09</p></body></html>
