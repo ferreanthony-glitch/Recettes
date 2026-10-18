@@ -47,12 +47,19 @@ const res = await page.evaluate(async (N) => {
     const reg = rnd(["", "", "", "flexi", "pesce", "vege"]);
     PROF = alg.length || reg ? [{prenom: "Test", alg, reg}] : [];
     banCache = {key: "", m: {}};
+    // Repas verrouillés au hasard (1 fois sur 3)
+    state.locks = {}; if (Math.random() < 0.33) for (let i = 0; i < 1 + Math.floor(Math.random() * 3); i++) state.locks[rnd(SLOTS).k] = true;
+    const before = {...state.sel}, lockedP = new Set(lockedPostes().map(p => p.k));
     const msg = document.getElementById("gen-msg"); msg.textContent = "";
     generate();
     const txt = msg.textContent, sel = state.sel;
     if (/Aucune semaine possible/.test(txt)) { ok("tirage impossible signalé"); continue; }
     const stuck = /Aucun plat compatible/.test(txt);
     const of = p => sel[p.slots[0][0] + "-" + p.slots[0][1]];
+    // Verrouillage : les postes verrouillés n'ont pas bougé
+    P.filter(p => lockedP.has(p.k)).forEach(p => p.slots.forEach(([d, m]) => { const k = d + "-" + m;
+      if (sel[k] !== before[k]) fail("repas verrouillés gardés", DAYS[d] + " " + MEALN[m] + " : " + R[before[k]].n + " remplacé par " + R[sel[k]].n); else ok("repas verrouillés gardés"); }));
+    const mine = p => state.pins.includes(of(p)) || lockedP.has(p.k);   // choix de l'utilisateur : signalés, pas corrigés
     // Règle 1 : jamais au-delà de la conservation ; au-delà du frigo, la part va au congélateur
     SLOTS.forEach(sl => {
       const id = sel[sl.k], p = posteOf[sl.k];
@@ -67,18 +74,18 @@ const res = await page.evaluate(async (N) => {
     });
     // Règle 2 : plafond de repas avec viande (sauf si aucune autre possibilité : le message doit le dire)
     const meat = SLOTS.filter(sl => R[sel[sl.k]].v).length;
-    if (meat > maxV() && !/Impossible de rester/.test(txt) && !stuck) fail("viande", meat + " repas avec viande pour un plafond de " + maxV());
+    if (meat > maxV() && !/Impossible de rester/.test(txt) && !stuck && !lockedP.size) fail("viande", meat + " repas avec viande pour un plafond de " + maxV());
     else ok("viande");
     // Règle 3 : aliments chers uniquement sur des plats doublés, et sur 2 repas au plus
     const cher = {};
     P.forEach(p => { const id = of(p); (R[id].c || []).forEach(c => cher[c] = (cher[c] || 0) + p.slots.length);
-      if ((R[id].c || []).length && p.slots.length < 2 && !state.pins.includes(id)) fail("aliments chers", R[id].n + " sur un seul repas (" + p.t + ")"); });
-    Object.entries(cher).forEach(([c, n]) => n > 2 ? fail("aliments chers", c + " sur " + n + " repas") : ok("aliments chers"));
+      if ((R[id].c || []).length && p.slots.length < 2 && !mine(p)) fail("aliments chers", R[id].n + " sur un seul repas (" + p.t + ")"); });
+    if (!lockedP.size) Object.entries(cher).forEach(([c, n]) => n > 2 ? fail("aliments chers", c + " sur " + n + " repas") : ok("aliments chers"));
     // Règle 4 : soupes le soir seulement
     SLOTS.forEach(sl => { if (sl.m === 0 && /^soupe/i.test(R[sel[sl.k]].n)) fail("soupes le soir", R[sel[sl.k]].n + " " + DAYS[sl.d] + " midi"); else ok("soupes le soir"); });
     // Règle 5 : allergènes du profil et aliments à éviter (les plats imposés à la main sont signalés, pas retirés)
     if (!stuck) P.forEach(p => {
-      const id = of(p); if (state.pins.includes(id)) return;
+      const id = of(p); if (mine(p)) return;
       if (banned(id)) fail("allergènes et aliments à éviter", R[id].n + " contient " + banned(id));
       const names = dishNames(id).join(" ");
       alg.forEach(a => { if (ALG_CHECK[a] && ALG_CHECK[a].test(names)) fail("allergènes (contrôle indépendant)", R[id].n + " semble contenir " + a + " : " + names.match(ALG_CHECK[a])[0]); });
@@ -86,7 +93,7 @@ const res = await page.evaluate(async (N) => {
       ok("allergènes et aliments à éviter");
     });
   }
-  PROF = []; return {fails, count, ms: Date.now() - t0};
+  PROF = []; state.locks = {}; return {fails, count, ms: Date.now() - t0};
 }, N);
 
 // Cas limites, construits à la main
