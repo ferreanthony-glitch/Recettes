@@ -1,0 +1,125 @@
+aliment;motifs;kcal;proteines;glucides;lipides;fibres;piece_g;cc_g;flou_g;saison
+Eau;^eau;0;0;0;0;0;;;;
+Sel, poivre;^sel|levure|laurier|^poivre|bouquet garni|thym, laurier|stevia|boites alimentaires|papier sulfurise|tabasco|nuoc;0;0;0;0;0;;;;
+Blanc de poulet cuit;blanc de poulet cuit;150;30;0;3;0;;;;
+Haut de cuisse de poulet sans peau;hauts? de cuisse;140;19;0;7;0;150;;;
+Filet de poulet cru;poulet;121;23;0;2.6;0;130;;;
+Jambon de dinde;jambon de dinde;105;19;1.5;2.5;0;30;;;
+Jambon cuit (porc);jambon;115;20;1;3.5;0;40;;;
+Bacon (filet de porc fumé);bacon;150;20;1;7;0;;;;
+Viande hachée de bœuf 5 %;hache|hachee;126;21;0;5;0;;;;
+Bœuf à braiser;boeuf a braiser|paleron;145;21;0;7;0;;;;
+Escalope de veau;veau;110;22;0;2;0;;;;
+Crevettes crues décortiquées;crevette;70;16;0.5;0.8;0;;;;
+Saumon fumé;saumon fume;180;22;0.5;10;0;;;;
+Thon au naturel égoutté;thon;115;26;0;1;0;;;;
+Poisson blanc (cabillaud, colin);poisson blanc|cabillaud|colin;80;18;0;0.8;0;;;;
+Jaune d'œuf;jaunes? d'oeufs?;330;16;0.5;28;0;17;;;
+Blanc d'œuf;blancs? d'oeufs?;47;10.6;0.7;0.2;0;33;;;
+Œuf entier;oeuf;140;12.5;0.7;9.8;0;50;;;
+Steak végétal au soja;steak vegetal;200;17;6;11;4;100;;;
+Lait de coco;lait de coco;190;1.8;3;19;0;;;;
+Crème de coco;creme de coco;330;3;6;33;0;;5;;
+Lait d'amande;lait d'amande;25;0.5;3;1.2;0.3;;;;
+Lait demi-écrémé;lait demi;46;3.3;4.8;1.6;0;;;;
+Fromage blanc 0 %;fromage blanc 0;45;8;4;0.2;0;;5;;
+Fromage blanc 3 %;fromage blanc;75;7.5;4;3.2;0;;5;;
+Skyr nature;skyr;60;10;4;0.2;0;;;;
+Yaourt nature;yaourt;57;4.3;5;1.2;0;125;;;
+Crème fraîche ou légère 15 à 20 %;creme fraiche|creme legere;180;2.5;3.5;18;0;;5;;
+Cream cheese;cream cheese;240;6;4;23;0;;;;
+Fromage de chèvre frais;chevre;205;11;2.5;17;0;;;;
+Mozzarella;mozzarella;255;18;1;20;0;125;;;
+Feta;feta;270;15;1;23;0;;;;
+Emmental;emmental;380;28;0;30;0;;;;
+Parmesan;parmesan;400;33;0;29;0;;;10;
+Pecorino;pecorino;390;28;0;31;0;;;;
+Fromage de brebis râpé;brebis;400;26;0;33;0;;;;
+Beurre de cacahuète;beurre de cacahuete;600;25;15;50;6;;5;;
+Beurre;beurre;745;0.7;0.6;82;0;;5;;
+Huile (olive, coco);huile;900;0;0;100;0;;4.5;5;
+Lentilles vertes crues;lentilles vertes;330;24;48;1.5;11;;;;
+Lentilles corail crues;lentilles;335;24;50;1.5;11;;;;
+Haricots rouges cuits (conserve);haricots rouges;100;7.5;13;0.6;6.5;;;;
+Pois chiches cuits (conserve);pois chiches;115;7;14;2.5;5;;;;
+Petits pois cuits;petits pois;75;5;9;0.5;5;;;;
+Feuille de riz (nems);feuilles? \(galettes\) de riz|galettes? de riz;330;6;76;0.5;1;9;;;
+Riz complet cru;riz complet;350;7.5;72;2.7;3.5;;;;
+Riz blanc ou basmati cru;riz;355;8;78;0.8;1.3;;;;
+Pâtes complètes crues;pates|coquillettes;350;13;64;2.5;8;;;;
+Semoule complète crue;semoule complete;350;12;68;2;7;;;;
+Semoule crue;semoule;360;12;73;1.5;4;;;;
+Galette de sarrasin;galette de sarrasin;200;6;38;2;4;60;;;
+Tortilla de blé;tortilla;300;8;50;7;4;60;;;
+Pain de mie complet;pain de mie;260;9;46;4;6;25;;;
+Petits pains suédois (type Krisprolls);suedois;405;11;68;8;7;12;;;
+Petit pain complet;petits? pains?;250;9;45;3;6;50;;;
+Pain complet;pain;240;9;43;2.5;7;40;;;
+Chapelure;chapelure;380;12;74;4;4;;;;
+Farine;farine;335;10;68;1.5;8;;;10;
+Poireau;poireau;27;1.5;3.5;0.3;2.5;200;;;9-4
+Pommes de terre;pommes? de terre;80;2;17;0.1;1.8;150;;;
+Patate douce;patates? douces?;86;1.6;20;0.1;3;300;;;9-1
+Courgette;courgette;17;1.2;2;0.3;1.1;200;;;6-9
+Potimarron;potimarron;40;1;8;0.2;2.5;1000;;;9-2
+Courge butternut;butternut|courge;45;1;10;0.1;2;700;;;9-2
+Aubergine;aubergine;19;1;2.9;0.2;2.6;300;;;6-9
+Carotte;carotte;36;0.8;7.6;0.3;2.7;100;;;
+Oignon en poudre;oignon en poudre;340;10;75;1;9;;3;;
+Oignon;oignon;37;1.1;7;0.2;1.7;100;;;
+Échalote;echalote;75;2.5;15;0.1;3;30;;;
+Ail en poudre;ail en poudre;330;17;60;0.7;9;;3;;
+Ail;^ail;130;6;24;0.5;4.7;5;;;
+Gingembre frais;gingembre;80;1.8;17;0.8;2;10;;;
+Poivron;poivron;28;0.9;5;0.3;1.8;150;;;7-10
+Tomates cerises;tomates? cerises?;21;0.9;3;0.3;1.5;15;;60;6-9
+Concentré de tomate;concentre de tomate;85;4.5;14;0.5;4;;6;;
+Sauce tomate cuisinée;sauce tomate;50;1.5;7;1.5;1.5;;;;
+Tomates en conserve (pelées, pulpe, coulis);pelees|concassees|pulpe|coulis;22;1.1;3.5;0.2;1.2;;;;
+Tomate;tomate;19;0.8;2.5;0.3;1.2;120;;;6-9
+Épinards frais;epinard;23;2.9;1.4;0.4;2.2;;;;3-6,9-11
+Champignons de Paris;champignons de paris;22;3;0.6;0.3;1.8;20;;;
+Morilles séchées;morilles;280;20;40;3;20;;;;
+Brocoli;brocoli;32;3;2.5;0.4;2.5;400;;;6-11
+Chou-fleur;chou-fleur;25;2;3;0.3;2.3;800;;;9-4
+Germes de soja;germes;30;3;4;0.2;1.8;;;;
+Salade verte;salade;15;1.3;1.5;0.2;1.3;;;;4-10
+Avocat;avocat;205;1.6;0.8;20.6;4.6;150;;;11-4
+Citron (jus);citron;25;0.4;7;0.2;0.3;50;;;
+Poire;poire;55;0.4;12;0.3;3;160;;;8-1
+Orange;orange;47;0.9;9;0.2;2;150;;;11-4
+Clémentine;clementine;47;0.8;10;0.3;1.7;70;;;11-2
+Pomelo;pomelo;37;0.7;8;0.1;1;250;;;11-4
+Fruit frais (moyenne);fruit;50;0.6;11;0.2;2;120;;;
+Compote sans sucre ajouté;compote;50;0.3;11;0.2;1.5;;;;
+Raisins secs;raisins secs;300;3;66;0.5;4;;;;
+Amandes;amande;620;25;8;53;12;;;;
+Noix de cajou;cajou;600;18;27;46;3;;;;
+Noisettes;noisette;650;15;7;61;10;;;;
+Noix (cerneaux);^noix(?! de);700;15;7;65;6.7;;;;
+Épices et herbes séchées;muscade|thym|cumin|paprika|curry|curcuma|chili|piment|cannelle|ras el hanout|coriandre moulue|herbes de provence|origan|estragon|romarin;300;12;35;10;30;;2;;
+Herbes fraîches;basilic|persil|coriandre|ciboulette|menthe;40;3;4;0.7;3;;1;10;
+Graines de chia;chia;490;17;8;31;34;;4;;
+Miel;miel;320;0.4;80;0;0;;7;;
+Sirop d'érable;sirop d'erable;260;0;67;0;0;;7;;
+Confiture;confiture;250;0.5;60;0;1;;7;;
+Chocolat noir 90 %;chocolat noir;590;10;14;55;15;;;;
+Cacao en poudre non sucré;cacao;390;20;13;22;33;;;;
+Pesto rosso;pesto;380;5;10;35;3;;;;
+Moutarde;moutarde;150;7;5;11;3;;5;;
+Sauce soja ou tamari;sauce soja|tamari;60;10;5.6;0.1;0.8;;6;;
+Vinaigre balsamique;balsamique;110;0.5;23;0;0;;5;;
+Vinaigre;vinaigre;20;0;0.5;0;0;;5;;
+Vin blanc sec;vin blanc;70;0.1;1;0;0;;;;
+Cube de bouillon;cube de bouillon;230;10;20;12;0;10;;;
+Bouillon (dilué);bouillon;5;0.3;0.5;0.2;0;;;;
+Escalope de dinde crue;dinde;107;23.5;0;1.5;0;;;;
+Filet mignon de porc cru;filet mignon|porc;120;21;0;4;0;;;;
+Tofu ferme;tofu;125;13;2;7.5;1;;;;
+Quinoa cru;quinoa;360;14;60;6;7;;;;
+Boulgour cru;boulgour;350;12;70;1.5;8;;;;
+Flocons d'avoine;flocons d.avoine|avoine;370;13;59;7;10;;;;
+Haricots verts;haricots verts;30;2;4;0.2;3;;;;6-9
+Haricots blancs cuits (conserve);haricots blancs;100;7;13;0.5;6;;;;
+Chou vert ou rouge;^chou(?!-fleur)|chou vert|chou rouge;27;1.5;4;0.2;2.5;1000;;;10-3
+Concombre;concombre;13;0.6;2;0.1;0.6;300;;;5-9

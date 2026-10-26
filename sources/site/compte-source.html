@@ -1,0 +1,148 @@
+<section class="hero"><h1>Profil</h1><p>Ton profil sert au générateur de Ma semaine. Plus bas, la synchronisation de la semaine entre tes appareils.</p></section>
+<div class="acct">
+<section class="acct-box" aria-labelledby="pf-t"><h2 id="pf-t">Les personnes</h2>
+<p class="acct-n">Ajoute une fiche par personne qui mange à la maison. Les allergènes, le régime et les aliments à éviter de chacun valent pour toute la table. Ces informations restent sur cet appareil : elles ne sont ni publiées, ni synchronisées.</p>
+<div id="people"></div>
+<div class="acct-row"><button type="button" class="acct-g" id="add">Ajouter une personne</button></div>
+<p class="acct-st ok" id="saved" aria-live="polite"></p>
+</section>
+
+<section class="acct-box" aria-labelledby="sy-t"><h2 id="sy-t">Synchro des appareils</h2>
+<p class="acct-n">L'app de l'écran d'accueil, Safari et l'ordinateur partagent la semaine, sa validation et les articles cochés.</p>
+<p class="acct-st" id="st">Vérification…</p>
+<div id="on"><p class="acct-n">Chaque appareil a besoin, une seule fois, de ta clé GitHub. Elle reste sur cet appareil et n'est jamais publiée.</p>
+<div class="acct-row"><input type="password" id="tok" placeholder="Clé GitHub (github_pat_…)" autocomplete="off" aria-label="Clé GitHub"><button type="button" id="save" class="acct-b">Enregistrer</button></div>
+<div class="acct-row"><button type="button" id="test" class="acct-g">Vérifier la connexion</button><button type="button" id="off" class="acct-g" hidden>Oublier la clé sur cet appareil</button></div></div>
+<p class="acct-n" id="nosync" hidden>La synchro ne fonctionne que sur le site et l'app de l'écran d'accueil, pas dans la copie ouverte dans Claude.</p>
+</section></div>
+<style>.acct{max-width:640px;display:grid;gap:18px}.acct-box{background:#fbfaf6;border:1px solid var(--line);border-radius:14px;padding:18px;display:grid;gap:12px}
+.acct-box h2{margin:0;font-size:1.05rem}.acct-st{margin:0;font-weight:600}.acct-st:empty{display:none}.acct-st.ok{color:var(--accent)}.acct-n{margin:0;color:var(--muted);font-size:.88rem}
+#on{display:grid;gap:10px}.acct-row{display:flex;flex-wrap:wrap;gap:8px}
+.acct input:not([type=checkbox]):not([type=radio]),.acct select,.acct textarea{font:inherit;font-size:.95rem;padding:9px 11px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);min-width:0;width:100%;box-sizing:border-box}
+.acct-row input{flex:1;width:auto!important}.acct textarea{min-height:64px;resize:vertical}
+.acct-b,.acct-g{font:inherit;font-size:.88rem;padding:9px 14px;border-radius:10px;cursor:pointer}.acct-b{border:0;background:var(--accent);color:#fbfaf6;font-weight:600}.acct-g{border:1px solid var(--line);background:#fff;color:var(--ink)}
+.pp{border:1px solid var(--line);border-radius:12px;background:#fff;padding:14px;display:grid;gap:12px}
+.pp-h{display:flex;justify-content:space-between;align-items:center;gap:8px}.pp-h b{font-size:1rem}.pp-h button{font:inherit;font-size:.8rem;color:var(--muted);background:none;border:0;cursor:pointer;text-decoration:underline}
+.pp-g{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.pp-g.c4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.pp label.f{display:grid;gap:4px;font-size:.78rem;color:var(--muted)}
+.pp fieldset{border:0;margin:0;padding:0;display:grid;gap:6px}.pp legend{font-size:.78rem;color:var(--muted);padding:0;margin-bottom:6px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}.chips label{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;padding:5px 11px;border:1px solid var(--line);border-radius:999px;cursor:pointer;background:#fff}
+.chips input{accent-color:var(--accent);margin:0}.chips label:has(input:checked){background:var(--accent-soft);border-color:var(--accent)}
+.need{font-size:.85rem;margin:0;padding:10px 12px;border-radius:10px;background:var(--accent-soft)}.need:empty{display:none}
+#people{display:grid;gap:12px}
+.pc-card{border:1px solid var(--line);border-radius:12px;background:#fff;padding:14px;display:grid;gap:10px}
+.pc-top{display:flex;align-items:center;gap:12px}.pc-id{flex:1;display:grid;min-width:0}.pc-id b{font-size:1.05rem}.pc-id small{color:var(--muted);font-size:.82rem}
+.pc-av{width:42px;height:42px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-weight:700;display:grid;place-items:center;flex:none}
+.pc-need{margin:0;font-size:.88rem;color:var(--muted)}.pc-need b{color:var(--ink)}
+.pc-dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:.88rem}.pc-dl dt{color:var(--muted)}.pc-dl dd{margin:0}
+@media (max-width:560px){.pp-g.c4{grid-template-columns:repeat(2,minmax(0,1fr))}}</style>
+<script>
+// ---- Profil : lu par le générateur de Ma semaine (même clé localStorage) ----
+const PK = "recettes-profil", ALG = __ALG__;
+const OBJ = [["perdre", "Perdre du poids"], ["garder", "Garder mon poids"], ["muscle", "Prendre du muscle"]];
+const PLUS = [["vegetal", "Manger plus végétal"], ["poisson", "Plus de poisson"], ["saison", "Plus de produits de saison"], ["proteines", "Plus de protéines"]];
+const REG = [["", "Je mange de tout"], ["flexi", "Flexitarien (peu de viande)"], ["pesce", "Pescétarien (poisson, pas de viande)"], ["vege", "Végétarien (ni viande ni poisson)"]];
+const SANS = [["porc", "Sans porc"], ["rouge", "Sans viande rouge"]];
+const ACT = [["1.2", "Sédentaire"], ["1.375", "Peu actif (1 à 3 séances par semaine)"], ["1.55", "Actif (3 à 5 séances)"], ["1.725", "Très actif"]];
+let prof;
+try { prof = JSON.parse(localStorage.getItem(PK)); } catch (e) {}
+if (!prof || !Array.isArray(prof.p)) prof = {p: [{}]};
+if (!prof.p.length) prof.p.push({});
+const h = (t, a = {}, ...c) => { const e = document.createElement(t); for (const k in a) { if (k.startsWith("on")) e.addEventListener(k.slice(2), a[k]); else if (a[k] !== false && a[k] != null) e.setAttribute(k, a[k] === true ? "" : a[k]); } e.append(...c.filter(x => x != null)); return e; };
+// Besoin estimé (formule de Mifflin-St Jeor × activité), ajusté selon l'objectif
+function besoin(x){
+  const a = +x.age, t = +x.taille, w = +x.poids;
+  if (!a || !t || !w || !x.sexe) return 0;
+  let b = (10 * w + 6.25 * t - 5 * a + (x.sexe === "h" ? 5 : -161)) * (+x.act || 1.375);
+  if (x.obj === "perdre") b *= 0.85; else if (x.obj === "muscle") b *= 1.1;
+  return Math.round(b / 50) * 50;
+}
+let tmr;
+function save(){
+  prof.u = Date.now();
+  try { localStorage.setItem(PK, JSON.stringify(prof)); } catch (e) {}
+  const s = document.getElementById("saved"); s.textContent = "Enregistré sur cet appareil.";
+  clearTimeout(tmr); tmr = setTimeout(() => s.textContent = "", 2500);
+  document.querySelectorAll(".need").forEach(n => needTxt(n, prof.p[+n.dataset.i]));
+}
+function needTxt(n, x){
+  const b = besoin(x); n.textContent = b ? "Besoin estimé : environ " + b.toLocaleString("fr-FR") + " kcal par jour, soit " + Math.round(b * 0.35 / 10) * 10 + " kcal pour un déjeuner ou un dîner. C'est une moyenne indicative, pas un avis médical." : "";
+}
+function field(x, k, label, type = "text", extra = {}){
+  return h("label", {class: "f"}, label, h("input", {type, value: x[k] ?? "", ...extra, oninput: e => { x[k] = e.target.value.trim(); save(); }}));
+}
+function chips(x, k, list, multi){
+  return h("div", {class: "chips"}, ...list.map(([v, t]) => h("label", {}, h("input", {type: multi ? "checkbox" : "radio", name: k + prof.p.indexOf(x), value: v,
+    checked: multi ? (x[k] || []).includes(v) : (x[k] || "") === v,
+    onchange: e => { if (multi) x[k] = e.target.checked ? [...new Set([...(x[k] || []), v])] : (x[k] || []).filter(y => y !== v); else x[k] = v; save(); }}), t)));
+}
+const lab = (list, v) => (list.find(o => o[0] === v) || [, ""])[1];
+function card(x, i){
+  const id = [x.age && x.age + " ans", x.sexe === "f" ? "femme" : x.sexe === "h" ? "homme" : "", x.taille && x.taille + " cm", x.poids && x.poids + " kg"].filter(Boolean).join(" · ");
+  const rows = [
+    ["Objectif", [lab(OBJ, x.obj), ...(x.plus || []).map(v => lab(PLUS, v))].filter(Boolean).join(", ")],
+    ["Habitudes", [x.reg ? lab(REG, x.reg) : "Je mange de tout", ...(x.sans || []).map(v => lab(SANS, v))].join(", ")],
+    ["Allergies", (x.alg || []).join(", ")],
+    ["Ne mange pas", (x.evite || "").trim()],
+    ["Notes", (x.hab || "").trim()]].filter(r => r[1]);
+  const b = besoin(x);
+  return h("div", {class: "pc-card"},
+    h("div", {class: "pc-top"}, h("span", {class: "pc-av", "aria-hidden": "true"}, ((x.prenom || "?")[0] + ((x.nom || "")[0] || "")).toUpperCase()),
+      h("div", {class: "pc-id"}, h("b", {}, [x.prenom, x.nom].filter(Boolean).join(" ") || "Personne " + (i + 1)), id ? h("small", {}, id) : null),
+      h("button", {type: "button", class: "acct-g", onclick: () => { x.done = false; save(); render(); }}, "Modifier")),
+    b ? h("p", {class: "pc-need"}, h("b", {}, b.toLocaleString("fr-FR") + " kcal"), " par jour, environ " + Math.round(b * 0.35 / 10) * 10 + " par repas") : null,
+    rows.length ? h("dl", {class: "pc-dl"}, ...rows.flatMap(([k, v]) => [h("dt", {}, k), h("dd", {}, v)])) : null);
+}
+function render(){
+  const box = document.getElementById("people"); box.innerHTML = "";
+  prof.p.forEach((x, i) => {
+    if (x.done) { box.append(card(x, i)); return; }
+    const sel = h("select", {onchange: e => { x.act = e.target.value; save(); }}, ...ACT.map(([v, t]) => h("option", {value: v, selected: (x.act || "1.375") === v}, t)));
+    const sx = h("select", {onchange: e => { x.sexe = e.target.value; save(); }}, h("option", {value: ""}, "—"), h("option", {value: "f", selected: x.sexe === "f"}, "Femme"), h("option", {value: "h", selected: x.sexe === "h"}, "Homme"));
+    const need = h("p", {class: "need", "data-i": i}); needTxt(need, x);
+    box.append(h("div", {class: "pp"},
+      h("div", {class: "pp-h"}, h("b", {}, [x.prenom, x.nom].filter(Boolean).join(" ") || "Personne " + (i + 1)),
+        prof.p.length > 1 ? h("button", {type: "button", onclick: () => { if (confirm("Supprimer cette fiche ?")) { prof.p.splice(i, 1); save(); render(); } }}, "Supprimer") : null),
+      h("div", {class: "pp-g"}, field(x, "prenom", "Prénom", "text", {autocomplete: "given-name"}), field(x, "nom", "Nom", "text", {autocomplete: "family-name"})),
+      h("div", {class: "pp-g c4"}, field(x, "age", "Âge", "number", {min: 1, max: 120, inputmode: "numeric"}), h("label", {class: "f"}, "Sexe", sx),
+        field(x, "taille", "Taille (cm)", "number", {min: 50, max: 250, inputmode: "numeric"}), field(x, "poids", "Poids (kg)", "number", {min: 20, max: 300, inputmode: "decimal", step: "0.1"})),
+      h("label", {class: "f"}, "Activité physique", sel),
+      h("fieldset", {}, h("legend", {}, "Objectif"), chips(x, "obj", OBJ, false)),
+      h("fieldset", {}, h("legend", {}, "Envies"), chips(x, "plus", PLUS, true)),
+      need,
+      h("fieldset", {}, h("legend", {}, "Habitudes alimentaires"), chips(x, "reg", REG, false), chips(x, "sans", SANS, true)),
+      h("fieldset", {}, h("legend", {}, "Allergies et intolérances (les plats qui en contiennent sont écartés)"), chips(x, "alg", ALG.map(a => [a, a]), true)),
+      h("label", {class: "f"}, "Aliments que je ne mange pas, séparés par des virgules", h("input", {type: "text", value: x.evite || "", placeholder: "ex. champignons, chou-fleur", oninput: e => { x.evite = e.target.value; save(); }})),
+      h("label", {class: "f"}, "Autres habitudes (notes libres, le générateur ne les lit pas)", h("textarea", {placeholder: "ex. je déjeune au bureau, pas faim le matin…", oninput: e => { x.hab = e.target.value; save(); }}, x.hab || "")),
+      h("div", {class: "acct-row"}, h("button", {type: "button", class: "acct-b", onclick: () => { x.done = true; save(); render(); document.querySelectorAll("#people > *")[i].scrollIntoView({behavior: "smooth", block: "nearest"}); }}, "Valider le profil"))));
+  });
+}
+document.getElementById("add").addEventListener("click", () => { prof.p.push({}); save(); render(); document.querySelectorAll("#people > *")[prof.p.length - 1].scrollIntoView({behavior: "smooth"}); });
+render();
+
+// ---- Synchro des appareils : la clé GitHub de cet appareil (même clé localStorage que semaine.html) ----
+const URL_ = "https://api.github.com/repos/ferreanthony-glitch/Recettes/contents/semaine.json?ref=donnees", K = "recettes-gh-token";
+const ok = /github\.io$|^localhost$|^127\./.test(location.hostname);
+const tok = () => { try { return localStorage.getItem(K) || ""; } catch (e) { return ""; } };
+const st = (t, good) => { const e = document.getElementById("st"); e.textContent = t; e.classList.toggle("ok", !!good); };
+async function test(){
+  document.getElementById("off").hidden = !tok();
+  if (!tok()) return st("Synchro non activée sur cet appareil.");
+  st("Vérification…");
+  try {
+    const r = await fetch(URL_ + "&t=" + Date.now(), {headers: {Authorization: "Bearer " + tok(), Accept: "application/vnd.github+json"}, cache: "no-store"});
+    if (r.status === 401 || r.status === 403) return st("Clé refusée par GitHub. Colle une nouvelle clé.");
+    if (r.status === 404) return st("Synchro activée. Rien d'enregistré pour l'instant.", true);
+    if (!r.ok) return st("GitHub ne répond pas, réessaie plus tard.");
+    const d = JSON.parse(decodeURIComponent(escape(atob((await r.json()).content.replace(/\s/g, "")))));
+    st("Synchro activée." + (d.u ? " Dernière semaine enregistrée le " + new Date(d.u).toLocaleString("fr-FR", {day: "numeric", month: "long", hour: "2-digit", minute: "2-digit"}) + "." : ""), true);
+  } catch (e) { st("Hors ligne pour le moment."); }
+}
+if (!ok) { document.getElementById("on").hidden = true; document.getElementById("nosync").hidden = false; st("Synchro indisponible ici."); }
+else {
+  document.getElementById("save").addEventListener("click", () => { const i = document.getElementById("tok"), v = i.value.trim(); if (!v) return; try { localStorage.setItem(K, v); } catch (e) {} i.value = ""; test(); });
+  document.getElementById("off").addEventListener("click", () => { try { localStorage.removeItem(K); } catch (e) {} test(); });
+  document.getElementById("test").addEventListener("click", test);
+  test();
+}
+</script>

@@ -1,0 +1,159 @@
+<section class="hero"><h1>Comment ça marche</h1><p>La logique de Miam! : comment un repas est composé, comment la semaine est construite, et les équivalences pour adapter une recette. D'après le livret LaSèche 2024 et les règles que tu as fixées.</p></section>
+<nav class="g-toc" aria-label="Sommaire"><a href="#assiette">L'assiette</a><a href="#semaine">La semaine</a><a href="#journee">La journée</a><a href="#regles">Les 10 règles</a><a href="#remplacer">Équivalences</a><a href="#cuisson">Cru et cuit</a><a href="#cheat">Le cheat meal</a><a href="#aliments">Les aliments</a></nav>
+
+<div class="g">
+<section class="g-box" id="assiette" aria-labelledby="as-t">
+  <span class="g-k">1</span><h2 id="as-t">L'assiette</h2>
+  <div class="plate-row">
+    <svg viewBox="-110 -110 220 220" class="plate" aria-hidden="true"><circle r="104" class="rim"/><path d="M 0.00 -100.00 A 100 100 0 0 1 0.00 100.00 L 0.00 40.00 A 40 40 0 0 0 0.00 -40.00 Z" fill="var(--veg)"/><path d="M 0.00 100.00 A 100 100 0 0 1 -100.00 0.00 L -40.00 0.00 A 40 40 0 0 0 0.00 40.00 Z" fill="var(--cer)"/><path d="M -100.00 0.00 A 100 100 0 0 1 -0.00 -100.00 L -0.00 -40.00 A 40 40 0 0 0 -40.00 0.00 Z" fill="var(--pro)"/><circle r="40" class="hole"/></svg>
+    <ul class="legend"><li><i class="c-veg"></i><span><b>50 % légumes et fruits.</b> La moitié de l'assiette.</span></li><li><i class="c-cer"></i><span><b>25 % céréales et féculents.</b> Pâtes, riz, quinoa, lentilles, patate douce, pain…</span></li><li><i class="c-pro"></i><span><b>25 % protéines.</b> Viande, poisson, œufs, tofu, laitages.</span></li></ul>
+  </div>
+  <p>Cette règle vaut pour le déjeuner et le dîner. Chaque recette de Miam! est dosée pour une personne d'après les portions du livret : environ 40 g de féculents crus, une portion de protéine (250 g de volaille, 350 g de poisson blanc, 3 œufs…), 10 ml d'huile.</p>
+  <p class="tip">Le livret conseille de petites assiettes : la même portion paraît plus généreuse.</p>
+</section>
+
+<section class="g-box" id="semaine" aria-labelledby="se-t">
+  <span class="g-k">2</span><h2 id="se-t">Comment Miam! construit la semaine</h2>
+  <p>Une semaine, c'est <b>14 repas</b> : midi et soir, du dimanche au samedi. Le dimanche, on cuisine, et le plat du jour se mange midi et soir. Pour cuisiner le moins possible, chaque plat préparé le dimanche sert <b>deux repas</b>.</p>
+  <div class="tw"><table class="gt"><thead><tr><th>Repas</th><th>Préparation</th></tr></thead><tbody>
+    <tr><td>Midi et soir dimanche</td><td>Cuisiné le dimanche avec le reste, mangé le jour même.</td></tr>
+    <tr><td>Midis lundi et mardi</td><td>Cuit le dimanche, gardé au frigo.</td></tr>
+    <tr><td>Midis mercredi et jeudi</td><td>Cuit le dimanche, la part de jeudi va au congélateur.</td></tr>
+    <tr><td>Midis vendredi et samedi</td><td>Cuit le dimanche, congelé, sorti la veille.</td></tr>
+    <tr><td>Soirs lundi et mardi</td><td>Cuit le dimanche, à réchauffer.</td></tr>
+    <tr><td>Soirs mercredi et jeudi</td><td>Cuit le dimanche, la part de jeudi va au congélateur.</td></tr>
+    <tr><td>Soir vendredi</td><td>Le seul plat cuisiné en semaine : rapide, 10 à 25 minutes.</td></tr>
+    <tr><td>Soir samedi</td><td>Cheat meal : un plat gourmand et un petit dessert.</td></tr>
+  </tbody></table></div>
+  <p>Six plats en double le dimanche, soit environ trois heures de cuisine. Le générateur choisit les plats en respectant ces règles :</p>
+  <ul class="gl">
+    <li><b>Viande :</b> 5 à 6 repas sur 14 idéalement, jamais plus que la limite réglée (7 par défaut). Volaille, bœuf, veau, porc et jambon comptent comme viande ; poisson, crevettes et œufs non.</li>
+    <li><b>Conservation :</b> un plat n'est jamais placé au-delà du nombre de jours qu'il tient au frigo. S'il se congèle, la seconde part va au congélateur.</li>
+    <li><b>Soupes :</b> uniquement le soir.</li>
+    <li><b>Aliments chers</b> (crevettes, veau, saumon fumé…) : seulement sur un plat qui sert deux repas.</li>
+    <li><b>Économies :</b> les semaines qui réutilisent les mêmes ingrédients sont favorisées.</li>
+    <li><b>Tes notes :</b> les plats notés 4 ou 5 étoiles reviennent plus souvent, ceux à 1 étoile presque jamais.</li>
+    <li><b>Saison :</b> le curseur fixe la part minimale de repas dont les fruits et légumes sont de saison ce mois-ci.</li>
+    <li><b>Restes :</b> les aliments que tu as déjà sont placés en priorité, en commençant par ceux qui périment bientôt.</li>
+    <li><b>Ton profil</b> (page Profil) : allergies, régime et aliments refusés écartent les plats pour toute la table ; les objectifs orientent le choix vers des plats plus légers ou plus riches en protéines.</li>
+  </ul>
+  <p>Quand tu valides la semaine, la liste de courses est calculée pour ces 14 repas, petits-déjeuners et collations compris, pour le nombre de personnes choisi.</p>
+</section>
+
+<section class="g-box" id="journee" aria-labelledby="jo-t">
+  <span class="g-k">3</span><h2 id="jo-t">La journée</h2>
+  <p>L'équilibre se juge sur la journée entière : petit-déjeuner, collation, déjeuner et dîner. Les plans du livret servent d'idées ; Miam! en garde les ingrédients et la logique, pas l'ordre exact des jours.</p>
+  <div class="tw"><table class="gt"><thead><tr><th>Moment</th><th>Composition</th></tr></thead><tbody>
+    <tr><td>Petit-déjeuner</td><td>Une base (laitage ou 40 g de pain complet), un fruit, un peu de gras (beurre, amandes) et au plus une cuillère à café de sucre (miel, confiture, sirop d'érable). Léger en protéines, il ne suit pas la règle de l'assiette.</td></tr>
+    <tr><td>Collation</td><td>30 g d'amandes. C'est là que passent les oléagineux.</td></tr>
+    <tr><td>Déjeuner et dîner</td><td>L'assiette 50/25/25, avec la grosse portion de légumes et de protéines.</td></tr>
+    <tr><td>Après le dîner</td><td>Rien.</td></tr>
+  </tbody></table></div>
+</section>
+
+<section class="g-box" id="regles" aria-labelledby="rg-t">
+  <span class="g-k">4</span><h2 id="rg-t">Les 10 règles du livret</h2>
+  <ol class="rules">
+    <li>Pas de produits industriels ni transformés.</li>
+    <li>8 à 9 heures de sommeil par nuit.</li>
+    <li>Au moins 1,5 litre d'eau par jour.</li>
+    <li>Aucun snack après le dîner.</li>
+    <li>20 minutes de marche par jour.</li>
+    <li>Chaque jour, un peu plus d'effort.</li>
+    <li>Ne sauter ni repas ni séance.</li>
+    <li>Limiter le gras et le sucre.</li>
+    <li>Préparer ses repas à l'avance.</li>
+    <li>Rester convaincu et déterminé.</li>
+  </ol>
+</section>
+
+<section class="g-box" id="remplacer" aria-labelledby="rp-t">
+  <span class="g-k">5</span><h2 id="rp-t">Équivalences</h2>
+  <p>Un ingrédient ne te plaît pas ou manque : remplace-le par un aliment de la même famille, dans la quantité indiquée. Sur une même ligne ou dans une même famille, toutes les quantités s'équivalent. Quantités pour une personne.</p>
+  <div id="subs" class="subs"></div>
+</section>
+
+<section class="g-box" id="cuisson" aria-labelledby="cu-t">
+  <span class="g-k">6</span><h2 id="cu-t">Cru et cuit</h2>
+  <p>Les recettes donnent les féculents <b>crus</b>. À la cuisson, ils absorbent de l'eau :</p>
+  <ul class="gl"><li>pâtes, riz, quinoa, boulgour, semoule : poids cuit = poids cru × 2,5 ;</li><li>légumes secs (lentilles, pois chiches, haricots) : poids cuit = poids cru × 3 ;</li><li>pomme de terre et patate douce : le poids ne change pas.</li></ul>
+  <p>Sans balance, une cuillère à soupe contient environ :</p>
+  <div class="tw"><table class="gt"><thead><tr><th>Aliment</th><th>Cru</th><th>Cuit</th></tr></thead><tbody>
+    <tr><td>Riz</td><td>20 g</td><td>25 g</td></tr><tr><td>Pâtes</td><td>20 g</td><td>25 g</td></tr><tr><td>Légumes secs</td><td>20 g</td><td>25 g</td></tr><tr><td>Quinoa, boulgour</td><td>20 g</td><td>25 g</td></tr><tr><td>Semoule</td><td>10 g</td><td>20 g</td></tr>
+  </tbody></table></div>
+</section>
+
+<section class="g-box" id="cheat" aria-labelledby="ch-t">
+  <span class="g-k">7</span><h2 id="ch-t">Le cheat meal</h2>
+  <p>Un repas plaisir par semaine, qui sort du plan : un plat gourmand et un petit dessert, pas plus. Dans Miam!, c'est le samedi soir. Il ne doit pas devenir une journée ni une semaine de cheat meal ; le livret conseille de le partager.</p>
+  <p>Selon le livret, après des jours de restriction, les hormones de la faim (ghréline) et de la satiété (leptine) jouent contre toi, et un repas plus riche les rééquilibre.</p>
+  <p class="tip">Note de Claude : cet effet hormonal d'un seul repas est peu démontré. L'intérêt le plus solide est de savoir que le plaisir est prévu, ce qui aide à tenir le reste de la semaine.</p>
+</section>
+
+__ALIMENTS__
+</div>
+
+<style>
+.g-toc{max-width:860px;margin:0 auto;display:flex;gap:6px;overflow-x:auto;padding:4px 0 18px;scrollbar-width:none;position:sticky;top:0;background:var(--bg);z-index:5}
+.g-toc::-webkit-scrollbar{display:none}
+.g-toc a{flex:none;font-size:.82rem;padding:6px 13px;border:1px solid var(--line);border-radius:999px;text-decoration:none;color:var(--ink);background:#fbfaf6}
+.g-toc a:hover{border-color:var(--accent)}
+.g{display:grid;gap:22px;max-width:860px;margin:0 auto}
+.g-box{position:relative;background:#fbfaf6;border:1px solid var(--line);border-radius:14px;padding:22px 20px;display:grid;gap:12px;scroll-margin-top:60px}
+.g-box h2{margin:0;font-size:1.3rem;padding-left:40px;line-height:32px}
+.g-box p{margin:0;font-size:.95rem;line-height:1.55}
+.g-k{position:absolute;left:20px;top:22px;width:30px;height:30px;border-radius:50%;background:var(--accent);color:#fbfaf6;font-weight:700;display:grid;place-items:center;font-size:.9rem}
+.g-n{margin:0;color:var(--muted);font-size:.92rem}
+.tip{font-size:.88rem!important;padding:10px 12px;border-radius:10px;background:var(--accent-soft)}
+:root{--veg:#7f9c72;--cer:#d6a75a;--pro:#c47862}
+.c-veg{background:var(--veg)}.c-cer{background:var(--cer)}.c-pro{background:var(--pro)}
+.plate-row{display:flex;flex-wrap:wrap;align-items:center;gap:18px}
+.plate{width:160px;height:160px;flex:none}.plate .rim{fill:#fff;stroke:var(--line);stroke-width:3}.plate .hole{fill:#fff}.plate path{stroke:#fff;stroke-width:2}
+.legend{list-style:none;margin:0;padding:0;display:grid;gap:10px;font-size:.92rem;flex:1;min-width:220px}
+.legend li{display:flex;align-items:flex-start;gap:10px}.legend i{width:14px;height:14px;border-radius:4px;flex:none;margin-top:3px}
+.gl{margin:0;padding-left:18px;display:grid;gap:6px;font-size:.93rem;line-height:1.5}
+.rules{margin:0;padding-left:22px;display:grid;gap:6px;font-size:.95rem}.rules li::marker{color:var(--accent);font-weight:700}
+.gt{width:100%;border-collapse:collapse;font-size:.9rem}.gt th{text-align:left;font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:500;padding:6px 10px 6px 0;border-bottom:1px solid var(--line)}
+.gt td{padding:8px 10px 8px 0;border-bottom:1px solid var(--line);vertical-align:top}.gt td:first-child{font-weight:600;white-space:nowrap}
+.subs{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.sub{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:grid;gap:6px;align-content:start}
+.sub h3{margin:0;font-size:.95rem}.sub ul{margin:0;padding:0;list-style:none;display:grid;gap:4px;font-size:.86rem}
+.sub li b{color:var(--accent);margin-right:4px;white-space:nowrap}.sub small{color:var(--muted);font-size:.8rem}
+#aliments .tw{max-height:520px;overflow:auto;border-top:1px solid var(--line)}#aliments thead th{position:sticky;top:0;background:#fbfaf6;z-index:1}#aliments .ali{max-width:none}
+@media (max-width:560px){.g-box{padding:18px 16px}.g-k{left:16px;top:18px}.plate{width:130px;height:130px}.gt td:first-child{white-space:normal}}
+</style>
+<script>
+(() => {
+// Tables d'équivalence du livret LaSèche (p. 4 à 8) : [quantité, unité, [aliments]] ; tout ce qui est dans une même famille s'équivaut
+const SUB = [
+  ["Légumes", "Légumes", [[0.25, "pc", ["artichaut", "betterave", "panais"]], [150, "g", ["asperges", "champignons (bruns ou de Paris)", "chou-fleur", "épinards", "haricots verts", "morilles lyophilisées", "potimarron", "tomates cerises"]], [1, "pc", ["aubergine", "carotte", "concombre", "courgette", "navet", "poivron"]], [200, "g", ["blettes", "endives"]], [100, "g", ["brocoli", "chou blanc", "chou rouge", "chou vert", "courge butternut"]], [80, "g", ["choux de Bruxelles", "chou frisé ou kale"]], [0.75, "pc", ["poireau"]], [300, "g", ["radis rouges"]], [2, "pc", ["tomates"]], [10, "g", ["tomates séchées"]], [15, "g", ["olives noires ou vertes"]], [50, "g", ["fèves", "petits pois"]]]],
+  ["Viandes", "Viandes", [[100, "g", ["côte ou gigot d'agneau", "mouton"]], [250, "g", ["filet ou pavé de rumsteck", "tournedos de bœuf"]], [250, "g", ["steak haché ou viande hachée de bœuf 5 %"]], [130, "g", ["steak de bœuf"]], [280, "g", ["jambon de dinde ou de poulet (7 tranches)"]], [250, "g", ["escalope ou filet de dinde", "escalope ou filet de poulet", "escalope de veau", "filet de porc"]]]],
+  ["Poissons", "Produits de la mer", [[300, "g", ["crevettes", "gambas", "palourdes"]], [400, "g", ["moules"]], [350, "g", ["poisson blanc (cabillaud, colin, dorade, raie, sole, loup)"]], [450, "g", ["poulpe"]], [120, "g", ["anchois"]], [150, "g", ["maquereau", "pavé de saumon"]], [160, "g", ["saumon fumé"]], [180, "g", ["sardines fraîches"]], [140, "g", ["sardines en boîte"]], [200, "g", ["steak de thon", "thon rouge"]], [260, "g", ["thon en boîte"]], [13, "pc", ["bâtonnets de surimi"]]]],
+  ["Végétarien", "Protéines végétariennes", [[100, "g", ["escalope de soja"]], [3, "pc", ["œufs"]], [150, "g", ["steak végétal au soja", "tofu fumé"]], [250, "g", ["tofu ferme nature"]], [180, "g", ["seitan", "tempeh"]], [400, "g", ["tofu soyeux"]]]],
+  ["Fruits très sucrés", "Fruits les plus sucrés", [[1, "pc", ["banane", "kaki"]], [200, "g", ["cerises"]], [4, "pc", ["figues"]], [0.5, "pc", ["grenade", "mangue"]], [15, "pc", ["litchis"]], [150, "g", ["raisin"]]]],
+  ["Fruits sucrés", "Fruits sucrés", [[150, "g", ["ananas", "myrtilles"]], [160, "g", ["cassis"]], [2, "pc", ["clémentines", "fruits de la passion", "kiwis", "mandarines"]], [1, "pc", ["nectarine", "orange", "pêche", "poire", "pomme"]], [0.5, "pc", ["pomelo"]], [180, "g", ["papaye"]], [5, "pc", ["prunes"]]]],
+  ["Fruits peu sucrés", "Fruits les moins sucrés", [[2, "pc", ["abricots"]], [1, "pc", ["citron"]], [100, "g", ["fraises", "pastèque"]], [120, "g", ["framboises"]], [180, "g", ["groseilles"]], [0.33, "pc", ["melon"]], [80, "g", ["mûres"]], [0.5, "pc", ["pamplemousse"]]], "L'avocat n'a pas de substitut."],
+  ["Féculents", "Céréales, légumineuses et tubercules (poids crus ou égouttés)", [[40, "g", ["boulgour", "blé", "nouilles de blé complet ou chinoises", "pâtes complètes", "semoule complète", "nouilles de riz ou soba", "pâtes sans gluten (sarrasin, lentilles corail)", "polenta", "quinoa", "riz complet ou semi-complet", "sarrasin", "tapioca", "vermicelles de riz ou de soja"]], [200, "g", ["haricots blancs ou noirs en conserve", "lentilles en conserve (blondes, vertes)"]], [140, "g", ["haricots rouges en conserve", "maïs en conserve"]], [50, "g", ["lentilles corail"]], [130, "g", ["pois chiches en conserve"]], [150, "g", ["patate douce"]], [1.5, "pc", ["pomme de terre"]]], "La sauce tamari remplace la sauce soja."],
+  ["Pains", "Pains", [[50, "g", ["pain complet", "pain de mie complet", "pain sans gluten (sarrasin, riz, châtaigne)"]], [60, "g", ["pain de seigle"]], [3, "pc", ["petits pains grillés (type Krisprolls)", "petits pains grillés sans gluten"]], [1, "pc", ["tortilla de blé", "tortilla de maïs sans gluten"]]]],
+  ["Flocons", "Flocons et céréales du matin", [[40, "g", ["flocons d'avoine", "pétales de riz et blé complet nature", "pétales de maïs nature"]], [50, "g", ["flocons d'épeautre", "flocons de pois chiches"]], [45, "g", ["muesli sans sucre ajouté, sans fruits secs ni noix", "flocons de quinoa, de riz ou de sarrasin"]]]],
+  ["Farines", "Farines", [[15, "g", ["farine d'avoine", "farine de blé complet", "farine d'épeautre", "farine de seigle", "farine de patate douce", "farine de pois chiches", "farine de riz", "farine de sarrasin"]]]],
+  ["Laitages", "Laitages", [[150, "g", ["fromage blanc"]], [2, "pc", ["petits-suisses", "yaourts nature", "yaourts végétaux (amande, avoine, soja)"]], [200, "g", ["skyr nature"]], [1, "pc", ["yaourt à la grecque"]]]],
+  ["Crèmes et laits", "Crèmes et laits", [[10, "ml", ["crème fraîche 15-20 %", "crème végétale (riz, soja)", "lait de coco"]], [10, "g", ["cream cheese (Philadelphia, Saint Môret)"]]], "Pour les laits : 100 ml de kéfir ou de lait demi-écrémé (chèvre, vache) valent 80 ml de lait ribot."],
+  ["Fromages", "Fromages", [[50, "g", ["chèvre en bûche"]], [65, "g", ["chèvre frais"]], [35, "g", ["comté", "parmesan"]], [40, "g", ["emmental", "roquefort"]], [55, "g", ["feta"]], [62.5, "g", ["mozzarella (une demi-boule)"]], [90, "g", ["ricotta"]]]],
+  ["Matières grasses", "Matières grasses", [[10, "ml", ["huile d'olive", "huile de coco", "huile de tournesol"]], [10, "g", ["beurre", "beurre de cacahuète", "purée d'amandes", "margarine"]]], "Pour assaisonner, 10 ml d'huile de lin, de noix ou de sésame. L'huile de cuisson et le beurre s'échangent (10 ml = 10 g)."],
+  ["Sucré", "Produits sucrés", [[10, "g", ["confiture", "miel", "sirop d'agave", "sirop de coco"]], [15, "g", ["sirop d'érable"]], [6, "g", ["stévia", "sucre de coco", "sucre muscovado", "sucre rapadura"]]], "10 g de dattes, figues sèches ou raisins secs s'échangent contre 10 g d'autres fruits déshydratés."],
+  ["Oléagineux", "Oléagineux", [[20, "g", ["amandes", "noisettes", "noix", "noix de cajou", "noix de macadamia", "noix de pécan", "noix du Brésil"]], [25, "g", ["pistaches"]]]]];
+const FRAC = {0.25: "¼", 0.33: "⅓", 0.5: "½", 0.75: "¾", 1.5: "1 ½"};
+const q = (n, u) => (FRAC[n] || String(n).replace(".", ",")) + (u === "pc" ? "" : " " + u);
+const box = document.getElementById("subs");
+SUB.forEach(([, title, gs, note]) => {
+  const d = document.createElement("div"); d.className = "sub";
+  const h = document.createElement("h3"); h.textContent = title; d.append(h);
+  const ul = document.createElement("ul");
+  gs.forEach(([n, u, names]) => { const li = document.createElement("li"); const b = document.createElement("b"); b.textContent = q(n, u); li.append(b, names.join(", ")); ul.append(li); });
+  d.append(ul);
+  if (note) { const s = document.createElement("small"); s.textContent = note; d.append(s); }
+  box.append(d);
+});
+})();
+</script>
