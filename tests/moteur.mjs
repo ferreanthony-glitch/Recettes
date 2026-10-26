@@ -33,7 +33,7 @@ const res = await page.evaluate(async (N) => {
   const ids = Object.keys(R), rnd = a => a[Math.floor(Math.random() * a.length)];
   const ALGS = Object.keys(typeof ALG_RX === "undefined" ? {} : ALG_RX);
   // Mots repères indépendants du moteur, pour vérifier les allergènes autrement que par ses propres étiquettes
-  const ALG_CHECK = {gluten: /\b(pâtes|spaghetti|coquillettes|lasagne|farine|pain|semoule|boulgour|tortilla|wrap|chapelure|galette de blé)/i, lait: /\b(lait de vache|fromage|parmesan|emmental|mozzarella|feta|crème fraîche|beurre|yaourt|skyr|comté|pecorino|chèvre|cream cheese|fromage blanc)\b/i, œufs: /\b(œufs?|oeufs?)\b/i};
+  const ALG_CHECK = {gluten: /\b(pâtes|spaghetti|coquillettes|lasagne|farine|pain|semoule|boulgour|tortilla|wrap|chapelure|galette de blé)/i, lait: /\b(lait de vache|fromage|parmesan|emmental|mozzarella|feta|crème fraîche|beurre(?! de cacahu)|yaourt|skyr|comté|pecorino|chèvre|cream cheese|fromage blanc)\b/i, œufs: /\b(œufs?|oeufs?)\b/i};
   const BANS = ["poulet", "courgette", "champignons", "bœuf haché", "pois chiches", "riz", "lait de coco", "viande", "patate douce", "tomates cerises", "épinards"];
   const t0 = Date.now();
   for (let run = 0; run < N; run++) {
