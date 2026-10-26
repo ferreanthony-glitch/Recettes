@@ -289,6 +289,8 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--accent); o
 .se-safe dt { font-weight: 700; margin-top: 6px; }
 .se-safe dd { margin: 2px 0 0; }
 .ghost-cell { position: fixed; z-index: 50; pointer-events: none; max-width: 180px; padding: 8px 10px; background: var(--accent); color: #fff; font-weight: 700; font-size: 0.85rem; box-shadow: 0 6px 18px rgba(0,0,0,.25); transform: translate(-50%, -120%); }
+.item .what small.alt { color: var(--accent); }
+.linkish { font: inherit; padding: 0; border: 0; background: none; color: var(--accent); text-decoration: underline; cursor: pointer; }
 .have { display: block; font-size: 0.72rem; color: var(--accent); font-weight: 700; }
 .ppl { display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 0.95rem; color: var(--muted); margin-top: 10px; }
 .ppl select { font: inherit; font-weight: 700; color: var(--ink); padding: 6px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
@@ -1095,11 +1097,16 @@ function mergeItems(rows){
   });
   return out;
 }
-function buildList(sel = listSel()){
+// Produit moins cher proposé dans Mes courses, que tu choisis d'un geste (state.alt) : jamais pour un plat où il ne convient pas (raw : mangé cru)
+const ALT = {"epinard frai": {name: "épinards surgelés", from: "épinards frais", ray: "FR", raw: ["bowl"], why: "pour les plats cuits, à poids égal (il en faut même un peu moins)"}};
+const altOn = (k, alt = state.alt || {}) => !!(ALT[k] && alt[k]);
+function buildList(sel = listSel(), alt = state.alt || {}){
   const rows = [], pl = {};
-  const add = ([name, q, u, ray], m, src) => rows.push([name, q * m, u, ray, src]);
+  const add = ([name, q, u, ray], m, src, id) => { const k = stem(name);
+    if (altOn(k, alt) && !ALT[k].raw.includes(id)) { name = ALT[k].name; ray = ALT[k].ray; }
+    rows.push([name, q * m, u, ray, src]); };
   Object.entries(counts(sel)).forEach(([id, n]) => {
-    Q[id].forEach(x => add(x, factor(id, n), R[id].n));
+    Q[id].forEach(x => add(x, factor(id, n), R[id].n, id));
     (PLACARD[id]||[]).concat(["huile d'olive","sel, poivre"]).forEach(x => pl[x] = 1);
   });
   BREAKFAST.forEach(x => add(x, pf(), "petits-déjeuners"));
@@ -1144,13 +1151,23 @@ function priceItem(it){
   const packs = Math.max(1, Math.ceil(q / p.q - 1e-6));
   return {p, packs, cost: packs * p.e, used: q / p.q * p.e};
 }
-function costOf(sel = listSel()){
+function costOf(sel = listSel(), alt){
   let cost = 0, used = 0; const miss = [], lines = [];
-  buildList(sel).forEach(it => { const c = priceItem(it); if (!c) return; if (c.miss) miss.push(it.name); else { cost += c.cost; used += c.used; lines.push([it, c]); } });
+  buildList(sel, alt).forEach(it => { const c = priceItem(it); if (!c) return; if (c.miss) miss.push(it.name); else { cost += c.cost; used += c.used; lines.push([it, c]); } });
   return {cost: Math.round(cost * 100) / 100, used: Math.round(used * 100) / 100, miss, lines};
 }
 const prixAge = () => Math.round((today() - new Date(PRIX_SRC.date + "T00:00:00")) / 864e5);
 const prixSrcTxt = () => "prix " + PRIX_SRC.nom + " relevés le " + new Date(PRIX_SRC.date + "T00:00:00").toLocaleDateString("fr-FR") + (prixAge() > 45 ? ", à relever à nouveau" : "");
+// Proposer le produit moins cher sur la ligne concernée, ou revenir au produit d'origine
+function altOffer(it){
+  const k = stem(it.name), back = Object.keys(ALT).find(x => ALT[x].name === it.name);
+  const set = (x, on) => { state.alt = {...(state.alt || {}), [x]: on}; if (!on) delete state.alt[x]; persist(); renderList(); };
+  if (back) return [el("small",{class:"alt"}, "À la place des " + ALT[back].from + " (" + ALT[back].why + "). ", el("button",{type:"button",class:"linkish",onclick:() => set(back, false)}, "Revenir au frais"))];
+  if (!ALT[k] || altOn(k) || it.enough) return [];
+  const a = costOf(), b = costOf(undefined, {...(state.alt || {}), [k]: true}), d = Math.round((a.cost - b.cost) * 100) / 100;
+  if (d < 1) return [];
+  return [el("small",{class:"alt"}, "Moins cher : " + ALT[k].name + ", ≈ " + euro(d) + " de moins à la caisse (" + ALT[k].why + "). ", el("button",{type:"button",class:"linkish",onclick:() => set(k, true)}, "Prendre les surgelés"))];
+}
 function renderList(){
   const items = buildList(), box = document.getElementById("list"); box.innerHTML = "";
   let done = 0;
@@ -1165,7 +1182,8 @@ function renderList(){
       sec.append(el("label",{class:"item"+(on?" done":""),for:id},
         el("input",{type:"checkbox",id,checked:on,onchange:(e)=>{ if (e.target.checked) state.checked[it.key] = true; else delete state.checked[it.key]; persist(); renderList(); }}),
         el("span",{class:"what"}, it.name, it.hint ? el("span",{class:"have"}, it.hint) : null, it.src.size ? el("small",{}, [...it.src].join(", ")) : null,
-          (c => c && !c.miss ? el("small",{class:"px"}, c.packs + " × " + c.p.p + " · " + euro(c.cost)) : null)(priceItem(it))),
+          (c => c && !c.miss ? el("small",{class:"px"}, c.packs + " × " + c.p.p + " · " + euro(c.cost)) : null)(priceItem(it)),
+          ...altOffer(it)),
         el("span",{class:"qty"}, it.enough ? "—" : fmt(it))));
     });
     box.append(sec);

@@ -72,7 +72,8 @@ const res = await page.evaluate((N) => {
   const os = replaceOptions(state.sel, "3-1", 99), last = os[os.length - 1];
   for (let i = 0; i < 4; i++) hbRecord(ids.find(x => x !== last.id), last.id);
   const os2 = replaceOptions(state.sel, "3-1", 99);
-  check("plat souvent choisi : remonte", os2.findIndex(x => x.id === last.id) < os.length - 1 && os2.find(x => x.id === last.id).why.includes("tu le choisis souvent"), os2.findIndex(x => x.id === last.id) + "/" + os.length);
+  const s1 = last.sc, s2 = os2.find(x => x.id === last.id).sc;   // le score monte d'exactement 1,5 × 4,5 (effet plafonné), le rang dépend des autres critères
+  check("plat souvent choisi : remonte", Math.abs(s2 - s1 - 1.5 * 4.5) < 1e-9 && os2.find(x => x.id === last.id).why.includes("tu le choisis souvent"), s1 + " → " + s2);
   check("habitudes : règles strictes intactes", os2.map(x => x.id).sort().join() === os.map(x => x.id).sort().join(), "liste des plats possibles changée");
   // Effacer
   window.confirm = () => true; renderGen(); document.getElementById("hb-forget").click();

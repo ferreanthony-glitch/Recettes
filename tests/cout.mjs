@@ -71,6 +71,27 @@ const res = await page.evaluate((N) => {
   reset(); state.sel = {...state.sel}; const ks = SLOTS.map(s => s.k); ks.forEach(k => state.sel[k] = "salbro"); state.sel["1-0"] = "thai"; state.sel["1-1"] = "butter";
   const bn = buildList(state.sel).filter(x => stem(x.name) === "butternut");
   check("butternut sur une seule ligne", bn.length === 1, JSON.stringify(bn.map(x => [x.q, x.u])));
+  // 8. Épinards : surgelés proposés quand c'est nettement moins cher, jamais pour le plat où ils sont crus
+  reset(); state.alt = {}; const ks2 = SLOTS.map(s => s.k); ks2.forEach(k => state.sel[k] = "salbro");
+  state.sel["1-0"] = state.sel["2-0"] = "c_pouepi"; state.sel["3-0"] = "galette"; state.sel["4-0"] = "bowl"; validateWeek(); renderList();
+  check("nom surgelé reconnu", stem(ALT["epinard frai"].name) === "epinard surgele" && PRIX["epinard surgele"], stem(ALT["epinard frai"].name));
+  const offer = [...document.querySelectorAll("#list small.alt")].find(x => /Moins cher : épinards surgelés/.test(x.textContent));
+  check("proposition affichée", !!offer, document.getElementById("list").textContent.slice(0, 200));
+  const before = costOf().cost;
+  offer && offer.querySelector("button").click();
+  const L = buildList(), fr = L.find(x => x.name === "épinards frais"), sg = L.find(x => x.name === "épinards surgelés");
+  check("surgelés pour les plats cuits", sg && Math.abs(sg.q - (Q.c_pouepi.find(x => x[0] === "épinards frais")[1] * factor("c_pouepi", 2) + Q.galette.find(x => x[0] === "épinards frais")[1] * factor("galette", 1))) < 1e-6, JSON.stringify(sg));
+  check("frais gardés pour le bowl (cru)", fr && Math.abs(fr.q - Q.bowl.find(x => x[0] === "épinards frais")[1] * factor("bowl", 1)) < 1e-6, JSON.stringify(fr));
+  check("moins cher à la caisse", costOf().cost < before - 1, before + " → " + costOf().cost);
+  check("choix retenu", state.alt && state.alt["epinard frai"] === true && JSON.parse(localStorage.getItem(KEY)).alt["epinard frai"] === true, JSON.stringify(state.alt));
+  const back = [...document.querySelectorAll("#list small.alt")].find(x => /Revenir au frais/.test(x.textContent));
+  check("revenir au frais", !!back, "bouton absent"); back && back.querySelector("button").click();
+  check("retour au frais", !buildList().some(x => x.name === "épinards surgelés") && !(state.alt || {})["epinard frai"], JSON.stringify(state.alt));
+  // Petite quantité : pas de proposition si l'écart est sous 1 €
+  reset(); state.alt = {}; ks2.forEach(k => state.sel[k] = "salbro"); state.sel["1-0"] = "c_harbd"; validateWeek(); renderList();
+  const d = costOf().cost - costOf(undefined, {"epinard frai": true}).cost;
+  check("pas de proposition sous 1 €", d >= 1 || ![...document.querySelectorAll("#list small.alt")].length, d);
+  state.alt = {};
   reset();
   return {fails, count, shown};
 }, +process.argv[2] || 12);
