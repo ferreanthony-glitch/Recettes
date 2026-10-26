@@ -119,9 +119,13 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--accent); o
 .grid td.d { font-weight: 700; white-space: nowrap; }
 .x2 { font-size: 0.72rem; font-weight: 700; color: var(--accent); }
 .note { font-size: 0.8rem; color: var(--muted); margin: 0; }
-.tabs { display: grid; grid-template-columns: repeat(5, auto); justify-content: stretch; gap: 4px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 4px; }
+.tabs { display: grid; grid-template-columns: repeat(3, 1fr); justify-content: stretch; gap: 4px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 4px; }
 .tabs button { font: inherit; font-weight: 700; padding: 10px 4px; white-space: nowrap; border: 0; border-radius: 9px; background: transparent; color: var(--muted); cursor: pointer; }
 .tabs button[aria-selected="true"] { background: var(--accent); color: var(--surface); }
+.subtabs { display: flex; justify-content: center; flex-wrap: wrap; gap: 6px; margin-top: -6px; }
+.subtabs[hidden] { display: none; }
+.subtabs button { font: inherit; font-size: .9rem; font-weight: 600; padding: 6px 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--muted); cursor: pointer; }
+.subtabs button[aria-selected="true"] { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
 .sync { font-size: 0.75rem; color: var(--muted); text-align: right; min-height: 1em; }
 .progress { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
 .progress .n { font-family: var(--font-display); font-weight: 800; font-size: 1.4rem; font-variant-numeric: tabular-nums; }
@@ -293,7 +297,7 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--accent); o
 .side, .main { display: grid; gap: 18px; align-content: start; min-width: 0; }
 @media (min-width: 1024px) {
   .wrap { max-width: 1180px !important; padding-inline: 16px !important; }
-  .wrap > header, .tabs { width: 100%; max-width: 640px; justify-self: center; }
+  .wrap > header, .tabs, .subtabs { width: 100%; max-width: 640px; justify-self: center; }
   #view-semaine:not([hidden]) { grid-template-columns: 400px minmax(0, 1fr); gap: 32px !important; align-items: start; }
   .side { position: sticky; top: 16px; max-height: calc(100vh - 32px); overflow-y: auto; padding-right: 4px; }
   .main .board { top: 0; }
@@ -350,16 +354,19 @@ header .label{text-align:center}
 <nav class="snav"><a href="semaine.html" class="on">Ma semaine</a><a href="index.html">Recueil</a><a href="guide.html">Guide</a><a href="compte.html" class="acc">Profil</a></nav></div></header>
 <div class="wrap">
   <header>
-    <h1>Ma semaine</h1>
+    <h1 id="space-title">Ma semaine</h1>
     <label class="ppl">Pour <select id="ppl" aria-label="Nombre de personnes"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option></select> personnes</label>
   </header>
 
   <div class="tabs" role="tablist">
-    <button type="button" role="tab" id="tab-semaine" aria-selected="true" aria-controls="view-semaine">Semaine</button>
-    <button type="button" role="tab" id="tab-jour" aria-selected="false" aria-controls="view-jour">Aujourd'hui</button>
-    <button type="button" role="tab" id="tab-seance" aria-selected="false" aria-controls="view-seance">Dimanche</button>
-    <button type="button" role="tab" id="tab-courses" aria-selected="false" aria-controls="view-courses">Courses</button>
-    <button type="button" role="tab" id="tab-recettes" aria-selected="false" aria-controls="view-recettes">Recettes</button>
+    <button type="button" role="tab" id="tab-semaine" aria-selected="true" aria-controls="view-semaine">Ma semaine</button>
+    <button type="button" role="tab" id="tab-courses" aria-selected="false" aria-controls="view-courses">Mes courses</button>
+    <button type="button" role="tab" id="tab-cuisine" aria-selected="false">En cuisine</button>
+  </div>
+  <div class="subtabs" id="subtabs" role="tablist" hidden>
+    <button type="button" role="tab" id="sub-jour" aria-selected="false" aria-controls="view-jour">Aujourd'hui</button>
+    <button type="button" role="tab" id="sub-seance" aria-selected="false" aria-controls="view-seance">Séance</button>
+    <button type="button" role="tab" id="sub-recettes" aria-selected="false" aria-controls="view-recettes">Recettes</button>
   </div>
   <div class="sync" id="sync"></div>
 
@@ -1336,11 +1343,24 @@ function renderStats(){
 }
 
 const TABS = ["semaine", "jour", "seance", "courses", "recettes"];
+// Trois espaces : Ma semaine, Mes courses, En cuisine (Aujourd'hui, séance du dimanche, recettes de la semaine)
+const CUISINE = ["jour", "seance", "recettes"], SPACE = {semaine: "Ma semaine", courses: "Mes courses", cuisine: "En cuisine"};
+const spaceOf = t => CUISINE.includes(t) ? "cuisine" : t;
+let lastCuisine = "jour";
+try { lastCuisine = localStorage.getItem(KEY+"-cuisine") || "jour"; } catch (e) {}
+// En cuisine s'ouvre sur la séance le dimanche, sinon sur la dernière vue ouverte
+const cuisineView = () => today().getDay() === 0 ? "seance" : CUISINE.includes(lastCuisine) ? lastCuisine : "jour";
 function showTab(t){
+  if (t === "cuisine") t = cuisineView();
   if (!TABS.includes(t)) t = "semaine";
   tab = t;
-  try { localStorage.setItem(KEY+"-tab", t); } catch (e) {}
-  TABS.forEach(x => { document.getElementById("tab-" + x).setAttribute("aria-selected", String(t === x)); document.getElementById("view-" + x).hidden = t !== x; });
+  const sp = spaceOf(t);
+  try { localStorage.setItem(KEY+"-tab", t); if (sp === "cuisine") { lastCuisine = t; localStorage.setItem(KEY+"-cuisine", t); } } catch (e) {}
+  Object.keys(SPACE).forEach(x => document.getElementById("tab-" + x).setAttribute("aria-selected", String(sp === x)));
+  document.getElementById("space-title").textContent = SPACE[sp];
+  document.getElementById("subtabs").hidden = sp !== "cuisine";
+  CUISINE.forEach(x => document.getElementById("sub-" + x).setAttribute("aria-selected", String(t === x)));
+  TABS.forEach(x => document.getElementById("view-" + x).hidden = t !== x);
   if (t === "jour") { dayOff = 0; renderToday(); }
 }
 // ---- Recettes ajustées ----
@@ -1507,7 +1527,7 @@ function renderToday(){
   const box = document.getElementById("jour"); box.innerHTML = "";
   const v = state.valid;
   if (!v || !v.sel) { box.append(el("section",{class:"panel"}, el("h2",{}, "Aucune semaine validée"),
-    el("p",{}, "Valide ta semaine dans l'onglet Semaine : cette page affichera alors, chaque jour, quoi réchauffer ou cuisiner et quoi sortir du congélateur."))); return; }
+    el("p",{}, "Valide ta semaine dans Ma semaine : cette page affichera alors, chaque jour, quoi réchauffer ou cuisiner et quoi sortir du congélateur."))); return; }
   const start = weekStart(v), day = today(); day.setDate(day.getDate() + dayOff);
   const d = Math.round((day - start) / 864e5), end = new Date(start); end.setDate(end.getDate() + 6);
   const nav = el("div",{class:"day-nav"},
@@ -1522,7 +1542,7 @@ function renderToday(){
   const pickStart = el("select",{"aria-label":"Dimanche de départ de la semaine validée", onchange:e => { state.valid.start = e.target.value; persist(); render(); }},
     [prev, s0].concat(v.start && ![iso(prev), iso(s0)].includes(v.start) ? [start] : []).map(x => { const o = el("option",{value:iso(x)}, "dimanche " + x.toLocaleDateString("fr-FR", {day: "numeric", month: "long"})); if (iso(x) === iso(start)) o.selected = true; return o; }));
   const startLine = el("p",{class:"note"}, "Semaine validée du ", el("b",{}, short(iso(start))), " au ", el("b",{}, short(iso(end))), ". Elle commence le ", pickStart, ".");
-  if (d < 0 || d > 6) { box.append(el("section",{class:"panel"}, el("p",{}, d < 0 ? "La semaine validée n'a pas encore commencé." : "La semaine validée est terminée : valide la suivante dans l'onglet Semaine."), startLine)); return; }
+  if (d < 0 || d > 6) { box.append(el("section",{class:"panel"}, el("p",{}, d < 0 ? "La semaine validée n'a pas encore commencé." : "La semaine validée est terminée : valide la suivante dans Ma semaine."), startLine)); return; }
   if (d === 0) {
     const frz = SLOTS.filter(sl => (keepInfo(sl, v.sel) || {}).freeze).map(sl => R[v.sel[sl.k]].n + " (" + slotName(sl) + ")");
     box.append(el("section",{class:"panel freezer"}, el("h2",{}, "Séance de cuisine"),
@@ -1971,9 +1991,8 @@ function render(){ document.getElementById("ppl").value = ppl(); document.queryS
 
 document.getElementById("tab-semaine").addEventListener("click", () => showTab("semaine"));
 document.getElementById("tab-courses").addEventListener("click", () => { showTab("courses"); window.scrollTo(0,0); });
-document.getElementById("tab-recettes").addEventListener("click", () => { showTab("recettes"); window.scrollTo(0,0); });
-document.getElementById("tab-jour").addEventListener("click", () => { showTab("jour"); window.scrollTo(0,0); });
-document.getElementById("tab-seance").addEventListener("click", () => { showTab("seance"); window.scrollTo(0,0); });
+document.getElementById("tab-cuisine").addEventListener("click", () => { showTab("cuisine"); window.scrollTo(0,0); });
+CUISINE.forEach(x => document.getElementById("sub-" + x).addEventListener("click", () => showTab(x)));
 document.getElementById("uncheck").addEventListener("click", () => { state.checked = {}; persist(); renderList(); });
 // Valider : la liste de courses suit cette semaine-là, ici et (par le lien) de l'autre côté
 const sameSel = () => state.valid && SLOTS.every(sl => state.valid.sel[sl.k] === state.sel[sl.k]);
@@ -2134,4 +2153,4 @@ render();
 ghInit();
 </script>
 
-<p class="ver" style="text-align:center;font-size:.72rem;color:var(--muted);margin:8px 0 24px">Version du 26/10 02:23</p></body></html>
+<p class="ver" style="text-align:center;font-size:.72rem;color:var(--muted);margin:8px 0 24px">Version du 26/10 03:35</p></body></html>

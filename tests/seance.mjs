@@ -99,6 +99,19 @@ const res = await page.evaluate((N) => {
   check("jour limite = durée de la fiche", lim, "jour différent de KEEP");
   // Aucun repas prévu au-delà de sa limite (sans congélation)
   check("aucun repas après sa limite", SLOTS.every(sl => !keepInfo(sl, state.sel) || !keepInfo(sl, state.sel).bad), "repas trop tard");
+  // 6. Trois espaces : Ma semaine, Mes courses, En cuisine (qui regroupe Aujourd'hui, la séance et les recettes)
+  const vis = () => TABS.filter(x => !document.getElementById("view-" + x).hidden);
+  check("3 espaces affichés", document.querySelectorAll(".tabs [role=tab]").length === 3, document.querySelectorAll(".tabs [role=tab]").length);
+  showTab("semaine"); check("Ma semaine", vis().join() === "semaine" && document.getElementById("subtabs").hidden && document.getElementById("space-title").textContent === "Ma semaine", vis());
+  document.getElementById("tab-courses").click(); check("Mes courses", vis().join() === "courses" && document.getElementById("tab-courses").getAttribute("aria-selected") === "true", vis());
+  document.getElementById("tab-cuisine").click();
+  const exp = today().getDay() === 0 ? "seance" : lastCuisine;
+  check("En cuisine : séance le dimanche, sinon dernière vue", vis().join() === exp && !document.getElementById("subtabs").hidden, vis() + " / " + exp);
+  ["jour", "seance", "recettes"].forEach(x => { document.getElementById("sub-" + x).click();
+    check("En cuisine › " + x, vis().join() === x && document.getElementById("tab-cuisine").getAttribute("aria-selected") === "true" && document.getElementById("sub-" + x).getAttribute("aria-selected") === "true", vis()); });
+  showTab("semaine"); document.getElementById("tab-cuisine").click();
+  check("En cuisine se souvient de la vue", vis().join() === (today().getDay() === 0 ? "seance" : "recettes"), vis());
+  showTab("semaine");
   reset();
   return {fails, count};
 }, +process.argv[2] || 12);
