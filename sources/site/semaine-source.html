@@ -241,6 +241,9 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--accent); o
 .swap-msg { margin-top: 10px; padding: 10px 12px; border-radius: 12px; background: var(--accent-soft); font-size: .9rem; display: grid; gap: 6px; }
 .swap-msg.bad { background: #fbe9e4; color: var(--meat); }
 .swap-msg button { justify-self: start; }
+#view-jour, #jour { grid-template-columns: minmax(0, 1fr); }
+#jour > * { min-width: 0; }
+.rep-sel { justify-self: stretch; width: 100%; min-width: 0; max-width: 100%; text-overflow: ellipsis; margin-top: 4px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--ink); font: inherit; font-size: .88rem; }
 .day-nav { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .day-nav h2 { margin: 0; text-align: center; flex: 1; font-size: 1.1rem; }
 .day-nav button { min-width: 44px; }
@@ -353,7 +356,7 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--accent); o
    </div>
    <div class="main">
     <section class="panel" aria-label="Vue de la semaine">
-      <div class="ht"><h2>La semaine</h2><button type="button" class="qm" aria-label="Aide" aria-expanded="false" aria-controls="tip-sem">?</button><p class="tipbox" id="tip-sem" role="tooltip">Touche un repas pour choisir un autre plat. Fais-le glisser sur une autre case pour les échanger (sur téléphone, appuie un instant puis glisse).</p></div>
+      <div class="ht"><h2>La semaine</h2><button type="button" class="qm" aria-label="Aide" aria-expanded="false" aria-controls="tip-sem">?</button><p class="tipbox" id="tip-sem" role="tooltip">Touche un repas pour le remplacer : les premiers plats proposés sont ceux qui vont le mieux avec le reste de la semaine et tes courses. Fais-le glisser sur une autre case pour les échanger (sur téléphone, appuie un instant puis glisse).</p></div>
       <div class="swap-bar"><button type="button" class="ghost" id="swap-btn" aria-pressed="false">Échanger deux repas</button><button type="button" class="ghost" id="lock-btn" aria-pressed="false">Verrouiller des repas</button><button type="button" class="ghost" id="unlock-all" hidden>Tout déverrouiller</button><span class="note" id="swap-help"></span></div>
       <div class="grid"><table><thead><tr><th>Jour</th><th>Midi</th><th>Soir</th></tr></thead><tbody id="grid"></tbody></table></div>
       <div class="swap-msg" id="swap-msg" role="status" hidden></div>
@@ -388,6 +391,7 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--accent); o
   </div>
 
   <div id="view-jour" role="tabpanel" aria-labelledby="tab-jour" hidden style="display:grid;gap:12px">
+    <div class="swap-msg" id="jour-msg" role="status" hidden></div>
     <div id="jour" style="display:grid;gap:12px"></div>
   </div>
 
@@ -1010,7 +1014,7 @@ async function flush(){
 
 // ---- Outils ----
 function el(tag, attrs, ...kids){ const e = document.createElement(tag); for (const k in attrs||{}) { if (k === "class") e.className = attrs[k]; else if (k.startsWith("on")) e.addEventListener(k.slice(2), attrs[k]); else if (k === "checked") e.checked = attrs[k]; else e.setAttribute(k, attrs[k]); } kids.flat().forEach(c => c != null && e.append(c)); return e; }
-function pick(k, id){ state.sel[k] = id; persist(); render(); }
+function pick(k, id){ const synced = sameSel(); state.sel[k] = id; persist(); if (synced) validateWeek(true); else render(); }
 function meals(){ return SLOTS.filter(sl => R[state.sel[sl.k]].v).length; }
 // Nombre de repas par plat, et multiplicateur de recette (« once » : la recette fait déjà 2 repas)
 function counts(sel = state.sel){ const c = {}; SLOTS.forEach(sl => { const id = sel[sl.k]; c[id] = (c[id] || 0) + 1; }); return c; }
@@ -1050,10 +1054,10 @@ function mergeItems(rows){
   });
   return out;
 }
-function buildList(){
+function buildList(sel = listSel()){
   const rows = [], pl = {};
   const add = ([name, q, u, ray], m, src) => rows.push([name, q * m, u, ray, src]);
-  Object.entries(counts(listSel())).forEach(([id, n]) => {
+  Object.entries(counts(sel)).forEach(([id, n]) => {
     Q[id].forEach(x => add(x, factor(id, n), R[id].n));
     (PLACARD[id]||[]).concat(["huile d'olive","sel, poivre"]).forEach(x => pl[x] = 1);
   });
@@ -1158,8 +1162,11 @@ function mealSelect(sl){
   const id = state.sel[sl.k];
   const GROUPS = [["r", "Se prépare le dimanche"], ["q", "Rapide, à faire le jour même"], ["g", "Gourmand"]];
   const group = x => GROUPS.find(([f]) => R[x][f])?.[0] || "g";
+  const sugg = replaceOptions(state.sel, sl.k);
   const sel = el("select",{class:"cell-sel","aria-label":DAYS[sl.d] + " " + MEALN[sl.m],
-      onchange:(e)=>pick(sl.k, e.target.value)},
+      onchange:(e)=>{ const v = e.target.value; if (v.startsWith("rep:")) replaceMeal(sl.k, v.slice(4)); else pick(sl.k, v); }},
+    sugg.length ? el("optgroup",{label: "Remplacer " + (sugg[0].targets.length > 1 ? "(" + sugg[0].targets.map(k => slotName(SLOTS.find(x => x.k === k))).join(" et ") + ")" : "par")},
+      sugg.map(o => el("option",{value:"rep:" + o.id}, R[o.id].n + " · " + o.why.concat(o.warn).slice(0, 2).join(", ")))) : null,
     GROUPS.map(([f, label]) => el("optgroup",{label},
       Object.keys(R).filter(x => group(x) === f).sort((a,b) => R[a].n.localeCompare(R[b].n,"fr"))
         .map(x => { const late = POSTE_OF[sl.k].f === "r" && tooLong(x, sl.d) && x !== id, noon = wrongTime(x, sl.m) && x !== id;
@@ -1289,7 +1296,7 @@ function renderRecipes(){
 }
 // ---- Déplacer un repas : glisser-déposer (souris, ou appui long au doigt) ou toucher deux cases ----
 let picked = null, drag = null, noClick = false;
-function swap(a, b){ if (a === b) return; [state.sel[a], state.sel[b]] = [state.sel[b], state.sel[a]]; picked = null; lastSwap = [a, b]; persist(); render(); swapReport(a, b); }
+function swap(a, b){ if (a === b) return; const synced = sameSel(); [state.sel[a], state.sel[b]] = [state.sel[b], state.sel[a]]; picked = null; lastSwap = [a, b]; persist(); if (synced) validateWeek(true); else render(); swapReport(a, b); }
 const cellAt = (x, y) => { const e = document.elementFromPoint(x, y); return e && e.closest("#grid .cell"); };
 function dragStart(td, x, y){
   drag.on = true; td.classList.add("from");
@@ -1423,6 +1430,9 @@ function renderToday(){
       }
     } else card.append(el("p",{class:"act"}, el("b",{}, "À cuisiner"), (RECIPES[id] && RECIPES[id].t ? " : " + RECIPES[id].t : "") + "."));
     if (kc) card.append(el("p",{class:"heat"}, "Environ " + kc + " kcal par portion."));
+    if (sameSel() && dayOff >= 0) { const sg = replaceOptions(v.sel, sl.k);   // la semaine affichée est la semaine validée
+      if (sg.length) card.append(el("select",{class:"rep-sel","aria-label":"Remplacer ce repas",onchange:e => { if (e.target.value) replaceMeal(sl.k, e.target.value); }},
+        el("option",{value:""}, "Remplacer ce repas…"), sg.map(o => el("option",{value:o.id}, R[o.id].n + " · " + o.why.concat(o.warn).slice(0, 2).join(", "))))); }
     card.append(el("p",{class:"heat"}, el("a",{href:"#",onclick:e=>{ e.preventDefault(); showTab("recettes"); window.scrollTo(0,0); }}, "Voir la recette")));
     box.append(card);
   });
@@ -1582,6 +1592,105 @@ function renderSeance(){
 document.getElementById("se-start").addEventListener("change", e => { const s = seLoad(); s.start = e.target.value; seSave(s); renderSeance(); });
 document.getElementById("se-uncheck").addEventListener("click", () => { const s = seLoad(); s.done = {}; seSave(s); renderSeance(); });
 
+// ---- Remplacer un repas : quelques plats proposés, classés par un calcul vérifiable (pas de tirage au hasard) ----
+// Règles strictes d'abord (conservation, soupe le soir, aliments à éviter et profil, plat cher sur deux repas, façon de cuisiner du poste),
+// puis un score : ingrédients déjà prévus réutilisés, articles à acheter en plus, restes déclarés utilisés, temps, notes, viande, doublons.
+const STAPLE = ["ail", "oignon", "echalote", "persil", "coriandre", "ciboulette", "basilic", "menthe", "citron", "citron vert"];
+const artKeys = id => [...new Set(Q[id].map(x => stem(x[0])))];
+// Repas remplacés ensemble : un plat cuisiné une fois pour deux repas (même poste) est remplacé pour les deux
+function replaceTargets(sel, k){
+  const p = POSTE_OF[k], cur = sel[k];
+  return p.slots.map(([d, m]) => d + "-" + m).filter(x => x === k || sel[x] === cur);
+}
+// La séance du dimanche a déjà eu lieu pour la semaine validée (on est après son dimanche de départ)
+function seanceDone(){ const v = state.valid; if (!v || !v.sel || !sameSel()) return false; return Math.round((today() - weekStart(v)) / 864e5) >= 1; }
+function replaceOptions(sel, k, n = 3){
+  const targets = replaceTargets(sel, k), p = POSTE_OF[k], cur = sel[k], done = seanceDone() && p.f === "r" && R[cur].r;
+  const rest = {...sel}; targets.forEach(x => delete rest[x]);
+  const restArts = new Set(Object.values(rest).flatMap(artKeys)), left = stock(), nt = notes();
+  let likes = []; try { likes = JSON.parse(localStorage.getItem("recettes-likes")) || []; } catch (e) {}
+  const meatRest = SLOTS.filter(sl => rest[sl.k] && R[rest[sl.k]].v).length;
+  const tCur = minutesOf((RECIPES[cur] || {}).t);
+  const pass = (id, relax) => {
+    if (id === cur || !R[id]) return false;
+    const kind = done ? "q" : p.f;                                   // séance passée : seulement des plats du jour même
+    if (!R[id][kind]) return false;
+    if (banned(id)) return false;
+    if (targets.some(x => wrongTime(id, SLOTS.find(s => s.k === x).m))) return false;
+    if (kind === "r" && targets.some(x => tooLong(id, SLOTS.find(s => s.k === x).d))) return false;
+    if ((R[id].c || []).length && targets.length < 2) return false;
+    if (!relax && R[id].v && meatRest + targets.length > maxV()) return false;
+    if (!relax && Object.values(rest).includes(id)) return false;   // déjà au menu : seulement en dernier recours
+    return true;
+  };
+  let ids = Object.keys(R).filter(id => pass(id, false)), relaxed = false;
+  if (!ids.length) { ids = Object.keys(R).filter(id => pass(id, true)); relaxed = true; }
+  const opts = ids.map(id => {
+    const arts = artKeys(id), reuse = arts.filter(a => restArts.has(a)), extra = arts.filter(a => !restArts.has(a) && !left.some(it => same(a, it.n)));
+    const big = reuse.filter(a => !STAPLE.includes(a)), stockUse = left.filter(it => arts.some(a => same(a, it.n))).length;
+    const dup = Object.entries(rest).filter(([, x]) => x === id).map(([x]) => x);
+    const t = minutesOf((RECIPES[id] || {}).t), st = nt[SLUG[id]] || 0, liked = likes.includes(SLUG[id]);
+    const meat = meatRest + (R[id].v ? targets.length : 0);
+    let sc = 3 * big.length + 1 * (reuse.length - big.length) - 4 * extra.length + 4 * stockUse;
+    sc += st ? (st - 3) * 2 : 0; if (liked) sc += 3; if (st === 1) sc -= 20;
+    if (dup.length) sc -= 8;
+    if (kindFor(p, done) !== "r") sc -= Math.max(0, t - tCur) / 10 * 1.5;   // cuisiné le jour même : le temps compte
+    if (!!R[id].v !== !!R[cur].v) sc -= 1;
+    if (meat > maxV()) sc -= 50;
+    const kc = kcalOf(id), kcur = kcalOf(cur); if (kc && kcur) sc -= Math.abs(kc - kcur) / 100;
+    const why = [], warn = [];
+    const nm = a => (Q[id].find(x => stem(x[0]) === a) || [a])[0];
+    if (big.length) why.push("réutilise " + big.slice(0, 2).map(nm).join(" et "));
+    why.push(!extra.length ? "aucun produit nouveau" : extra.length === 1 ? "1 produit nouveau" : extra.length + " produits nouveaux");
+    if (stockUse) why.push("utilise tes restes");
+    if (kindFor(p, done) !== "r" && RECIPES[id] && RECIPES[id].t) why.push(minTxt(t));
+    if (st >= 4) why.push(st + " étoiles"); else if (liked) why.push("dans tes favoris");
+    if (meat > maxV()) warn.push("dépasse ta limite de viande (" + meat + "/" + maxV() + ")");
+    if (dup.length) warn.push("déjà prévu " + dup.map(x => slotName(SLOTS.find(s => s.k === x))).join(", "));
+    if (kindFor(p, done) !== "r" && t - tCur >= 15) warn.push("plus long à préparer");
+    return {id, sc, why, warn, targets, extra: extra.map(nm), relaxed, done};
+  });
+  return opts.sort((a, b) => b.sc - a.sc || R[a.id].n.localeCompare(R[b.id].n, "fr")).slice(0, n);
+}
+const kindFor = (p, done) => done ? "q" : p.f;
+// Courses : ce qu'une semaine b demande en plus et en moins qu'une semaine a (quantités à acheter, restes déduits)
+function listDiff(a, b){
+  const m = sel => Object.fromEntries(buildList(sel).filter(i => i.u !== "pl").map(i => [i.key, i]));
+  const la = m(a), lb = m(b), add = [], less = [];
+  const txt = (it, dq) => it.name + " (" + (dq > 0 ? "+" : "−") + fmt({...it, q: Math.abs(dq), mixed: false}).replace("× ", "") + ")";
+  new Set([...Object.keys(la), ...Object.keys(lb)]).forEach(k => {
+    const qa = la[k] && !la[k].enough ? la[k].q : 0, qb = lb[k] && !lb[k].enough ? lb[k].q : 0, it = lb[k] || la[k], dq = qb - qa;
+    if (Math.abs(dq) < 1e-6 || (it.u === "pc" && Math.ceil(qa - 1e-9) === Math.ceil(qb - 1e-9))) return;   // même nombre de pièces à acheter
+    (dq > 0 ? add : less).push({key: k, name: it.name, dq, txt: txt(it, dq)});
+  });
+  return {add, less};
+}
+let lastReplace = null;
+function replaceMeal(k, id){
+  const o = replaceOptions(state.sel, k, 99).find(x => x.id === id);
+  const targets = o ? o.targets : replaceTargets(state.sel, k), cur = state.sel[k];
+  const before = JSON.parse(JSON.stringify({sel: state.sel, valid: state.valid || null, stock: state.stock || [], checked: state.checked}));
+  const synced = sameSel(), done = seanceDone() && POSTE_OF[k].f === "r" && R[cur].r;
+  const next = {...state.sel}; targets.forEach(x => next[x] = id);
+  const diff = listDiff(state.valid && synced ? state.valid.sel : state.sel, next);
+  const t0 = POSTE_OF[k].f === "r" && !done ? planSeance(state.sel).total : null;
+  state.sel = next; lastReplace = before; persist();
+  if (synced) validateWeek(true); else render();
+  // Compte rendu : ce qui change, ce que ça coûte, ce qui est fait de la part déjà cuisinée
+  const box = document.getElementById(tab === "jour" ? "jour-msg" : "swap-msg"); box.innerHTML = ""; box.classList.remove("bad");
+  const when = targets.map(x => slotName(SLOTS.find(s => s.k === x))).join(" et ");
+  const lines = [el("div",{}, el("b",{}, when + " : "), R[cur].n + " → " + R[id].n + ".")];
+  if (o && o.warn.length) lines.push(el("div",{}, "Compromis : " + o.warn.join(" ; ") + "."));
+  if (o && o.relaxed) lines.push(el("div",{}, "Aucun plat ne respectait toutes tes règles pour ce repas : c'est le plus proche."));
+  const cap = l => l.slice(0, 5).map(x => x.txt).join(", ") + (l.length > 5 ? " et " + (l.length - 5) + (l.length > 6 ? " autres" : " autre") : "");
+  lines.push(el("div",{}, "Courses " + (synced ? "mises à jour" : "(une fois la semaine validée)") + " : " + (diff.add.length ? "en plus " + cap(diff.add) : "rien à acheter en plus") + (diff.less.length ? " ; en moins " + cap(diff.less) : "") + "."));
+  if (t0 != null) { const t1 = planSeance(state.sel).total; if (t1 !== t0) lines.push(el("div",{}, "Séance du dimanche : " + minTxt(t0) + " → " + minTxt(t1) + ".")); }
+  if (done) { const [fr, fz] = KEEP[cur] || [3, 0], lim = new Date(weekStart(state.valid)); lim.setDate(lim.getDate() + fr);
+    lines.push(el("div",{}, "Le " + R[cur].n + " est déjà cuisiné : " + (fz ? "mets cette part au congélateur pour une autre semaine." : "il ne se congèle pas, mange cette part d'ici le " + lim.toLocaleDateString("fr-FR", {weekday: "long", day: "numeric"}) + " (échange-la avec un autre repas)."))); }
+  box.append(...lines, el("button",{type:"button",class:"ghost",onclick:()=>{ if (lastReplace) { Object.assign(state, lastReplace); if (!state.valid) delete state.valid; lastReplace = null; persist(); render(); } box.hidden = true; }}, "Annuler le remplacement"));
+  box.classList.toggle("bad", !!(o && (o.warn.length || o.relaxed))); box.hidden = false;
+}
+
 // ---- Échanger deux repas en deux touchers ----
 let swapMode = false, swapFrom = null, lastSwap = null;
 function setSwap(on){ swapMode = on; swapFrom = null; if (on && lockMode) setLock(false);
@@ -1601,7 +1710,7 @@ function swapReport(a, b){
   const frz = [a, b].map(k => { const sl = SLOTS.find(x => x.k === k), ki = keepInfo(sl); return ki && ki.freeze ? R[state.sel[k]].n + " (" + slotName(sl) + ")" : ""; }).filter(Boolean);
   const name = k => slotName(SLOTS.find(x => x.k === k));
   box.append(el("div",{}, (probs.length ? "⚠ Échange fait, mais il enfreint une règle : " + probs.join(" ; ") + "." : "Échange fait : " + name(a) + " ⇄ " + name(b) + ".") + (frz.length ? " Cette part va au congélateur : " + frz.join(", ") + "." : "")));
-  box.append(el("button",{type:"button",class:"ghost",onclick:()=>{ if (lastSwap) { const [x, y] = lastSwap; lastSwap = null; [state.sel[x], state.sel[y]] = [state.sel[y], state.sel[x]]; persist(); render(); } box.hidden = true; }}, "Annuler l'échange"));
+  box.append(el("button",{type:"button",class:"ghost",onclick:()=>{ if (lastSwap) { const [x, y] = lastSwap, synced = sameSel(); lastSwap = null; [state.sel[x], state.sel[y]] = [state.sel[y], state.sel[x]]; persist(); if (synced) validateWeek(true); else render(); } box.hidden = true; }}, "Annuler l'échange"));
   box.classList.toggle("bad", !!probs.length); box.hidden = false;
 }
 document.getElementById("swap-btn").addEventListener("click", () => setSwap(!swapMode));
@@ -1703,13 +1812,15 @@ function renderValid(){
   document.querySelectorAll(".hop").forEach(a => { a.textContent = IS_SITE ? "Ouvrir dans Claude" : "Ouvrir dans le site"; a.href = HOP_URL + "#" + pack(); });
 }
 document.getElementById("revalidate").addEventListener("click", () => document.getElementById("validate").click());
-document.getElementById("validate").addEventListener("click", () => {
-  const st = applyStock(state.sel, state.valid), start = validStart(state.valid);
+// keep : mise à jour après un changement de repas, la semaine garde son dimanche de départ quel que soit le jour
+function validateWeek(keep){
+  const st = applyStock(state.sel, state.valid), start = keep === true && state.valid ? iso(weekStart(state.valid)) : validStart(state.valid);
   if (!state.valid || iso(weekStart(state.valid)) !== start) state.checked = {};   // nouvelle semaine : liste vierge ; mise à jour : coches gardées
   state.valid = {sel: {...state.sel}, at: Date.now(), start, stock: st.base, left: st.left, note: st.note};
   state.stock = st.left.map(x => ({...x})); persist(); render();
   if (ghTok()) { clearTimeout(ghTimer); ghState("envoi…"); ghSend(); }   // une validation part tout de suite vers les autres appareils
-});
+}
+document.getElementById("validate").addEventListener("click", () => validateWeek());
 document.querySelectorAll(".hop").forEach(a => a.addEventListener("click", () => { a.href = HOP_URL + "#" + pack(); }));
 // ---- Synchronisation entre appareils (site et app de l'écran d'accueil) ----
 // Un fichier semaine.json sur la branche « donnees » du dépôt, lu et écrit avec la clé GitHub d'Antho (gardée sur l'appareil).
