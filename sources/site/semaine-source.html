@@ -277,6 +277,13 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--accent); o
 .se-steps li.passive { background: var(--accent-soft); }
 .se-steps li.pre { border-style: dashed; }
 .se-sum p { margin: 4px 0; }
+.se-steps .se-timer { grid-column: 2; justify-self: start; margin-top: 4px; padding: 6px 12px; font-size: .9rem; font-variant-numeric: tabular-nums; }
+.se-steps .se-timer.ring { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 700; }
+.se-safe { margin: 8px 0; }
+.se-safe > summary { cursor: pointer; font-weight: 600; color: var(--accent); }
+.se-safe dl { margin: 6px 0 0; font-size: .9rem; }
+.se-safe dt { font-weight: 700; margin-top: 6px; }
+.se-safe dd { margin: 2px 0 0; }
 .ghost-cell { position: fixed; z-index: 50; pointer-events: none; max-width: 180px; padding: 8px 10px; background: var(--accent); color: #fff; font-weight: 700; font-size: 0.85rem; box-shadow: 0 6px 18px rgba(0,0,0,.25); transform: translate(-50%, -120%); }
 .have { display: block; font-size: 0.72rem; color: var(--accent); font-weight: 700; }
 .ppl { display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 0.95rem; color: var(--muted); margin-top: 10px; }
@@ -404,6 +411,7 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--accent); o
       <div class="row-actions se-tools">
         <label class="se-start">Je commence à <input type="time" id="se-start" value="09:30"></label>
         <button class="ghost" id="se-uncheck" type="button">Tout décocher</button>
+        <button class="ghost" id="se-forget" type="button" hidden>Oublier mes temps</button>
       </div>
     </section>
     <ol id="se-steps" class="se-steps"></ol>
@@ -774,6 +782,7 @@ function generate(){
   const free = P.filter(p => !sel[p.k]);
   const outMax = SLOTS.length - minSais();   // repas hors saison tolérés
   let best = null, bestScore = -1e9;
+  const cands = [];
   for (let t = 0; t < 1500; t++) {
     const s = {...sel}, u = new Set(used);
     let ok = true;
@@ -792,9 +801,13 @@ function generate(){
       s[p.k] = id; u.add(id);
     }
     if (!ok) continue;
-    const sc = score(s, left, n) + Math.random() * 3;
-    if (sc > bestScore) { bestScore = sc; best = s; }
+    cands.push([score(s, left, n) + Math.random() * 3, s]);
   }
+  // Séance du dimanche : parmi les 40 meilleures semaines, on préfère la plus courte (3 h visées)
+  const seen = new Set();
+  cands.sort((a, b) => b[0] - a[0]).filter(([, s]) => { const k = P.map(p => s[p.k]).join(); return !seen.has(k) && seen.add(k); }).slice(0, 40).forEach(([sc, s]) => {
+    const f = sc - seancePenalty(planSeance(toSlots(s)).total);
+    if (f > bestScore) { bestScore = f; best = s; } });
   if (!best) {
     const empty = free.filter(p => !POOL(p).length).map(p => p.t.toLowerCase());
     document.getElementById("gen-msg").textContent = "Aucune semaine possible avec ces aliments à éviter" + (empty.length ? " : plus aucun plat pour " + empty.join(", ") : "") + ". " + (PROF.length ? "Retire un aliment de la liste ou assouplis ton profil dans Profil." : "Retire un aliment de la liste.");
@@ -812,7 +825,7 @@ function generate(){
   const early = left.filter(it => it.exp && it.exp < iso(dayDate(0))).map(it => it.n + " (" + (daysTo(it.exp) <= 0 ? "dernier jour" : "encore " + daysTo(it.exp) + " j") + ")");
   const msg = document.getElementById("gen-msg"); msg.innerHTML = "";
   const nS = SLOTS.filter(sl => inSeason(state.sel[sl.k])).length;
-  msg.append("Semaine générée : " + meals() + " repas avec viande, " + Math.round(100 * nS / SLOTS.length) + " % de repas de saison. ");
+  msg.append("Semaine générée : " + meals() + " repas avec viande, " + Math.round(100 * nS / SLOTS.length) + " % de repas de saison, séance du dimanche estimée à " + minTxt(planSeance(state.sel).total) + ". ");
   const kk = SLOTS.map(sl => kcalOf(state.sel[sl.k])).filter(Boolean);
   if (kk.length && PROF.some(besoin)) msg.append("En moyenne " + Math.round(kk.reduce((a, b) => a + b, 0) / kk.length) + " kcal par repas (repère du profil : " + PROF.filter(besoin).map(x => (who(x) ? who(x) + " " : "") + Math.round(besoin(x) * 0.35 / 10) * 10).join(", ") + "). ");
   if (nS < minSais()) msg.append(el("b",{}, "Pas assez de plats de saison pour atteindre " + state.sais + " % avec tes choix. "));
@@ -830,6 +843,8 @@ function generate(){
   if (early.length) msg.append(el("b",{}, "À utiliser avant ta cuisine du dimanche : " + early.join(", ") + ". "));
   msg.append("Clique à nouveau pour un autre tirage.");
 }
+// Au-delà de 3 h de séance, chaque quart d'heure en plus coûte autant qu'une étoile de moins sur deux repas
+const SEANCE_MAX = 180, seancePenalty = m => Math.max(0, m - SEANCE_MAX) * 4 / 15;
 function score(s, left, n){
   let sc = 0;
   const meat = P.reduce((a,p) => a + (R[s[p.k]].v ? p.slots.length : 0), 0);
@@ -1451,14 +1466,35 @@ const PLAQUES = 4, FOUR_PLACES = 2, PREHEAT = 10;
 const SE_KEY = "recettes-seance";
 const seLoad = () => { try { return JSON.parse(localStorage.getItem(SE_KEY)) || {}; } catch (e) { return {}; } };
 const seSave = o => { try { localStorage.setItem(SE_KEY, JSON.stringify(o)); } catch (e) {} };
+// Tes temps : chaque étape de travail cochée pendant la séance donne un rapport temps réel / estimation (gardé dans ce navigateur).
+// Seules la découpe, l'épluchage et l'assemblage s'apprennent ; les temps de cuisson restent ceux des recettes (sécurité).
+const TE_KEY = "recettes-temps";
+const teLoad = () => { try { const o = JSON.parse(localStorage.getItem(TE_KEY)); return o && o.m ? o : {m: {}}; } catch (e) { return {m: {}}; } };
+const teSave = o => { try { localStorage.setItem(TE_KEY, JSON.stringify(o)); } catch (e) {} };
+const median = a => { const b = [...a].sort((x, y) => x - y), h = b.length >> 1; return b.length % 2 ? b[h] : (b[h - 1] + b[h]) / 2; };
+const LEARN = k => k === "L" || k === "C" || k === "M";
+function speeds(te = teLoad()){
+  const own = {}; for (const k in te.m) if (te.m[k].length) own[k] = median(te.m[k]);
+  const all = Object.values(own);
+  return {own, all: all.length >= 5 ? Math.min(2, Math.max(0.5, median(all))) : 1};   // ta vitesse générale, dès 5 étapes mesurées
+}
+function recordTime(key, est, min){
+  if (!key || !(est > 0) || !(min > 0)) return false;
+  const r = min / est;
+  if (r < 0.4 || r > 2.5) return false;   // pause, ou case cochée après coup : on ne retient pas
+  const te = teLoad(); (te.m[key] = te.m[key] || []).push(Math.round(r * 100) / 100); te.m[key] = te.m[key].slice(-5); teSave(te); return true;
+}
 const minutesOf = t => { const h = /(\d+)\s*h\s*(\d+)?/.exec(t || ""), m = /(\d+)\s*min/.exec(t || ""); return h ? +h[1] * 60 + (+h[2] || 0) : m ? +m[1] : 45; };
-function planSeance(sel){
+function planSeance(sel, te){
+  const sp = speeds(te);
   const por = {};   // repas tirés de la séance, par plat
   SLOTS.forEach(sl => { const id = sel[sl.k]; if (R[id] && R[id].r && POSTE_OF[sl.k].f === "r") por[id] = (por[id] || 0) + 1; });
   const ids = Object.keys(por).sort((a, b) => SLOTS.findIndex(s => sel[s.k] === a) - SLOTS.findIndex(s => sel[s.k] === b));
   const nodes = [], add = n => { n.i = nodes.length; n.dep = n.dep || []; nodes.push(n); return n; };
   const k = id => Math.max(0.5, por[id] / 2 * pf());   // 1 = les 4 portions prévues par les estimations
-  const work = (id, m) => Math.max(1, Math.round(m * (1 + 0.6 * (k(id) - 1))));   // découpe : 1,6 fois plus pour le double
+  const base = (id, m) => m * (1 + 0.6 * (k(id) - 1));   // découpe : 1,6 fois plus pour le double
+  const work = (id, m) => Math.max(1, Math.round(base(id, m)));
+  const ratio = key => sp.own[key] ?? sp.all, mine = key => key in sp.own || sp.all !== 1;
   const task = id => SEANCE[id] || [["M", "Préparer " + R[id].n + " (étapes non détaillées)", minutesOf((RECIPES[id] || {}).t)]];
   // Fin de tâche facultative {i: index des ingrédients de RECIPES[id].ing, d: repères} : quantités ajustées aux repas et aux personnes
   const xt = t => { const o = t[t.length - 1]; return o && typeof o === "object" && !Array.isArray(o) ? o : {}; };
@@ -1472,7 +1508,8 @@ function planSeance(sel){
   const veg = [], vid = []; let lm = 0;
   const lIng = [];
   ids.forEach(id => task(id).filter(t => t[0] === "L").forEach(t => { ingOf(id, t).forEach(x => lIng.push([x[0], x[1], dishShort(id), id])); t[1].split(",").map(s => s.trim()).filter(Boolean).forEach(x => { if (!veg.some(y => same(y, x))) veg.push(x); }); lm += work(id, t[2]); if (!vid.includes(id)) vid.push(id); }));
-  const L = lm ? add({k: "L", t: "Laver et éplucher tous les légumes : " + veg.join(", "), m: Math.round(lm * 0.85), a: Math.round(lm * 0.85), ids: vid, ing: lIng, d: "Range-les par plat sur le plan de travail : la découpe vient plat par plat."}) : null;
+  const lEst = Math.max(1, Math.round(lm * 0.85)), lM = Math.max(1, Math.round(lEst * ratio("L")));
+  const L = lm ? add({k: "L", t: "Laver et éplucher tous les légumes : " + veg.join(", "), m: lM, a: lM, est: lEst, key: "L", mine: mine("L"), ids: vid, ing: lIng, d: "Range-les par plat sur le plan de travail : la découpe vient plat par plat."}) : null;
   // 2. Un féculent = une casserole pour tous les plats
   const F = {};
   const isF = t => t[0] === "F" || (t[0] === "H" && /œufs? durs?/i.test(t[1]));   // les œufs durs aussi : une casserole pour tous
@@ -1493,7 +1530,7 @@ function planSeance(sel){
       if (t[0] === "L") return;
       if (isF(t)) { if (t[4] === "puis") prev = prev.concat(F[fType(t)].i); return; }
       const n = {k: t[0], t: t[1], id, dep: prev, ing: ingOf(id, t), d: dOf(id, t)};
-      if (t[0] === "C" || t[0] === "M") { n.m = work(id, t[2]); n.a = n.m; }
+      if (t[0] === "C" || t[0] === "M") { n.key = id + "|" + t[1]; n.est = base(id, t[2]); n.m = Math.max(1, Math.round(n.est * ratio(n.key))); n.a = n.m; n.mine = mine(n.key); }
       else if (t[0] === "A") { n.m = k(id) > 1.5 ? Math.round(t[2] * 1.4) : t[2]; n.a = Math.max(2, Math.round(n.m * 0.6)); n.res = "feu"; }   // on remue de temps en temps : un peu de découpe reste possible
       else if (t[0] === "H") { n.m = t[2]; n.a = Math.min(t[2], typeof t[3] === "number" ? t[3] : 3); n.res = "feu"; }
       else if (t[0] === "O") { n.m = t[2]; n.a = 2; n.res = "four"; n.deg = typeof t[3] === "number" ? t[3] : 200; }
@@ -1502,7 +1539,7 @@ function planSeance(sel){
   });
   const frz = SLOTS.filter(sl => (keepInfo(sl, sel) || {}).freeze).map(sl => R[sel[sl.k]].n);
   const boxes = ids.map(id => { const sl = SLOTS.filter(s => sel[s.k] === id && POSTE_OF[s.k].f === "r" && s.d > 0), fz = sl.filter(s => (keepInfo(s, sel) || {}).freeze);
-    return sl.length ? [dishShort(id), sl.length * ppl() + " portion" + (sl.length * ppl() > 1 ? "s" : "") + " (" + sl.map(slotName).join(", ") + ")" + (fz.length ? ", dont " + fz.length * ppl() + " au congélateur (" + fz.map(slotName).join(", ") + ")" : "")] : null; }).filter(Boolean);
+    return sl.length ? [dishShort(id), sl.length * ppl() + " portion" + (sl.length * ppl() > 1 ? "s" : "") + " (" + sl.map(slotName).join(", ") + ")" + (fz.length ? ", dont " + fz.length * ppl() + " au congélateur (" + fz.map(slotName).join(", ") + ")" : "") + ((KEEP[id] || [3])[0] < 7 ? " ; frigo jusqu'à " + DAYS[(KEEP[id] || [3])[0]].toLowerCase() + " au plus tard" : "")] : null; }).filter(Boolean);
   if (ids.length) add({k: "M", ing: boxes, d: "Laisse tiédir 30 min au plus avant de fermer les boîtes. Étiquette chaque boîte avec le plat et le jour. Le plat du dimanche se mange tout de suite.", t: "Laisser tiédir, répartir en boîtes et étiqueter" + (frz.length ? " ; mettre au congélateur : " + [...new Set(frz)].join(", ") : ""), m: 10 + 3 * ids.length, a: 10 + 3 * ids.length, dep: nodes.map(n => n.i), end: true});
   // Priorité : ce qui est au début de la plus longue chaîne passe d'abord
   const succ = nodes.map(() => []); nodes.forEach(n => n.dep.forEach(j => succ[j].push(n.i)));
@@ -1537,7 +1574,7 @@ function planSeance(sel){
   const steps = nodes.concat(pre).sort((a, b) => a.s - b.s || (b.k === "P") - (a.k === "P"));
   const total = Math.max(0, ...steps.map(n => n.s + n.m));
   const lunchEnd = lunch.size ? Math.max(...[...lunch].map(i => nodes[i].s + nodes[i].m)) : null;
-  return {ids, por, steps, nodes, pre, total, lunchEnd, active: nodes.reduce((a, n) => a + n.a, 0), maxFeu: Math.max(0, ...nodes.filter(n => n.res === "feu").map(n => runs("feu", n.s).length)), estimated: ids.filter(id => SEANCE[id]).length};
+  return {ids, por, steps, nodes, pre, total, lunchEnd, active: nodes.reduce((a, n) => a + n.a, 0), mine: nodes.filter(n => n.mine).length, maxFeu: Math.max(0, ...nodes.filter(n => n.res === "feu").map(n => runs("feu", n.s).length)), estimated: ids.filter(id => SEANCE[id]).length};
 }
 // Déplier une étape : ses plats ; déplier un plat : ses ingrédients (l'état ouvert survit aux coches)
 const seOpen = new Set();
@@ -1555,7 +1592,7 @@ function seFold(n, sig){
 function renderSeance(){
   const v = state.valid, sel = v && v.sel || state.sel, plan = planSeance(sel), store = seLoad();
   const key = (v ? weekStart(v).getTime() : "brouillon") + "|" + plan.ids.join(",");
-  if (store.key !== key) { store.key = key; store.done = {}; seSave(store); }
+  if (store.key !== key) { store.key = key; store.done = {}; store.timers = {}; delete store.mark; seSave(store); }
   const startIn = document.getElementById("se-start"); if (store.start) startIn.value = store.start;
   const [h0, m0] = (startIn.value || "09:30").split(":").map(Number), clock = m => { const x = h0 * 60 + m0 + m; return String(Math.floor(x / 60) % 24).padStart(2, "0") + ":" + String(x % 60).padStart(2, "0"); };
   document.getElementById("se-msg").textContent = !v ? "Semaine pas encore validée : le déroulé suit les plats affichés dans Semaine." : "Déroulé de la semaine validée, séance du dimanche " + short(iso(weekStart(v))) + ".";
@@ -1563,10 +1600,11 @@ function renderSeance(){
   const list = document.getElementById("se-steps"); list.innerHTML = "";
   if (!plan.ids.length) { sum.append(el("p",{}, "Aucun plat à cuisiner le dimanche cette semaine.")); document.getElementById("se-prog").textContent = ""; return; }
   sum.append(el("p",{}, el("b",{}, "Au programme : "), plan.ids.map(id => R[id].n + " (" + plan.por[id] + " repas)").join(", ") + "."),
-    el("p",{}, el("b",{}, "Durée estimée : " + minTxt(plan.total)), ", de " + clock(0) + " à " + clock(plan.total) + ", dont environ " + minTxt(plan.active) + " de travail actif. Le reste, tu surveilles la cuisson."));
+    el("p",{}, el("b",{}, "Durée estimée : " + minTxt(plan.total)), plan.mine ? " (" + plan.mine + " étape" + (plan.mine > 1 ? "s" : "") + " d'après tes temps)" : "", ", de " + clock(0) + " à " + clock(plan.total) + ", " + (plan.active >= plan.total - 10 ? "et tu es occupé presque tout du long : les cuissons se font pendant que tu découpes." : "dont environ " + minTxt(plan.active) + " de travail actif. Le reste, tu surveilles la cuisson.")));
   if (plan.lunchEnd != null) { const ready = clock(plan.lunchEnd), late = h0 * 60 + m0 + plan.lunchEnd > 12 * 60 + 30;
     sum.append(el("p",{class: late ? "keep bad" : ""}, "Le plat de dimanche midi (" + R[sel["0-0"]].n + ") passe en premier : prêt vers " + ready + "." + (late ? " C'est tard pour un déjeuner : commence plus tôt." : ""))); }
   if (plan.total > 180) sum.append(el("p",{class:"keep bad"}, "C'est plus que les 3 h visées. Pour raccourcir, remplace un plat long (mijoté, four) par un plat rapide."));
+  sum.append(safetyBox());
   if (plan.estimated < plan.ids.length) sum.append(el("p",{class:"note"}, "Sans durées détaillées pour : " + plan.ids.filter(id => !SEANCE[id]).map(id => R[id].n).join(", ") + " (estimation globale)."));
   const names = n => (n.ids || [n.id]).filter(Boolean).map(id => R[id].n);
   let nDone = 0;
@@ -1577,20 +1615,67 @@ function renderSeance(){
       : n.k === "H" ? "Sur le feu, " + minTxt(n.m) + " : quelques minutes pour lancer, puis tu es libre"
       : n.k === "F" ? "Une casserole, " + minTxt(n.m) + " : tu es libre pendant la cuisson"
       : n.k === "R" ? "Attente, " + minTxt(n.m) : n.k === "P" ? "Quelques secondes, le four chauffe pendant " + n.m + " min"
-      : (n.k === "A" ? "Sur le feu, " : "") + "≈ " + minTxt(n.m);
-    const box = el("input",{type:"checkbox","aria-label":n.t, onchange:e => { const s = seLoad(); s.done = s.done || {}; if (e.target.checked) s.done[sig] = 1; else delete s.done[sig]; seSave(s); renderSeance(); }});
+      : (n.k === "A" ? "Sur le feu, " : "") + "≈ " + minTxt(n.m) + (n.mine ? " (ton temps)" : "");
+    const box = el("input",{type:"checkbox","aria-label":n.t, onchange:e => { const s = seLoad(); s.done = s.done || {}; s.timers = s.timers || {};
+      if (e.target.checked) { s.done[sig] = 1; delete s.timers[sig];
+        // Étape de travail : le temps depuis la dernière étape de travail cochée est ton temps pour celle-ci
+        if (n.a === n.m && n.k !== "P") { const now = Date.now(); if (s.mark && LEARN(n.k)) recordTime(n.key, n.est, (now - s.mark) / 6e4); s.mark = now; } }
+      else delete s.done[sig];
+      seSave(s); renderSeance(); }});
     box.checked = ok;
     list.append(el("li",{class:(ok ? "done " : "") + (passive ? "passive " : "") + (n.k === "P" ? "pre" : "")}, box,
       el("div",{class:"se-t"}, el("span",{class:"se-h"}, clock(n.s)), n.t),
       ...seFold(n, sig),
       ...(n.d ? [el("div",{class:"se-d"}, n.d)] : []),
+      ...(!ok && TIMED(n) ? [timerEl(sig, n)] : []),
       el("div",{class:"se-sub"}, [what + (passive && n.k !== "R" ? ", jusqu'à " + clock(n.s + n.m) : "")].concat(names(n).length && n.k !== "L" && !n.end && !(n.ing && n.ing.length) ? [" · " + names(n).join(", ")] : []).join(""))));
   });
   document.getElementById("se-prog").textContent = nDone + "/" + plan.steps.length;
   document.getElementById("se-bar").style.width = (100 * nDone / plan.steps.length) + "%";
+  const forget = document.getElementById("se-forget"), nT = Object.keys(teLoad().m).length;
+  forget.hidden = !nT; forget.textContent = "Oublier mes temps (" + nT + ")";
+  tick();
 }
+// ---- Minuteurs des cuissons : l'heure de fin est gardée, le décompte survit à un rechargement de la page ----
+const TIMED = n => ["O", "H", "F", "R", "A", "P"].includes(n.k) && n.m >= 2;
+function timerEl(sig, n){
+  const end = (seLoad().timers || {})[sig];
+  const b = el("button",{type:"button", class:"ghost se-timer", "data-sig":sig, "data-end":end || "", onclick:() => {
+    const s = seLoad(); s.timers = s.timers || {};
+    if (s.timers[sig]) delete s.timers[sig]; else { s.timers[sig] = Date.now() + n.m * 6e4; beep(0); }   // le clic autorise le son sur téléphone
+    seSave(s); renderSeance(); }});
+  b.textContent = end ? "" : "Lancer le minuteur (" + minTxt(n.m) + ")";
+  return b;
+}
+let audio = null, wake = null, tickId = null;
+function beep(vol = 0.25){ try { audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+  [0, 0.35, 0.7].forEach(d => { const o = audio.createOscillator(), g = audio.createGain(); o.frequency.value = 880; g.gain.value = vol; o.connect(g); g.connect(audio.destination); o.start(audio.currentTime + d); o.stop(audio.currentTime + d + 0.2); }); } catch (e) {} }
+function tick(){
+  const els = [...document.querySelectorAll(".se-timer[data-end]")].filter(b => b.dataset.end);
+  els.forEach(b => { const left = Math.round((+b.dataset.end - Date.now()) / 1000);
+    if (left > 0) { b.textContent = "Reste " + Math.floor(left / 60) + ":" + String(left % 60).padStart(2, "0") + " · arrêter"; b.classList.remove("ring"); }
+    else { if (!b.classList.contains("ring")) { beep(); try { navigator.vibrate && navigator.vibrate([300, 150, 300]); } catch (e) {} }
+      b.textContent = "Temps écoulé : vérifie la cuisson, puis coche l'étape"; b.classList.add("ring"); } });
+  // L'écran reste allumé tant qu'un minuteur tourne (si le téléphone le permet)
+  if (els.length && !wake && navigator.wakeLock) navigator.wakeLock.request("screen").then(w => { wake = w; w.addEventListener("release", () => wake = null); }).catch(() => {});
+  if (!els.length && wake) { wake.release().catch(() => {}); wake = null; }
+  clearTimeout(tickId); if (els.length) tickId = setTimeout(tick, 1000);
+}
+document.addEventListener("visibilitychange", () => { if (!document.hidden) { wake = null; tick(); } });
+// ---- Hygiène et conservation : règles fixes, écrites une fois (recommandations d'hygiène courantes des agences sanitaires), jamais générées ----
+const SAFETY = [
+  ["Avant de commencer", "Lave-toi les mains au savon. Une planche pour la viande et le poisson crus, une autre pour les légumes, ou lave la planche entre les deux. Ne rince pas la volaille crue : ça éclabousse les germes."],
+  ["Cuire à cœur", "Volaille, porc et viande hachée : plus de rose au centre et un jus clair. Les œufs des plats cuisinés sont bien pris. Les temps de cuisson des recettes ne se raccourcissent pas."],
+  ["Refroidir vite", "Un plat cuit ne reste pas plus de 2 h hors du frigo : laisse tiédir 30 min au plus, couvercle entrouvert, puis frigo. Pour les grandes quantités, répartis dans des boîtes peu profondes. Le riz et les féculents cuits vont au frigo dans l'heure."],
+  ["Frigo et congélateur", "Frigo à 4 °C au plus, les boîtes sur les étagères (pas dans la porte). Chaque boîte porte le plat et le jour de la séance. Congélateur à -18 °C."],
+  ["Décongeler et réchauffer", "Décongèle au frigo la veille, jamais sur le plan de travail. Ne recongèle pas un plat décongelé. Réchauffe seulement la part du repas, jusqu'à ce qu'elle soit bien chaude au cœur, et une seule fois."],
+  ["En cas de doute", "Odeur, aspect ou date dépassée : on jette. Les durées de chaque plat sont celles de sa fiche, partie Conservation."]
+];
+const safetyBox = () => el("details",{class:"se-safe"}, el("summary",{}, "Hygiène et conservation : les règles"),
+  el("dl",{}, SAFETY.flatMap(([h, t]) => [el("dt",{}, h), el("dd",{}, t)])));
 document.getElementById("se-start").addEventListener("change", e => { const s = seLoad(); s.start = e.target.value; seSave(s); renderSeance(); });
-document.getElementById("se-uncheck").addEventListener("click", () => { const s = seLoad(); s.done = {}; seSave(s); renderSeance(); });
+document.getElementById("se-uncheck").addEventListener("click", () => { const s = seLoad(); s.done = {}; s.timers = {}; delete s.mark; seSave(s); renderSeance(); });
+document.getElementById("se-forget").addEventListener("click", () => { if (!confirm("Oublier tes temps mesurés ? Le déroulé reviendra aux estimations.")) return; teSave({m: {}}); renderSeance(); });
 
 // ---- Remplacer un repas : quelques plats proposés, classés par un calcul vérifiable (pas de tirage au hasard) ----
 // Règles strictes d'abord (conservation, soupe le soir, aliments à éviter et profil, plat cher sur deux repas, façon de cuisiner du poste),
