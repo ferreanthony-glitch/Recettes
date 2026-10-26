@@ -439,6 +439,7 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--accent); o
       <div class="bar"><i id="bar"></i></div>
       <p class="note">Quantités pour <span class="ppl-n">2 personnes</span> et toute la semaine, plats doublés compris. Coche au fur et à mesure. La liste suit la dernière semaine validée.</p>
       <p class="note valid-msg" id="list-msg"></p>
+      <p class="note" id="cost-msg"></p>
       <button class="copy" id="send" type="button">Envoyer la liste par message</button>
       <div class="send-box" id="send-box" hidden>
         <p class="note" id="send-msg"></p>
@@ -497,7 +498,7 @@ const R = {
 const RAYONS = {FL:"Fruits et légumes",VI:"Boucherie, volaille, charcuterie",PO:"Poisson, surgelés",CR:"Crèmerie, œufs",FR:"Frais",BO:"Boulangerie",EP:"Épicerie",CO:"Conserves",PL:"Placard : vérifier qu'il en reste"};
 const Q = {
   mp:[["patate douce",800,"g","FL"],["brocoli",800,"g","FL"],["filets de poulet",600,"g","VI"]],
-  thai:[["filets de poulet",300,"g","VI"],["butternut",0.5,"pc","FL"],["patate douce",200,"g","FL"],["ail",1,"gousse","FL"],["oignon",0.5,"pc","FL"],["lait de coco",200,"ml","EP"],["crème de coco",40,"ml","EP"],["coriandre",0.5,"botte","FL"]],
+  thai:[["filets de poulet",300,"g","VI"],["butternut",300,"g","FL"],["patate douce",200,"g","FL"],["ail",1,"gousse","FL"],["oignon",0.5,"pc","FL"],["lait de coco",200,"ml","EP"],["crème de coco",40,"ml","EP"],["coriandre",0.5,"botte","FL"]],
   butter:[["butternut",2,"pc","FL"],["filets de poulet",300,"g","VI"],["tomates cerises",100,"g","FL"],["oignon rouge",0.5,"pc","FL"],["œufs",4,"pc","CR"],["fromage blanc",60,"g","CR"]],
   roul:[["aubergine",1,"pc","FL"],["filets de poulet",300,"g","VI"],["pesto rosso",100,"g","EP"],["pulpe de tomate",200,"g","CO"],["parmesan",40,"g","CR"]],
   pbc:[["filets de poulet",300,"g","VI"],["oignon",0.5,"pc","FL"],["coulis de tomate",100,"g","CO"],["crème de coco",10,"ml","EP"],["beurre de cacahuète",30,"g","EP"],["citron vert",2,"pc","FL"],["riz basmati",90,"g","EP"],["tomates cerises",100,"g","FL"]],
@@ -810,10 +811,10 @@ function generate(){
     if (!ok) continue;
     cands.push([score(s, left, n, hb) + Math.random() * 3, s]);
   }
-  // Séance du dimanche : parmi les 40 meilleures semaines, on préfère la plus courte (3 h visées)
+  // Parmi les 40 meilleures semaines : on préfère une séance courte (3 h visées) et, un peu, des courses moins chères
   const seen = new Set();
   cands.sort((a, b) => b[0] - a[0]).filter(([, s]) => { const k = P.map(p => s[p.k]).join(); return !seen.has(k) && seen.add(k); }).slice(0, 40).forEach(([sc, s]) => {
-    const f = sc - seancePenalty(planSeance(toSlots(s)).total);
+    const f = sc - seancePenalty(planSeance(toSlots(s)).total) - 0.2 * costOf(toSlots(s)).used;   // 10 € de moins ≈ une étoile de plus sur un repas
     if (f > bestScore) { bestScore = f; best = s; } });
   if (!best) {
     const empty = free.filter(p => !POOL(p).length).map(p => p.t.toLowerCase());
@@ -833,6 +834,7 @@ function generate(){
   const msg = document.getElementById("gen-msg"); msg.innerHTML = "";
   const nS = SLOTS.filter(sl => inSeason(state.sel[sl.k])).length;
   msg.append("Semaine générée : " + meals() + " repas avec viande, " + Math.round(100 * nS / SLOTS.length) + " % de repas de saison, séance du dimanche estimée à " + minTxt(planSeance(state.sel).total) + ". ");
+  const co = costOf(state.sel); if (co.lines.length) msg.append("Coût estimé des repas ≈ " + Math.round(co.used) + " €, soit ≈ " + euro(co.used / 7 / ppl()) + " par jour et par personne (prix Carrefour du " + new Date(PRIX_SRC.date + "T00:00:00").toLocaleDateString("fr-FR") + "). ");
   const kk = SLOTS.map(sl => kcalOf(state.sel[sl.k])).filter(Boolean);
   if (kk.length && PROF.some(besoin)) msg.append("En moyenne " + Math.round(kk.reduce((a, b) => a + b, 0) / kk.length) + " kcal par repas (repère du profil : " + PROF.filter(besoin).map(x => (who(x) ? who(x) + " " : "") + Math.round(besoin(x) * 0.35 / 10) * 10).join(", ") + "). ");
   if (nS < minSais()) msg.append(el("b",{}, "Pas assez de plats de saison pour atteindre " + state.sais + " % avec tes choix. "));
@@ -1129,6 +1131,26 @@ function fmt(it){
   if (it.u === "gousse") return n + (n > 1 ? " gousses" : " gousse");
   return "× " + n;
 }
+// ---- Coût estimé : prix relevés en magasin (produit, format vendu, source, date), jamais inventés ----
+// On paie des formats entiers : 120 g de feta = une barquette de 200 g. Un article sans prix relevé reste « sans prix ».
+const euro = x => x.toFixed(2).replace(".", ",") + " €";
+const prixOf = name => PRIX[stem(name)] || null;
+function priceItem(it){
+  if (it.u === "pl" || it.enough || !(it.q > 1e-9)) return null;
+  const p = prixOf(it.name); if (!p) return {miss: true};
+  const u = it.u === "gousse" ? "pc" : it.u;
+  const q = u === p.u ? it.q : (u === "ml" && p.u === "g") || (u === "g" && p.u === "ml") ? it.q : conv(it.q, u, p.u, it.name);
+  if (q == null) return {miss: true};
+  const packs = Math.max(1, Math.ceil(q / p.q - 1e-6));
+  return {p, packs, cost: packs * p.e, used: q / p.q * p.e};
+}
+function costOf(sel = listSel()){
+  let cost = 0, used = 0; const miss = [], lines = [];
+  buildList(sel).forEach(it => { const c = priceItem(it); if (!c) return; if (c.miss) miss.push(it.name); else { cost += c.cost; used += c.used; lines.push([it, c]); } });
+  return {cost: Math.round(cost * 100) / 100, used: Math.round(used * 100) / 100, miss, lines};
+}
+const prixAge = () => Math.round((today() - new Date(PRIX_SRC.date + "T00:00:00")) / 864e5);
+const prixSrcTxt = () => "prix " + PRIX_SRC.nom + " relevés le " + new Date(PRIX_SRC.date + "T00:00:00").toLocaleDateString("fr-FR") + (prixAge() > 45 ? ", à relever à nouveau" : "");
 function renderList(){
   const items = buildList(), box = document.getElementById("list"); box.innerHTML = "";
   let done = 0;
@@ -1142,11 +1164,14 @@ function renderList(){
       const id = "c-" + it.key.replace(/[^a-z0-9]/gi, "_");
       sec.append(el("label",{class:"item"+(on?" done":""),for:id},
         el("input",{type:"checkbox",id,checked:on,onchange:(e)=>{ if (e.target.checked) state.checked[it.key] = true; else delete state.checked[it.key]; persist(); renderList(); }}),
-        el("span",{class:"what"}, it.name, it.hint ? el("span",{class:"have"}, it.hint) : null, it.src.size ? el("small",{}, [...it.src].join(", ")) : null),
+        el("span",{class:"what"}, it.name, it.hint ? el("span",{class:"have"}, it.hint) : null, it.src.size ? el("small",{}, [...it.src].join(", ")) : null,
+          (c => c && !c.miss ? el("small",{class:"px"}, c.packs + " × " + c.p.p + " · " + euro(c.cost)) : null)(priceItem(it))),
         el("span",{class:"qty"}, it.enough ? "—" : fmt(it))));
     });
     box.append(sec);
   });
+  const co = costOf(), cm = document.getElementById("cost-msg"); cm.innerHTML = "";
+  if (co.lines.length) cm.append(el("b",{}, "Coût estimé des repas : ≈ " + Math.round(co.used) + " €"), " pour la semaine. À la caisse, en formats entiers : ≈ " + Math.round(co.cost) + " € (le reste des paquets sert les semaines suivantes). " + prixSrcTxt().charAt(0).toUpperCase() + prixSrcTxt().slice(1) + "." + (co.miss.length ? " Sans prix relevé : " + co.miss.join(", ") + "." : ""));
   document.getElementById("prog").textContent = done + "/" + items.length;
   document.getElementById("bar").style.width = (items.length ? 100*done/items.length : 0) + "%";
 }
@@ -1732,7 +1757,7 @@ function replaceOptions(sel, k, n = 3){
   const restArts = new Set(Object.values(rest).flatMap(artKeys)), left = stock(), nt = notes();
   let likes = []; try { likes = JSON.parse(localStorage.getItem("recettes-likes")) || []; } catch (e) {}
   const meatRest = SLOTS.filter(sl => rest[sl.k] && R[rest[sl.k]].v).length;
-  const tCur = minutesOf((RECIPES[cur] || {}).t), hb = habits();
+  const tCur = minutesOf((RECIPES[cur] || {}).t), hb = habits(), c0 = costOf(sel).used;
   const pass = (id, relax) => {
     if (id === cur || !R[id]) return false;
     const kind = done ? "q" : p.f;                                   // séance passée : seulement des plats du jour même
@@ -1757,6 +1782,8 @@ function replaceOptions(sel, k, n = 3){
     sc += st ? (st - 3) * 2 : 0; if (liked) sc += 3; if (st === 1) sc -= 20;
     if (dup.length) sc -= 8;
     sc += 1.5 * habitScore(id, hb);
+    const nx = {...sel}; targets.forEach(x => nx[x] = id); const dc = Math.round((costOf(nx).used - c0) * 100) / 100;
+    sc -= 0.3 * dc;                                                  // le prix compte un peu : 1 € de plus ≈ un tiers de produit nouveau
     if (kindFor(p, done) !== "r") sc -= Math.max(0, t - tCur) / 10 * 1.5;   // cuisiné le jour même : le temps compte
     if (!!R[id].v !== !!R[cur].v) sc -= 1;
     if (meat > maxV()) sc -= 50;
@@ -1769,10 +1796,11 @@ function replaceOptions(sel, k, n = 3){
     if (kindFor(p, done) !== "r" && RECIPES[id] && RECIPES[id].t) why.push(minTxt(t));
     if (st >= 4) why.push(st + " étoiles"); else if (liked) why.push("dans tes favoris");
     if ((hb.inn[id] || 0) >= 2) why.push("tu le choisis souvent");
+    if (Math.abs(dc) >= 1) why.push((dc > 0 ? "≈ +" : "≈ −") + Math.round(Math.abs(dc)) + " € de courses");
     if (meat > maxV()) warn.push("dépasse ta limite de viande (" + meat + "/" + maxV() + ")");
     if (dup.length) warn.push("déjà prévu " + dup.map(x => slotName(SLOTS.find(s => s.k === x))).join(", "));
     if (kindFor(p, done) !== "r" && t - tCur >= 15) warn.push("plus long à préparer");
-    return {id, sc, why, warn, targets, extra: extra.map(nm), relaxed, done};
+    return {id, sc, why, warn, targets, extra: extra.map(nm), relaxed, done, dc};
   });
   return opts.sort((a, b) => b.sc - a.sc || R[a.id].n.localeCompare(R[b.id].n, "fr")).slice(0, n);
 }
@@ -1798,6 +1826,7 @@ function replaceMeal(k, id){
   const next = {...state.sel}; targets.forEach(x => next[x] = id);
   const diff = listDiff(state.valid && synced ? state.valid.sel : state.sel, next);
   const t0 = POSTE_OF[k].f === "r" && !done ? planSeance(state.sel).total : null;
+  const c0 = costOf(state.valid && synced ? state.valid.sel : state.sel).used, c1 = costOf(next).used;
   state.sel = next; lastReplace = before; hbRecord(cur, id); persist();
   if (synced) validateWeek(true); else render();
   // Compte rendu : ce qui change, ce que ça coûte, ce qui est fait de la part déjà cuisinée
@@ -1808,6 +1837,7 @@ function replaceMeal(k, id){
   if (o && o.relaxed) lines.push(el("div",{}, "Aucun plat ne respectait toutes tes règles pour ce repas : c'est le plus proche."));
   const cap = l => l.slice(0, 5).map(x => x.txt).join(", ") + (l.length > 5 ? " et " + (l.length - 5) + (l.length > 6 ? " autres" : " autre") : "");
   lines.push(el("div",{}, "Courses " + (synced ? "mises à jour" : "(une fois la semaine validée)") + " : " + (diff.add.length ? "en plus " + cap(diff.add) : "rien à acheter en plus") + (diff.less.length ? " ; en moins " + cap(diff.less) : "") + "."));
+  if (Math.abs(c1 - c0) >= 0.5) lines.push(el("div",{}, "Coût estimé des repas : ≈ " + Math.round(c0) + " € → " + Math.round(c1) + " € (" + (c1 > c0 ? "+" : "−") + euro(Math.abs(c1 - c0)) + ")."));
   if (t0 != null) { const t1 = planSeance(state.sel).total; if (t1 !== t0) lines.push(el("div",{}, "Séance du dimanche : " + minTxt(t0) + " → " + minTxt(t1) + ".")); }
   if (done) { const [fr, fz] = KEEP[cur] || [3, 0], lim = new Date(weekStart(state.valid)); lim.setDate(lim.getDate() + fr);
     lines.push(el("div",{}, "Le " + R[cur].n + " est déjà cuisiné : " + (fz ? "mets cette part au congélateur pour une autre semaine." : "il ne se congèle pas, mange cette part d'ici le " + lim.toLocaleDateString("fr-FR", {weekday: "long", day: "numeric"}) + " (échange-la avec un autre repas)."))); }
