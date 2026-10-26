@@ -732,6 +732,13 @@ header .label{text-align:center}
     fiches = {slugify(f): recipe_data(f.read_text(encoding="utf-8")) for sec, f in collect() if sec != "plans"}
     # Poids d'une pièce (aliments.csv) : sert à fusionner « 1 brocoli » et « 400 g de brocoli » dans la liste
     pieces = [[a["motifs"], a["piece_g"]] for a in N.ALIMENTS if a["piece_g"]]
+    # Prix relevés (prix/releve-brut.tsv) : un produit par article, avec sa source et sa date ; jamais de prix inventé
+    prix = {}
+    for ln in (SITE / "prix" / "releve-brut.tsv").read_text(encoding="utf-8").splitlines()[1:]:
+        c = ln.split("\t")
+        if len(c) >= 6 and c[0].strip():
+            prix[c[0].strip()] = {"p": c[1], "ean": c[2], "q": float(c[3]), "u": c[4], "e": float(c[5]), "n": c[6] if len(c) > 6 else ""}
+    sem = sem.replace("const MAXV = 7,", "const PRIX = " + json.dumps(prix, ensure_ascii=False) + ", PRIX_SRC = {nom: \"Carrefour Drive Noisy-le-Grand\", date: \"2026-10-26\"};\nconst MAXV = 7,", 1)
     sem = sem.replace("const MAXV = 7,", "const FICHES = " + json.dumps(fiches, ensure_ascii=False) + ";\nfor (const id in SLUG) if (FICHES[SLUG[id]]) RECIPES[id] = FICHES[SLUG[id]];\nconst PIECES = " + json.dumps(pieces, ensure_ascii=False) + ";\nconst MAXV = 7,", 1)
     sem = sem.replace("const MAXV = 7,", "const SEANCE = " + (SITE / "seance.json").read_text(encoding="utf-8").strip() + ";\nconst KCAL = " + json.dumps(kc) + ";\nconst PROT = " + json.dumps(pr) + ";\nconst ALG_RX = " + json.dumps(ALLERGENS, ensure_ascii=False) + ";\nconst PT_RX = " + json.dumps(dict(PROTEINS), ensure_ascii=False) + ";\nconst SAISON = " + json.dumps(sm) + ";\nconst MAXV = 7,", 1)
     sem = sem.replace("</head>", app_head() + "</head>", 1)
