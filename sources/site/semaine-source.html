@@ -2123,4 +2123,53 @@ render();
 ghInit();
 </script>
 
+
+<style id="miam-carnet-courses">
+/* Miam! — direction « carnet de cuisine personnel » : chaleureux, lisible, sans toucher au moteur. */
+:root {
+  --bg: #f7f3eb;
+  --surface: #fffdf8;
+  --ink: #29352c;
+  --muted: #70796e;
+  --line: #e6dfd2;
+  --accent: #5e795f;
+  --accent-soft: #e8eee3;
+  --meat: #b65d49;
+  --meat-soft: #f7e9e2;
+  --cher: #98703a;
+  --cher-soft: #f5eedc;
+  --ok: #55785b;
+  --font-display: "Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --font-body: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+body { background: var(--bg); color: var(--ink); }
+.wrap { width: min(100% - 32px, 1120px); max-width: 1120px; gap: 20px; padding-top: 26px; }
+h1 { font-size: clamp(2rem, 3.2vw, 2.7rem); letter-spacing: -.035em; }
+h2 { letter-spacing: -.015em; }
+.tabs { border-bottom-color: var(--line); gap: 8px; }
+.tabs button { border-radius: 999px; padding: 10px 16px; }
+.tabs button[aria-selected="true"] { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
+section, .stat, .rayon, .dish, .card { border-color: var(--line); }
+.rayon { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 14px 14px 8px; box-shadow: 0 2px 8px rgb(58 47 30 / 3%); }
+.rayon h2 { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-bottom: 11px; margin-bottom: 5px; border-bottom: 1px solid var(--line); font-size: 1.02rem; }
+.rayon h2 small { color: var(--muted); font: 600 .72rem var(--font-body); text-transform: none; letter-spacing: 0; }
+.item { min-height: 42px; padding: 7px 2px; gap: 10px; border-bottom: 1px solid #f0ebe2; }
+.item:last-child { border-bottom: 0; }
+.item input[type="checkbox"] { accent-color: var(--accent); width: 18px; height: 18px; flex: 0 0 18px; }
+.what { color: var(--ink); line-height: 1.4; }
+.what small { color: var(--muted); }
+.qty { color: #5d6d5e; font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
+.item.done .what { color: #899187; }
+.item.done .qty { color: #92998e; }
+button, select, input { accent-color: var(--accent); }
+button { transition: background-color .16s ease, border-color .16s ease, transform .16s ease; }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid #b7c8a9; outline-offset: 2px; }
+@media (max-width: 700px) {
+  .wrap { width: min(100% - 24px, 1120px); padding-top: 18px; gap: 16px; }
+  .rayon { padding: 11px 11px 6px; border-radius: 13px; }
+  .item { min-height: 44px; }
+}
+@media (prefers-reduced-motion: reduce) { button { transition: none; } }
+</style>
+
 </body></html>
