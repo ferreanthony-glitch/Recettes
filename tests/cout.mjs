@@ -33,7 +33,7 @@ const res = await page.evaluate((N) => {
   check("source et date", PRIX_SRC.nom && /^\d{4}-\d\d-\d\d$/.test(PRIX_SRC.date), JSON.stringify(PRIX_SRC));
   Object.entries(PRIX).forEach(([k, p]) => check("relevé complet", p.p && /^\d{8,14}$/.test(p.ean) && p.q > 0 && p.e > 0 && ["g", "ml", "pc", "botte"].includes(p.u), k + " " + JSON.stringify(p)));
   // 2. Tous les articles des 70 plats et des petits-déjeuners ont un prix, sauf la liste connue
-  const all = new Map(); Object.values(Q).concat([BREAKFAST]).forEach(l => l.forEach(([n, q, u]) => all.set(n + "|" + u, [n, q, u])));
+  const all = new Map(); Object.values(Q).concat(Object.values(BK).map(b => b.q), [BREAKFAST_SNACK]).forEach(l => l.forEach(([n, q, u]) => all.set(n + "|" + u, [n, q, u])));
   all.forEach(([n, q, u]) => { const c = priceItem({name: n, q, u});
     check("article chiffré ou connu sans prix", (c && !c.miss) || NO_PRICE.includes(n), n + " (" + u + ")"); });
   // 3. Formats entiers : assez pour le besoin, un format de moins ne suffirait pas ; le coût des repas ne dépasse jamais la caisse

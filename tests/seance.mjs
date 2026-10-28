@@ -95,7 +95,7 @@ const res = await page.evaluate((N) => {
   check("règles d'hygiène affichées", document.querySelectorAll(".se-safe dt").length === SAFETY.length && /2 h/.test(document.querySelector(".se-safe").textContent), "absentes");
   const endN = pl.steps.find(n => n.end);
   check("boîtes : frigo jusqu'au jour limite", endN.ing.every(([nm, t]) => /frigo jusqu'à (dimanche|lundi|mardi|mercredi|jeudi|vendredi|samedi) au plus tard/.test(t) || /congélateur/.test(t)), JSON.stringify(endN.ing).slice(0, 200));
-  const lim = pl.ids.filter(id => (KEEP[id] || [3])[0] < 7).every(id => { const b = endN.ing.find(x => x[0] === R[id].n.replace(/ \*$/, "").split(/,| au | aux | à la | de | et /)[0]); return !b || b[1].includes(DAYS[(KEEP[id] || [3])[0]].toLowerCase()); });
+  const lim = pl.ids.filter(id => (KEEP[id] || [3])[0] < 7).every(id => { const bs = endN.ing.filter(x => x[0] === R[id].n.replace(/ \*$/, "").split(/,| au | aux | à la | de | et /)[0]); return !bs.length || bs.some(b => b[1].includes(DAYS[(KEEP[id] || [3])[0]].toLowerCase())); });
   check("jour limite = durée de la fiche", lim, "jour différent de KEEP");
   // Aucun repas prévu au-delà de sa limite (sans congélation)
   check("aucun repas après sa limite", SLOTS.every(sl => !keepInfo(sl, state.sel) || !keepInfo(sl, state.sel).bad), "repas trop tard");
