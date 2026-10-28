@@ -51,7 +51,7 @@ const res = await page.evaluate((N) => {
   // 5. Affichage : semaine, liste, source et date, jamais d'« économie »
   reset(); generate(); validateWeek(); renderList();
   const cm = document.getElementById("cost-msg").textContent;
-  check("coût dans Mes courses", /Coût estimé des repas : ≈ \d+ €/.test(cm) && /À la caisse/.test(cm) && cm.includes(PRIX_SRC.nom) && cm.includes("26/10/2026"), cm.slice(0, 200));
+  check("coût dans Mes courses", /Estimation du coût≈ \d+ €pour les repas de la semaine/.test(cm) && /à la caisse/.test(cm) && cm.includes(PRIX_SRC.nom) && cm.includes("26/10/2026"), cm.slice(0, 200));
   check("coût dans le générateur", /Coût estimé des repas ≈ \d+ €, soit ≈ \d+,\d\d € par jour et par personne/.test(document.getElementById("gen-msg").textContent), document.getElementById("gen-msg").textContent.slice(0, 300));
   check("produit et prix sur chaque ligne chiffrée", document.querySelectorAll("#list small.px").length === costOf().lines.length, document.querySelectorAll("#list small.px").length + " / " + costOf().lines.length);
   check("aucune économie affichée", !/économi/i.test(document.body.innerText), "mot trouvé");
