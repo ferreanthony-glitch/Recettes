@@ -445,6 +445,7 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--accent); o
       <p class="note">Quantités pour <span class="ppl-n">2 personnes</span> et toute la semaine, plats doublés compris. Coche au fur et à mesure. La liste suit la dernière semaine validée.</p>
       <p class="note valid-msg" id="list-msg"></p>
       <p class="note" id="cost-msg"></p>
+      <p class="note" id="cmp-msg" hidden></p>
       <button class="copy" id="send" type="button">Envoyer la liste par message</button>
       <div class="send-box" id="send-box" hidden>
         <p class="note" id="send-msg"></p>
@@ -1161,10 +1162,10 @@ function fmt(it){
 // ---- Coût estimé : prix relevés en magasin (produit, format vendu, source, date), jamais inventés ----
 // On paie des formats entiers : 120 g de feta = une barquette de 200 g. Un article sans prix relevé reste « sans prix ».
 const euro = x => x.toFixed(2).replace(".", ",") + " €";
-const prixOf = name => PRIX[stem(name)] || null;
-function priceItem(it){
+const prixOf = (name, P = PRIX) => P[stem(name)] || null;
+function priceItem(it, P = PRIX){
   if (it.u === "pl" || it.enough || !(it.q > 1e-9)) return null;
-  const p = prixOf(it.name); if (!p) return {miss: true};
+  const p = prixOf(it.name, P); if (!p) return {miss: true};
   const u = it.u === "gousse" ? "pc" : it.u;
   const q = u === p.u ? it.q : (u === "ml" && p.u === "g") || (u === "g" && p.u === "ml") ? it.q : conv(it.q, u, p.u, it.name);
   if (q == null) return {miss: true};
@@ -1175,6 +1176,15 @@ function costOf(sel = listSel(), alt){
   let cost = 0, used = 0; const miss = [], lines = [];
   buildList(sel, alt).forEach(it => { const c = priceItem(it); if (!c) return; if (c.miss) miss.push(it.name); else { cost += c.cost; used += c.used; lines.push([it, c]); } });
   return {cost: Math.round(cost * 100) / 100, used: Math.round(used * 100) / 100, miss, lines};
+}
+// Comparaison des magasins relevés sur la liste : seulement les articles relevés dans tous les magasins comparés (le même panier pour chacun)
+function compareStores(items = buildList()){
+  const ms = MAGS.filter(m => Object.keys(m.prix).length);
+  if (ms.length < 2) return null;
+  const todo = items.filter(it => it.u !== "pl" && !it.enough && it.q > 1e-9);
+  const common = todo.filter(it => ms.every(m => { const c = priceItem(it, m.prix); return c && !c.miss; }));
+  const rows = ms.map(m => ({m, cost: Math.round(common.reduce((a, it) => a + priceItem(it, m.prix).cost, 0) * 100) / 100})).sort((a, b) => a.cost - b.cost);
+  return {rows, n: common.length, of: todo.length, best: common.length && rows[0].cost < rows[1].cost ? rows[0].m : null};
 }
 const prixAge = () => Math.round((today() - new Date(PRIX_SRC.date + "T00:00:00")) / 864e5);
 const prixSrcTxt = () => "prix " + PRIX_SRC.nom + " relevés le " + new Date(PRIX_SRC.date + "T00:00:00").toLocaleDateString("fr-FR") + (prixAge() > 45 ? ", à relever à nouveau" : "");
@@ -1210,6 +1220,11 @@ function renderList(){
   });
   const co = costOf(), cm = document.getElementById("cost-msg"); cm.innerHTML = "";
   if (co.lines.length) cm.append(el("b",{}, "Coût estimé des repas : ≈ " + Math.round(co.used) + " €"), " pour la semaine. À la caisse, en formats entiers : ≈ " + Math.round(co.cost) + " € (le reste des paquets sert les semaines suivantes). " + prixSrcTxt().charAt(0).toUpperCase() + prixSrcTxt().slice(1) + "." + (co.miss.length ? " Sans prix relevé : " + co.miss.join(", ") + "." : ""));
+  const cmp = compareStores(items), cx = document.getElementById("cmp-msg"); cx.innerHTML = ""; cx.hidden = !(cmp && cmp.n);
+  const dfr = d => new Date(d + "T00:00:00").toLocaleDateString("fr-FR", {day: "numeric", month: "short"});
+  if (cmp && cmp.n) cx.append(el("b",{}, "Comparer les magasins"), " sur les " + cmp.n + " articles relevés partout (sur " + cmp.of + ") : ",
+    cmp.rows.map(r => r.m.n + " ≈ " + euro(r.cost) + " (" + (r.m.src === "ticket de caisse" ? "ticket du " : "prix du ") + dfr(r.m.date) + ")").join(", ") + ". "
+    + (cmp.best ? "Le moins cher sur ce panier : " + cmp.best.n + "." : "Même prix sur ce panier."));
   document.getElementById("prog").textContent = done + "/" + items.length;
   document.getElementById("bar").style.width = (items.length ? 100*done/items.length : 0) + "%";
 }
@@ -2150,9 +2165,6 @@ showTab(tab);
 render();
 ghInit();
 </script>
-
-
-
 
 <style id="miam-carnet-final">
 /* Correctif réel de mise en page : carnet chaleureux, sans modifier les interactions ni le moteur. */

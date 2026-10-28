@@ -7,6 +7,14 @@
 <p class="acct-st ok" id="saved" aria-live="polite"></p>
 </section>
 
+<section class="acct-box" aria-labelledby="mg-t"><h2 id="mg-t">Magasins</h2>
+<p class="acct-n">Ton code postal sert à trouver le magasin le plus proche de chaque enseigne. Mes courses compare le prix de ta liste dans les magasins dont les prix ont été relevés : sur le drive en ligne ou sur un ticket de caisse. Aucun prix n'est estimé.</p>
+<div class="acct-row"><input id="cp" inputmode="numeric" maxlength="5" placeholder="Code postal" aria-label="Code postal" autocomplete="postal-code"><button type="button" id="cp-go" class="acct-b">Trouver les magasins proches</button></div>
+<p class="acct-st" id="mg-st" aria-live="polite"></p>
+<div id="mg-list"></div>
+<p class="acct-n mg-osm" hidden>Emplacements des magasins : © contributeurs OpenStreetMap ; position du code postal : Base Adresse Nationale (IGN).</p>
+</section>
+
 <section class="acct-box" aria-labelledby="sy-t"><h2 id="sy-t">Synchro des appareils</h2>
 <p class="acct-n">L'app de l'écran d'accueil, Safari et l'ordinateur partagent la semaine, sa validation et les articles cochés.</p>
 <p class="acct-st" id="st">Vérification…</p>
@@ -35,6 +43,8 @@
 .pc-av{width:42px;height:42px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-weight:700;display:grid;place-items:center;flex:none}
 .pc-need{margin:0;font-size:.88rem;color:var(--muted)}.pc-need b{color:var(--ink)}
 .pc-dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:.88rem}.pc-dl dt{color:var(--muted)}.pc-dl dd{margin:0}
+#mg-list{display:grid;gap:8px}.mg{border:1px solid var(--line);border-radius:12px;background:#fff;padding:12px 14px;display:grid;gap:2px}
+.mg b{font-size:.95rem}.mg small{color:var(--muted);font-size:.82rem}.mg .px{font-size:.82rem;color:var(--accent);font-weight:600}.mg .px.no{color:var(--muted);font-weight:400}
 @media (max-width:560px){.pp-g.c4{grid-template-columns:repeat(2,minmax(0,1fr))}}</style>
 <script>
 // ---- Profil : lu par le générateur de Ma semaine (même clé localStorage) ----
@@ -145,4 +155,51 @@ else {
   document.getElementById("test").addEventListener("click", test);
   test();
 }
+
+// ---- Magasins : le plus proche de chaque enseigne (OpenStreetMap) et les prix relevés (prix/magasins.tsv) ----
+const MK = "recettes-magasins", MAGS = __MAGS__;
+const ENS = [["Carrefour", /carrefour/i], ["E.Leclerc", /leclerc/i], ["Grand Frais", /grand ?frais/i], ["Lidl", /\blidl\b/i], ["Aldi", /\baldi\b/i], ["Intermarché", /intermarch/i], ["Netto", /^netto\b/i]];
+const ensOf = t => (ENS.find(([, rx]) => rx.test(t.brand || "") || rx.test(t.name || "")) || [])[0];
+const km = (a, b) => { const r = x => x * Math.PI / 180, dl = r(b[0] - a[0]), dg = r(b[1] - a[1]); const q = Math.sin(dl / 2) ** 2 + Math.cos(r(a[0])) * Math.cos(r(b[0])) * Math.sin(dg / 2) ** 2; return 12742 * Math.asin(Math.sqrt(q)); };
+let mg = {};
+try { mg = JSON.parse(localStorage.getItem(MK)) || {}; } catch (e) {}
+const mgSave = () => { try { localStorage.setItem(MK, JSON.stringify(mg)); } catch (e) {} };
+const mgSt = t => { document.getElementById("mg-st").textContent = t; };
+const frDate = d => new Date(d + "T00:00:00").toLocaleDateString("fr-FR", {day: "numeric", month: "long", year: "numeric"});
+// Le plus proche par enseigne parmi les magasins OpenStreetMap (supermarchés et primeurs)
+function nearest(elements, at){
+  const best = {};
+  elements.forEach(x => { const e = ensOf(x.tags || {}), p = x.lat != null ? [x.lat, x.lon] : x.center ? [x.center.lat, x.center.lon] : null;
+    if (!e || !p) return; const d = km(at, p); if (!best[e] || d < best[e].d) best[e] = {d, t: x.tags}; });
+  return ENS.map(([e]) => best[e] ? {e, d: Math.round(best[e].d * 10) / 10, n: best[e].t.name || e, a: [[best[e].t["addr:housenumber"], best[e].t["addr:street"]].filter(Boolean).join(" "), best[e].t["addr:city"]].filter(Boolean).join(", ")} : {e});
+}
+function mgRender(){
+  const box = document.getElementById("mg-list"); box.innerHTML = "";
+  document.getElementById("cp").value = mg.cp || "";
+  document.querySelector(".mg-osm").hidden = !mg.near;
+  const rows = mg.near || ENS.filter(([e]) => MAGS.some(m => m.e === e)).map(([e]) => ({e}));
+  rows.forEach(r => { const ms = MAGS.filter(m => m.e === r.e && m.k);
+    box.append(h("div", {class: "mg"}, h("b", {}, r.e + (r.n && r.n !== r.e ? " · " + r.n : "")),
+      r.d != null ? h("small", {}, (r.a ? r.a + " · " : "") + "à " + String(r.d).replace(".", ",") + " km") : mg.near ? h("small", {}, "Aucun magasin trouvé à moins de 15 km") : null,
+      ...(ms.length ? ms.map(m => h("span", {class: "px"}, m.k + " prix relevés le " + frDate(m.date) + " (" + m.src + ", " + m.n + ")")) : [h("span", {class: "px no"}, "Pas encore de prix relevés pour cette enseigne")]))); });
+}
+async function mgFind(){
+  const cp = document.getElementById("cp").value.trim();
+  if (!/^\d{5}$/.test(cp)) { mgSt("Entre un code postal à 5 chiffres."); return; }
+  mgSt("Recherche des magasins autour du " + cp + "…");
+  try {
+    // Géoplateforme (IGN), qui remplace api-adresse.data.gouv.fr ; l'ancienne adresse sert de secours
+    const geo = async u => { const r = await fetch(u + "?q=" + cp + "&type=municipality&limit=1"); if (!r.ok) throw new Error(r.status); return r.json(); };
+    const g = await geo("https://data.geopf.fr/geocodage/search").catch(() => geo("https://api-adresse.data.gouv.fr/search/"));
+    const f = g.features && g.features[0]; if (!f) { mgSt("Code postal introuvable."); return; }
+    const at = [f.geometry.coordinates[1], f.geometry.coordinates[0]];
+    const q = '[out:json][timeout:25];nwr["shop"~"^(supermarket|greengrocer|convenience)$"]["name"~"carrefour|leclerc|grand frais|lidl|aldi|intermarch|netto",i](around:15000,' + at[0] + ',' + at[1] + ');out center tags;';
+    const o = await (await fetch("https://overpass-api.de/api/interpreter", {method: "POST", body: "data=" + encodeURIComponent(q)})).json();
+    mg = {cp, at, near: nearest(o.elements || [], at), when: Date.now()}; mgSave();
+    mgSt("Magasins les plus proches de " + (f.properties.city || cp) + "."); mgRender();
+  } catch (e) { mgSt("Recherche impossible pour l'instant (hors ligne ?). Réessaie plus tard."); }
+}
+document.getElementById("cp-go").addEventListener("click", mgFind);
+document.getElementById("cp").addEventListener("keydown", e => { if (e.key === "Enter") mgFind(); });
+mgRender();
 </script>
