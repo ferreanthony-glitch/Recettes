@@ -197,7 +197,10 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--accent); o
 .grid table { font-size: 0.95rem !important; }
 .grid td { vertical-align: middle !important; }
 .grid td.cell { position: relative; padding: 12px 10px !important; height: 52px; cursor: pointer; }
-.grid td.cell:hover { background: var(--accent-soft); }
+.grid td.cell:hover, .grid td.bkc:hover { background: var(--accent-soft); }
+.grid td.bkc { position: relative; padding: 12px 4px !important; height: 52px; width: 18%; cursor: pointer; color: var(--muted); font-size: 0.82em; hyphens: auto; }
+.bkc .cname { display: block; padding-right: 12px; position: relative; pointer-events: none; }
+.bkc .cname::after { content: "▾"; position: absolute; right: 0; top: 50%; transform: translateY(-50%); font-size: 0.85rem; }
 .cell .cname { display: block; padding-right: 18px; position: relative; pointer-events: none; }
 .cell .cname::after { content: "▾"; position: absolute; right: 0; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 0.85rem; }
 .cell.late .cname { color: var(--meat); }
@@ -374,7 +377,7 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--accent); o
     <section class="panel" aria-label="Vue de la semaine">
       <div class="ht"><h2>La semaine</h2><button type="button" class="qm" aria-label="Aide" aria-expanded="false" aria-controls="tip-sem">?</button><p class="tipbox" id="tip-sem" role="tooltip">Touche un repas pour le remplacer : les premiers plats proposés sont ceux qui vont le mieux avec le reste de la semaine et tes courses. Fais-le glisser sur une autre case pour les échanger (sur téléphone, appuie un instant puis glisse).</p></div>
       <div class="swap-bar"><button type="button" class="ghost" id="swap-btn" aria-pressed="false">Échanger deux repas</button><button type="button" class="ghost" id="lock-btn" aria-pressed="false">Verrouiller des repas</button><button type="button" class="ghost" id="unlock-all" hidden>Tout déverrouiller</button><span class="note" id="swap-help"></span></div>
-      <div class="grid"><table><thead><tr><th>Jour</th><th>Midi</th><th>Soir</th></tr></thead><tbody id="grid"></tbody></table></div>
+      <div class="grid"><table><thead><tr><th>Jour</th><th>Matin</th><th>Midi</th><th>Soir</th></tr></thead><tbody id="grid"></tbody></table></div>
       <div class="swap-msg" id="swap-msg" role="status" hidden></div>
       <div class="variants" id="variants" role="group" aria-label="Propositions"><span>Partir d'une proposition</span></div>
       <div class="variants favs" id="favs" role="group" aria-label="Mes semaines favorites"><span>Mes favorites</span></div>
@@ -540,8 +543,23 @@ const PLACARD = {
   risotto:["bouillon de légumes (cube)"], obt:["vinaigre"], tabo:[], gratin:["herbes de Provence"],
 };
 // Petits-déjeuners et collations de la semaine (7 jours, 2 personnes)
-const BREAKFAST = [["skyr nature",600,"g","CR"],["yaourts nature",12,"pc","CR"],["poires",14,"pc","FL"],["amandes nature",520,"g","EP"],["saumon fumé",320,"g","FR"],["pain complet",160,"g","BO"],["cream cheese",80,"g","CR"]];
-const BREAKFAST_PL = ["sirop d'érable","huile d'olive","sel, poivre"];
+// Petits-déjeuners (fiches recettes/petit-dejeuner, quantités pour 2) : un par jour, choisi dans Ma semaine
+const BK = {
+  bolc: {n: "Bol canadien yaourt-poire", s: "Bol yaourt-poire", q: [["yaourts nature",4,"pc","CR"],["poires",2,"pc","FL"],["amandes nature",20,"g","EP"]], pl: ["sirop d'érable"]},
+  skyr: {n: "Skyr, amandes et poire", s: "Skyr-poire", q: [["skyr nature",300,"g","CR"],["poires",2,"pc","FL"],["amandes nature",30,"g","EP"]]},
+  saumon: {n: "Toast saumon fumé et cream cheese, avec une poire", s: "Toast saumon", q: [["saumon fumé",160,"g","FR"],["pain complet",80,"g","BO"],["cream cheese",40,"g","CR"],["poires",2,"pc","FL"]]},
+  suedois: {n: "Petits pains grillés, cream cheese et amandes, avec une poire", s: "Pains grillés", q: [["petits pains grillés complets",60,"g","BO"],["cream cheese",60,"g","CR"],["amandes nature",60,"g","EP"],["poires",2,"pc","FL"]]},
+  confiture: {n: "Toast beurre-confiture et orange", s: "Toast confiture", q: [["pain complet",80,"g","BO"],["beurre",10,"g","CR"],["oranges",2,"pc","FL"]], pl: ["confiture"]},
+  choco: {n: "Toast beurre-fromage et chocolat chaud", s: "Chocolat chaud", q: [["pain complet",80,"g","BO"],["emmental râpé",30,"g","CR"],["beurre",20,"g","CR"],["lait demi-écrémé",400,"ml","CR"],["chocolat noir 90 %",20,"g","EP"]], pl: ["cacao en poudre non sucré"]},
+  avocado: {n: "Avocado toast, œuf et jambon, avec une poire", s: "Avocado toast", q: [["œufs",2,"pc","CR"],["pain complet",120,"g","BO"],["avocat",1,"pc","FL"],["jambon",100,"g","VI"],["poires",2,"pc","FL"]], pl: ["vinaigre","estragon"]},
+  morning: {n: "Œufs brouillés, jambon, pains grillés et clémentine", s: "Œufs-jambon", q: [["œufs",6,"pc","CR"],["jambon",160,"g","VI"],["petits pains grillés complets",40,"g","BO"],["clémentines",2,"pc","FL"]], pl: ["miel"]},
+  oeufbacon: {n: "Œufs, bacon et épinards, fromage blanc et compote", s: "Œufs-bacon", q: [["œufs",6,"pc","CR"],["épinards frais",160,"g","FL"],["bacon",100,"g","VI"],["fromage blanc",140,"g","CR"],["clémentines",2,"pc","FL"],["compote",200,"g","EP"]]}
+};
+const BK_DEF = ["bolc","skyr","bolc","saumon","bolc","skyr","saumon"];   // dimanche à samedi : le petit-déjeuner d'avant le choix
+const BREAKFAST_SNACK = [["amandes nature",420,"g","EP"]];   // collation : 30 g d'amandes par personne et par jour
+const bkOk = a => Array.isArray(a) && a.length === 7 && a.every(x => BK[x]);
+const bkOf = (s = state) => bkOk(s.bk) ? s.bk : BK_DEF;
+const listBk = () => state.valid && state.valid.sel ? (bkOk(state.valid.bk) ? state.valid.bk : BK_DEF) : bkOf();
 
 const P = [
   {k:"dim",t:"Midi et soir dimanche",slots:[[0,0],[0,1]],f:"r",o:["dahl","sincarne","tabo","quichepoir","bolo"],h:"Cuisiné le dimanche avec le reste, mangé le jour même."},
@@ -981,8 +999,8 @@ const HOP_URL = IS_SITE ? "https://claude.ai/artifact/8cYgY2ENPkyWHonwjssP93" : 
 const b64u = t => btoa(unescape(encodeURIComponent(t))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 const unb64u = t => decodeURIComponent(escape(atob(t.replace(/-/g, "+").replace(/_/g, "/"))));
 function pack(){
-  const o = {s: SLOTS.map(sl => state.sel[sl.k]), c: Object.keys(state.checked), p: state.ppl || 2};
-  if (state.valid) o.v = {s: SLOTS.map(sl => state.valid.sel[sl.k]), t: state.valid.at};
+  const o = {s: SLOTS.map(sl => state.sel[sl.k]), b: bkOf(), c: Object.keys(state.checked), p: state.ppl || 2};
+  if (state.valid) o.v = {s: SLOTS.map(sl => state.valid.sel[sl.k]), b: listBk(), t: state.valid.at};
   return "w" + b64u(JSON.stringify(o));
 }
 let imported = false;
@@ -992,7 +1010,8 @@ try {
     const o = JSON.parse(unb64u(h.slice(1))), sl = a => Object.fromEntries(SLOTS.map((x, i) => [x.k, (a.length === 12 ? [V.A.p.dim, V.A.p.dim, ...a] : a)[i]]));
     if (o.s && SLOTS.every(x => R[sl(o.s)[x.k]])) {
       state.sel = sl(o.s); state.checked = Object.fromEntries((o.c || []).map(k => [k, true])); state.ppl = o.p || 2;
-      if (o.v && SLOTS.every(x => R[sl(o.v.s)[x.k]])) state.valid = {sel: sl(o.v.s), at: o.v.t}; else delete state.valid;
+      if (bkOk(o.b)) state.bk = o.b;
+      if (o.v && SLOTS.every(x => R[sl(o.v.s)[x.k]])) state.valid = {sel: sl(o.v.s), bk: bkOk(o.v.b) ? o.v.b : undefined, at: o.v.t}; else delete state.valid;
       imported = true; state.u = Date.now();
       try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
     }
@@ -1016,7 +1035,7 @@ async function flush(){
   writing = true;
   while (dirty) {
     dirty = false;
-    try { await ref.set({sel: {...state.sel}, checked: {...state.checked}, valid: state.valid || null, ppl: ppl(), favs: state.favs || []}); syncEl().textContent = "Enregistré, visible sur tous tes appareils."; }
+    try { await ref.set({sel: {...state.sel}, bk: bkOf(), checked: {...state.checked}, valid: state.valid || null, ppl: ppl(), favs: state.favs || []}); syncEl().textContent = "Enregistré, visible sur tous tes appareils."; }
     catch (e) { syncEl().textContent = "Pas enregistré en ligne (" + (e && e.code || "erreur") + "), gardé sur ce téléphone."; }
   }
   writing = false;
@@ -1034,6 +1053,7 @@ async function flush(){
     state = {...state, sel: {...d.sel}, checked: {...d.checked}};   // garde les réglages (personnes, générateur)
     if (d.valid && d.valid.sel) state.valid = d.valid; else delete state.valid;
     if (d.ppl) state.ppl = d.ppl;
+    if (bkOk(d.bk)) state.bk = d.bk;
     if (Array.isArray(d.favs)) state.favs = d.favs;
     try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
     syncEl().textContent = "Synchronisé.";
@@ -1100,7 +1120,7 @@ function mergeItems(rows){
 // Produit moins cher proposé dans Mes courses, que tu choisis d'un geste (state.alt) : jamais pour un plat où il ne convient pas (raw : mangé cru)
 const ALT = {"epinard frai": {name: "épinards surgelés", from: "épinards frais", ray: "FR", raw: ["bowl"], why: "pour les plats cuits, à poids égal (il en faut même un peu moins)"}};
 const altOn = (k, alt = state.alt || {}) => !!(ALT[k] && alt[k]);
-function buildList(sel = listSel(), alt = state.alt || {}){
+function buildList(sel = listSel(), alt = state.alt || {}, bk = sel === listSel() ? listBk() : bkOf()){
   const rows = [], pl = {};
   const add = ([name, q, u, ray], m, src, id) => { const k = stem(name);
     if (altOn(k, alt) && !ALT[k].raw.includes(id)) { name = ALT[k].name; ray = ALT[k].ray; }
@@ -1109,8 +1129,8 @@ function buildList(sel = listSel(), alt = state.alt || {}){
     Q[id].forEach(x => add(x, factor(id, n), R[id].n, id));
     (PLACARD[id]||[]).concat(["huile d'olive","sel, poivre"]).forEach(x => pl[x] = 1);
   });
-  BREAKFAST.forEach(x => add(x, pf(), "petits-déjeuners"));
-  BREAKFAST_PL.forEach(x => pl[x] = 1);
+  bk.forEach(b => { BK[b].q.forEach(x => add(x, pf(), "petits-déjeuners", "bk:" + b)); (BK[b].pl || []).forEach(x => pl[x] = 1); });
+  BREAKFAST_SNACK.forEach(x => add(x, pf(), "collations"));
   const items = mergeItems(rows);
   // Déduit les restes : chaque reste est consommé article par article, dans l'unité de l'article
   listStock().forEach(st => { let left = st.q;
@@ -1237,8 +1257,16 @@ function renderGrid(){
   const cell = (d, m) => { const sl = SLOTS[d * 2 + m], k = keepInfo(sl);
     return el("td",{class:"cell" + (k && k.bad || wrongTime(state.sel[sl.k], sl.m) ? " late" : ""),"data-k":sl.k},
       el("span",{class:"cname"}, cells[d][m]), mealSelect(sl)); };   // menu invisible posé sur toute la case : la case ne change pas de taille
-  DAYS.forEach((day,d) => tb.append(el("tr",{}, el("td",{class:"d"},day.slice(0,3)+"."), cell(d,0), cell(d,1))));
+  const bkCell = d => el("td",{class:"bkc"}, el("span",{class:"cname"}, BK[bkOf()[d]].s), bkSelect(d));
+  DAYS.forEach((day,d) => tb.append(el("tr",{}, el("td",{class:"d"},day.slice(0,3)+"."), bkCell(d), cell(d,0), cell(d,1))));
 }
+// Menu du petit-déjeuner d'un jour (hors glisser-déposer et verrous : ce n'est pas un repas cuisiné)
+function bkSelect(d){
+  const cur = bkOf()[d];
+  return el("select",{class:"cell-sel","aria-label":"Petit-déjeuner du " + DAYS[d].toLowerCase(), onchange:(e)=>pickBk(d, e.target.value)},
+    Object.keys(BK).map(b => { const o = el("option",{value:b}, BK[b].n); if (b === cur) o.selected = true; return o; }));
+}
+function pickBk(d, b){ if (!BK[b]) return; const synced = sameSel(); state.bk = [...bkOf()]; state.bk[d] = b; persist(); if (synced) validateWeek(true); else render(); }
 // Menu de choix d'un repas : plats groupés, ceux qui ne tiennent pas jusqu'à ce jour sont grisés
 function mealSelect(sl){
   const id = state.sel[sl.k];
@@ -1484,7 +1512,6 @@ function slotProblem(sel, k){
 }
 
 // ---- Vue Aujourd'hui ----
-const BREAKFAST_DAY = ["bol canadien yaourt-poire", "skyr, amandes, poire", "bol canadien yaourt-poire", "toast saumon fumé et cream cheese, avec une poire", "bol canadien yaourt-poire", "skyr, amandes, poire", "toast saumon fumé et cream cheese, avec une poire"];
 let dayOff = 0;   // jour affiché, en jours à partir d'aujourd'hui
 function renderToday(){
   const box = document.getElementById("jour"); box.innerHTML = "";
@@ -1536,7 +1563,7 @@ function renderToday(){
   box.append(el("section",{class:"panel freezer"}, el("h2",{}, "Pour demain"),
     out.length ? el("p",{}, el("b",{}, "Ce soir, sors du congélateur et mets au frigo : "), out.map(sl => R[v.sel[sl.k]].n + " (" + MEALN[sl.m] + ")").join(", ") + ".")
       : el("p",{}, d === 6 ? "Demain, c'est la séance de cuisine de la semaine suivante." : "Rien à sortir du congélateur.")));
-  box.append(el("section",{class:"panel"}, el("p",{}, el("b",{}, "Petit-déjeuner : "), BREAKFAST_DAY[d] + ". Collation : 30 g d'amandes."), startLine));
+  box.append(el("section",{class:"panel"}, el("p",{}, el("b",{}, "Petit-déjeuner : "), (d >= 0 && d < 7 ? BK[listBk()[d]].n : "à ton choix") + ". Collation : 30 g d'amandes."), startLine));
 }
 
 // ---- Séance du dimanche : déroulé ordonné, tâches communes regroupées, four et plaques en parallèle ----
@@ -1965,7 +1992,7 @@ document.getElementById("tab-cuisine").addEventListener("click", () => { showTab
 CUISINE.forEach(x => document.getElementById("sub-" + x).addEventListener("click", () => showTab(x)));
 document.getElementById("uncheck").addEventListener("click", () => { state.checked = {}; persist(); renderList(); });
 // Valider : la liste de courses suit cette semaine-là, ici et (par le lien) de l'autre côté
-const sameSel = () => state.valid && SLOTS.every(sl => state.valid.sel[sl.k] === state.sel[sl.k]);
+const sameSel = () => state.valid && SLOTS.every(sl => state.valid.sel[sl.k] === state.sel[sl.k]) && listBk().join() === bkOf().join();
 const when = t => new Date(t).toLocaleString("fr-FR", {weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit"});
 function renderValid(){
   const v = state.valid, todo = v && !sameSel();
@@ -1987,7 +2014,7 @@ document.getElementById("revalidate").addEventListener("click", () => document.g
 function validateWeek(keep){
   const st = applyStock(state.sel, state.valid), start = keep === true && state.valid ? iso(weekStart(state.valid)) : validStart(state.valid);
   if (!state.valid || iso(weekStart(state.valid)) !== start) state.checked = {};   // nouvelle semaine : liste vierge ; mise à jour : coches gardées
-  state.valid = {sel: {...state.sel}, at: Date.now(), start, stock: st.base, left: st.left, note: st.note};
+  state.valid = {sel: {...state.sel}, bk: [...bkOf()], at: Date.now(), start, stock: st.base, left: st.left, note: st.note};
   state.stock = st.left.map(x => ({...x})); persist(); render();
   if (ghTok()) { clearTimeout(ghTimer); ghState("envoi…"); ghSend(); }   // une validation part tout de suite vers les autres appareils
 }
@@ -2009,7 +2036,7 @@ const ghState = t => { const e = document.getElementById("gh-state"); if (e) e.t
 const ghHead = () => ({Authorization: "Bearer " + ghTok(), Accept: "application/vnd.github+json"});
 // Plats aimés (cœur du recueil) : synchronisés avec la semaine, la version la plus récente (lu) gagne
 const likesNow = () => { try { return {likes: JSON.parse(localStorage.getItem("recettes-likes")) || [], lu: +localStorage.getItem("recettes-likes-u") || 0}; } catch (e) { return {likes: [], lu: 0}; } };
-const ghData = () => ({sel: state.sel, checked: state.checked, valid: state.valid || null, ppl: state.ppl || 2, favs: state.favs || [], u: state.u || 0, ...likesNow()});
+const ghData = () => ({sel: state.sel, bk: bkOf(), checked: state.checked, valid: state.valid || null, ppl: state.ppl || 2, favs: state.favs || [], u: state.u || 0, ...likesNow()});
 const hhmm = () => new Date().toLocaleTimeString("fr-FR", {hour: "2-digit", minute: "2-digit"});
 async function ghPull(){
   if (!ghOk || !ghTok()) return;
@@ -2023,6 +2050,7 @@ async function ghPull(){
     if (d) migAll(d);
     if (d && d.u > (state.u || 0) && valid({sel: d.sel, checked: d.checked || {}})) {
       state = {...state, sel: d.sel, checked: d.checked || {}, ppl: d.ppl || 2, u: d.u};
+      if (bkOk(d.bk)) state.bk = d.bk;
       if (Array.isArray(d.favs)) state.favs = d.favs;
       if (d.valid && d.valid.sel) state.valid = d.valid; else delete state.valid;
       try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
