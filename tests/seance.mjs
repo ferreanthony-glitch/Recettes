@@ -102,8 +102,8 @@ const res = await page.evaluate((N) => {
   // 6. Trois espaces : Ma semaine, Mes courses, En cuisine (qui regroupe Aujourd'hui, la séance et les recettes)
   const vis = () => TABS.filter(x => !document.getElementById("view-" + x).hidden);
   check("3 espaces affichés", document.querySelectorAll(".tabs [role=tab]").length === 3, document.querySelectorAll(".tabs [role=tab]").length);
-  showTab("semaine"); check("Ma semaine", vis().join() === "semaine" && document.getElementById("subtabs").hidden && document.getElementById("space-title").textContent === "Ma semaine", vis());
-  document.getElementById("tab-courses").click(); check("Mes courses", vis().join() === "courses" && document.getElementById("tab-courses").getAttribute("aria-selected") === "true", vis());
+  showTab("semaine"); check("Ma semaine", vis().join() === "semaine" && document.getElementById("subtabs").hidden && document.getElementById("space-title").textContent === SPACE_H.semaine[0] && document.querySelector(".snav [data-space=semaine]").classList.contains("on"), vis());
+  document.getElementById("tab-courses").click(); check("Mes courses", vis().join() === "courses" && document.getElementById("tab-courses").getAttribute("aria-selected") === "true" && document.querySelector(".tabbar [data-space=courses]").classList.contains("on") && location.hash === "#courses", vis());
   document.getElementById("tab-cuisine").click();
   const exp = today().getDay() === 0 ? "seance" : lastCuisine;
   check("En cuisine : séance le dimanche, sinon dernière vue", vis().join() === exp && !document.getElementById("subtabs").hidden, vis() + " / " + exp);
