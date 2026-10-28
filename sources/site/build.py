@@ -459,6 +459,22 @@ COMPTE = SITE / "compte-source.html"
 GUIDE = SITE / "guide-source.html"   # page « Comment ça marche » : règles du livret LaSèche, en version interactive
 
 
+def magasins():
+    """Magasins dont les prix ont été relevés (drive en ligne ou ticket de caisse) : prix/magasins.tsv, un fichier de prix par magasin."""
+    out = []
+    for ln in (SITE / "prix" / "magasins.tsv").read_text(encoding="utf-8").splitlines()[1:]:
+        c = ln.split("\t")
+        if len(c) < 7 or not c[0].strip():
+            continue
+        prix = {}
+        for row in (SITE / "prix" / c[5].strip()).read_text(encoding="utf-8").splitlines()[1:]:
+            r = row.split("\t")
+            if len(r) >= 6 and r[0].strip():
+                prix[r[0].strip()] = {"p": r[1], "ean": r[2], "q": float(r[3]), "u": r[4], "e": float(r[5]), "n": r[6] if len(r) > 6 else ""}
+        out.append({"id": c[0].strip(), "e": c[1].strip(), "n": c[2].strip(), "a": c[3].strip(), "src": c[4].strip(), "date": c[6].strip(), "prix": prix})
+    return out
+
+
 def aliments_section():
     """Base des aliments, section 8 du Guide (ancienne page Aliments)."""
     rows = "".join(f'<tr><td>{html.escape(a["aliment"])}</td>' + "".join(f'<td>{a[k]:g}</td>' for k in N.NUTR) + '</tr>'
@@ -670,7 +686,7 @@ render();
     (OUT / "index.html").write_text(page("Miam!", body, active="recueil"), encoding="utf-8")
     (OUT / "aliments.html").write_text(aliments_redirect(), encoding="utf-8")
     (OUT / "guide.html").write_text(page("Comment ça marche", GUIDE.read_text(encoding="utf-8").replace("__ALIMENTS__", aliments_section()), active="guide"), encoding="utf-8")
-    (OUT / "compte.html").write_text(page("Profil", COMPTE.read_text(encoding="utf-8").replace("__ALG__", json.dumps(list(ALLERGENS), ensure_ascii=False)), active="compte"), encoding="utf-8")
+    (OUT / "compte.html").write_text(page("Profil", COMPTE.read_text(encoding="utf-8").replace("__ALG__", json.dumps(list(ALLERGENS), ensure_ascii=False)).replace("__MAGS__", json.dumps([{k: m[k] for k in ("id", "e", "n", "a", "src", "date")} | {"k": len(m["prix"])} for m in magasins()], ensure_ascii=False)), active="compte"), encoding="utf-8")
 
     # Page « Ma semaine » : reprise de l'Artifact. Sans Claude, elle enregistre dans le navigateur (localStorage).
     sem = (SITE / "semaine-source.html").read_text(encoding="utf-8")
@@ -733,12 +749,10 @@ header .label{text-align:center}
     # Poids d'une pièce (aliments.csv) : sert à fusionner « 1 brocoli » et « 400 g de brocoli » dans la liste
     pieces = [[a["motifs"], a["piece_g"]] for a in N.ALIMENTS if a["piece_g"]]
     # Prix relevés (prix/releve-brut.tsv) : un produit par article, avec sa source et sa date ; jamais de prix inventé
-    prix = {}
-    for ln in (SITE / "prix" / "releve-brut.tsv").read_text(encoding="utf-8").splitlines()[1:]:
-        c = ln.split("\t")
-        if len(c) >= 6 and c[0].strip():
-            prix[c[0].strip()] = {"p": c[1], "ean": c[2], "q": float(c[3]), "u": c[4], "e": float(c[5]), "n": c[6] if len(c) > 6 else ""}
-    sem = sem.replace("const MAXV = 7,", "const PRIX = " + json.dumps(prix, ensure_ascii=False) + ", PRIX_SRC = {nom: \"Carrefour Drive Noisy-le-Grand\", date: \"2026-10-26\"};\nconst MAXV = 7,", 1)
+    # Un fichier par magasin (prix/magasins.tsv) ; le premier sert de référence au coût de la semaine
+    mags = magasins()
+    prix, ref = mags[0]["prix"], mags[0]
+    sem = sem.replace("const MAXV = 7,", "const PRIX = " + json.dumps(prix, ensure_ascii=False) + ", PRIX_SRC = " + json.dumps({"nom": ref["n"], "date": ref["date"]}, ensure_ascii=False) + ";\nconst MAGS = " + json.dumps(mags, ensure_ascii=False) + ";\nconst MAXV = 7,", 1)
     sem = sem.replace("const MAXV = 7,", "const FICHES = " + json.dumps(fiches, ensure_ascii=False) + ";\nfor (const id in SLUG) if (FICHES[SLUG[id]]) RECIPES[id] = FICHES[SLUG[id]];\nconst PIECES = " + json.dumps(pieces, ensure_ascii=False) + ";\nconst MAXV = 7,", 1)
     sem = sem.replace("const MAXV = 7,", "const SEANCE = " + (SITE / "seance.json").read_text(encoding="utf-8").strip() + ";\nconst KCAL = " + json.dumps(kc) + ";\nconst PROT = " + json.dumps(pr) + ";\nconst ALG_RX = " + json.dumps(ALLERGENS, ensure_ascii=False) + ";\nconst PT_RX = " + json.dumps(dict(PROTEINS), ensure_ascii=False) + ";\nconst SAISON = " + json.dumps(sm) + ";\nconst MAXV = 7,", 1)
     sem = sem.replace("</head>", app_head() + "</head>", 1)

@@ -445,6 +445,7 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--accent); o
       <p class="note">Quantités pour <span class="ppl-n">2 personnes</span> et toute la semaine, plats doublés compris. Coche au fur et à mesure. La liste suit la dernière semaine validée.</p>
       <p class="note valid-msg" id="list-msg"></p>
       <p class="note" id="cost-msg"></p>
+      <p class="note" id="cmp-msg" hidden></p>
       <button class="copy" id="send" type="button">Envoyer la liste par message</button>
       <div class="send-box" id="send-box" hidden>
         <p class="note" id="send-msg"></p>
@@ -1161,10 +1162,10 @@ function fmt(it){
 // ---- Coût estimé : prix relevés en magasin (produit, format vendu, source, date), jamais inventés ----
 // On paie des formats entiers : 120 g de feta = une barquette de 200 g. Un article sans prix relevé reste « sans prix ».
 const euro = x => x.toFixed(2).replace(".", ",") + " €";
-const prixOf = name => PRIX[stem(name)] || null;
-function priceItem(it){
+const prixOf = (name, P = PRIX) => P[stem(name)] || null;
+function priceItem(it, P = PRIX){
   if (it.u === "pl" || it.enough || !(it.q > 1e-9)) return null;
-  const p = prixOf(it.name); if (!p) return {miss: true};
+  const p = prixOf(it.name, P); if (!p) return {miss: true};
   const u = it.u === "gousse" ? "pc" : it.u;
   const q = u === p.u ? it.q : (u === "ml" && p.u === "g") || (u === "g" && p.u === "ml") ? it.q : conv(it.q, u, p.u, it.name);
   if (q == null) return {miss: true};
@@ -1175,6 +1176,15 @@ function costOf(sel = listSel(), alt){
   let cost = 0, used = 0; const miss = [], lines = [];
   buildList(sel, alt).forEach(it => { const c = priceItem(it); if (!c) return; if (c.miss) miss.push(it.name); else { cost += c.cost; used += c.used; lines.push([it, c]); } });
   return {cost: Math.round(cost * 100) / 100, used: Math.round(used * 100) / 100, miss, lines};
+}
+// Comparaison des magasins relevés sur la liste : seulement les articles relevés dans tous les magasins comparés (le même panier pour chacun)
+function compareStores(items = buildList()){
+  const ms = MAGS.filter(m => Object.keys(m.prix).length);
+  if (ms.length < 2) return null;
+  const todo = items.filter(it => it.u !== "pl" && !it.enough && it.q > 1e-9);
+  const common = todo.filter(it => ms.every(m => { const c = priceItem(it, m.prix); return c && !c.miss; }));
+  const rows = ms.map(m => ({m, cost: Math.round(common.reduce((a, it) => a + priceItem(it, m.prix).cost, 0) * 100) / 100})).sort((a, b) => a.cost - b.cost);
+  return {rows, n: common.length, of: todo.length, best: common.length && rows[0].cost < rows[1].cost ? rows[0].m : null};
 }
 const prixAge = () => Math.round((today() - new Date(PRIX_SRC.date + "T00:00:00")) / 864e5);
 const prixSrcTxt = () => "prix " + PRIX_SRC.nom + " relevés le " + new Date(PRIX_SRC.date + "T00:00:00").toLocaleDateString("fr-FR") + (prixAge() > 45 ? ", à relever à nouveau" : "");
@@ -1210,6 +1220,11 @@ function renderList(){
   });
   const co = costOf(), cm = document.getElementById("cost-msg"); cm.innerHTML = "";
   if (co.lines.length) cm.append(el("b",{}, "Coût estimé des repas : ≈ " + Math.round(co.used) + " €"), " pour la semaine. À la caisse, en formats entiers : ≈ " + Math.round(co.cost) + " € (le reste des paquets sert les semaines suivantes). " + prixSrcTxt().charAt(0).toUpperCase() + prixSrcTxt().slice(1) + "." + (co.miss.length ? " Sans prix relevé : " + co.miss.join(", ") + "." : ""));
+  const cmp = compareStores(items), cx = document.getElementById("cmp-msg"); cx.innerHTML = ""; cx.hidden = !(cmp && cmp.n);
+  const dfr = d => new Date(d + "T00:00:00").toLocaleDateString("fr-FR", {day: "numeric", month: "short"});
+  if (cmp && cmp.n) cx.append(el("b",{}, "Comparer les magasins"), " sur les " + cmp.n + " articles relevés partout (sur " + cmp.of + ") : ",
+    cmp.rows.map(r => r.m.n + " ≈ " + euro(r.cost) + " (" + (r.m.src === "ticket de caisse" ? "ticket du " : "prix du ") + dfr(r.m.date) + ")").join(", ") + ". "
+    + (cmp.best ? "Le moins cher sur ce panier : " + cmp.best.n + "." : "Même prix sur ce panier."));
   document.getElementById("prog").textContent = done + "/" + items.length;
   document.getElementById("bar").style.width = (items.length ? 100*done/items.length : 0) + "%";
 }
@@ -2151,4 +2166,35 @@ render();
 ghInit();
 </script>
 
+<style id="miam-carnet-final">
+/* Correctif réel de mise en page : carnet chaleureux, sans modifier les interactions ni le moteur. */
+:root{--bg:#f7f3eb;--surface:#fffdf8;--ink:#29352c;--muted:#70796e;--line:#e6dfd2;--accent:#5e795f;--accent-soft:#e8eee3;--meat:#b65d49;--meat-soft:#f7e9e2;--cher:#98703a;--cher-soft:#f5eedc;--ok:#55785b;}
+html,body{background:var(--bg)!important;color:var(--ink);}
+body{font-family:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;}
+.wrap{width:calc(100% - 40px)!important;max-width:1180px!important;margin-inline:auto!important;padding:28px 0 48px!important;gap:22px!important;}
+#view-semaine:not([hidden]){grid-template-columns:minmax(270px,340px) minmax(0,1fr)!important;gap:20px!important;align-items:start;}
+#view-courses:not([hidden]),#view-cuisine:not([hidden]){width:100%;max-width:none;}
+h1,h2,h3,h4{color:var(--ink);letter-spacing:-.025em;}
+.tabs{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;background:transparent;border-bottom:1px solid var(--line);border-radius:0;padding:0 0 8px;}
+.tabs button{border:1px solid transparent;border-radius:999px;padding:10px 16px;color:var(--muted);background:transparent;font-weight:700;}
+.tabs button[aria-selected=true]{background:var(--accent-soft);color:var(--accent);border-color:#d6e1d2;}
+.gen,.panel,.board,.send-box,.dish,.card,.stat,.rayon,.note,.field{background:var(--surface);border-color:var(--line);border-radius:16px;box-shadow:0 3px 12px rgb(61 50 34 / 4%);}
+.rayon{padding:14px 14px 8px;margin-bottom:12px;}
+.rayon h2{border-bottom:1px solid var(--line);padding-bottom:11px;margin-bottom:5px;}
+.item{min-height:44px;padding:8px 2px;border-bottom-color:#f0ebe2;}
+.item input[type=checkbox]{width:19px;height:19px;accent-color:var(--accent);}
+.what{color:var(--ink);line-height:1.45;}
+.what small{color:var(--muted);}
+.qty{color:#526b54;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;}
+.item.done .what,.item.done .qty{color:#899187;}
+button,select,input,textarea{font-family:inherit;accent-color:var(--accent);}
+button{border-radius:10px;transition:background-color .16s ease,border-color .16s ease;}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #bdcdae;outline-offset:2px;}
+.go,.primary,.btn-primary{background:var(--accent);color:#fffdf8;border-color:var(--accent);}
+.go:hover,.primary:hover,.btn-primary:hover{background:#4d694f;}
+.ghost,.reset{background:var(--surface);color:var(--ink);border-color:var(--line);}
+a{color:var(--accent);}
+@media(max-width:850px){.wrap{width:calc(100% - 28px)!important;padding-top:18px!important;}#view-semaine:not([hidden]){grid-template-columns:minmax(0,1fr)!important;gap:16px!important;}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important;scroll-behavior:auto!important;}}
+</style>
 </body></html>
